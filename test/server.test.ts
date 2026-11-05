@@ -74,7 +74,7 @@ describe('protocol eras', () => {
       params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
     })
     const body = await asRpc(res)
-    expect(body.result?.['serverInfo']).toMatchObject({ name: 'baz' })
+    expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoirse' })
   })
 
   it('serves server/discover on the 2026-07-28 path', async () => {
@@ -89,7 +89,7 @@ describe('protocol eras', () => {
 })
 
 describe('tools/list', () => {
-  const expectedNames = ['baz_act', 'baz_say', 'baz_start', 'baz_status']
+  const expectedNames = ['saoirse_act', 'saoirse_say', 'saoirse_start', 'saoirse_status']
 
   it.each([
     ['modern', () => modernPost(srv.url, 'tools/list')],
@@ -110,7 +110,7 @@ describe('tools/list', () => {
         expect(schema.description, `${tool.name}.${field} needs a description`).toBeTruthy()
       }
     }
-    expect(tools.find((t) => t.name === 'baz_status')?.annotations?.readOnlyHint).toBe(true)
+    expect(tools.find((t) => t.name === 'saoirse_status')?.annotations?.readOnlyHint).toBe(true)
   })
 })
 
@@ -118,8 +118,8 @@ describe('tools/call', () => {
   const call = async (name: string, args: Record<string, unknown>): Promise<Rpc> =>
     asRpc(await modernPost(srv.url, 'tools/call', { name, arguments: args }, name))
 
-  it('baz_start calls the client and returns a handle', async () => {
-    const body = await call('baz_start', { source: 'test' })
+  it('saoirse_start calls the client and returns a handle', async () => {
+    const body = await call('saoirse_start', { source: 'test' })
     expect(baz.start).toHaveBeenCalledWith('test')
     expect(body.result?.['structuredContent']).toMatchObject({
       caseId: 'case-1',
@@ -127,35 +127,40 @@ describe('tools/call', () => {
     })
   })
 
-  it('baz_say relays the message and lists card actions', async () => {
-    const body = await call('baz_say', { handle: HANDLE, message: 'I want to save' })
+  it('saoirse_say relays the message and lists card actions', async () => {
+    const body = await call('saoirse_say', { handle: HANDLE, message: 'I want to save' })
     expect(baz.say).toHaveBeenCalledWith(HANDLE, 'I want to save')
     const text = (body.result?.['content'] as { text: string }[])[0]?.text ?? ''
-    expect(text).toContain('Hello from Baz')
+    expect(text).toContain('Hello from Saoirse')
     expect(text).toContain('decide_plan')
   })
 
-  it('baz_act validates per-action fields then calls the client', async () => {
+  it('saoirse_act validates per-action fields then calls the client', async () => {
     const planId = '123e4567-e89b-42d3-a456-426614174000'
-    const body = await call('baz_act', { handle: HANDLE, action: 'decide_plan', planId, decision: 'keep' })
+    const body = await call('saoirse_act', {
+      handle: HANDLE,
+      action: 'decide_plan',
+      planId,
+      decision: 'keep',
+    })
     expect(baz.act).toHaveBeenCalledWith(HANDLE, { action: 'decide_plan', planId, decision: 'keep' })
     expect(body.result?.['isError']).toBeUndefined()
   })
 
-  it('baz_act returns isError when an action is missing its fields', async () => {
-    const body = await call('baz_act', { handle: HANDLE, action: 'decide_plan' })
+  it('saoirse_act returns isError when an action is missing its fields', async () => {
+    const body = await call('saoirse_act', { handle: HANDLE, action: 'decide_plan' })
     expect(body.result?.['isError']).toBe(true)
     expect(baz.act).not.toHaveBeenCalled()
   })
 
-  it('baz_status summarises applications', async () => {
-    const body = await call('baz_status', { handle: HANDLE })
+  it('saoirse_status summarises applications', async () => {
+    const body = await call('saoirse_status', { handle: HANDLE })
     expect((body.result?.['content'] as { text: string }[])[0]?.text).toBe('Rainy day: in progress')
   })
 
   it('maps a client failure to an isError result without leaking the handle', async () => {
     baz.say.mockRejectedValueOnce(new Error(`boom ${HANDLE}`))
-    const body = await call('baz_say', { handle: HANDLE, message: 'hi' })
+    const body = await call('saoirse_say', { handle: HANDLE, message: 'hi' })
     expect(body.result?.['isError']).toBe(true)
     expect(JSON.stringify(body)).not.toContain(HANDLE)
   })
@@ -164,8 +169,8 @@ describe('tools/call', () => {
     const res = await modernPost(
       srv.url,
       'tools/call',
-      { name: 'baz_say', arguments: { handle: 'short', message: 'x' } },
-      'baz_say',
+      { name: 'saoirse_say', arguments: { handle: 'short', message: 'x' } },
+      'saoirse_say',
     )
     const body = await asRpc(res)
     expect(baz.say).not.toHaveBeenCalled()

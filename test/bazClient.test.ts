@@ -119,7 +119,7 @@ describe('BazClient routes', () => {
 
   it('act refuses an unknown action without calling a route', async () => {
     const { client, calls } = setup()
-    await expect(client.act(handle, { action: 'nope' })).rejects.toThrow(/not one Baz offers/)
+    await expect(client.act(handle, { action: 'nope' })).rejects.toThrow(/not one Saoirse offers/)
     expect(calls.some((call) => call.url.includes('/cases/'))).toBe(false)
   })
 

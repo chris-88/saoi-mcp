@@ -8,7 +8,10 @@ import { registerTools, SERVER_INSTRUCTIONS } from './tools.js'
 export const VERSION = '0.1.0'
 
 export function createBazServer(baz: BazApi): McpServer {
-  const server = new McpServer({ name: 'baz', version: VERSION }, { instructions: SERVER_INSTRUCTIONS })
+  const server = new McpServer(
+    { name: 'saoirse', title: 'Saoirse (Saoi)', version: VERSION },
+    { instructions: SERVER_INSTRUCTIONS },
+  )
   registerTools(server, baz)
   return server
 }

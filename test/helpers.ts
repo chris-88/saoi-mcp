@@ -7,7 +7,7 @@ import { createHttpServer } from '../src/server.js'
 export const mockBaz = (): { [K in keyof BazApi]: ReturnType<typeof vi.fn<BazApi[K]>> } => ({
   start: vi.fn<BazApi['start']>(() => Promise.resolve({ handle: 'h'.repeat(40), caseId: 'case-1' })),
   say: vi.fn<BazApi['say']>(() =>
-    Promise.resolve({ reply: 'Hello from Baz', cards: [{ type: 'plan_proposal' }] }),
+    Promise.resolve({ reply: 'Hello from Saoirse', cards: [{ type: 'plan_proposal' }] }),
   ),
   act: vi.fn<BazApi['act']>(() =>
     Promise.resolve({

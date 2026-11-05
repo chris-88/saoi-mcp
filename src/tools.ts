@@ -4,11 +4,12 @@ import * as z from 'zod/v4'
 import { BazError, type BazApi } from './bazClient.js'
 
 export const SERVER_INSTRUCTIONS = [
-  'Baz is a conversational banking prototype for Demo Bank. It discovers what the customer',
-  'is trying to do, proposes a plan, offers products as cards, collects what each application',
-  'needs once, and keeps everything across sessions. All data is synthetic: no real account is',
-  'opened and no real money moves. Relay what your user says in their own words with baz_say,',
-  'read back what Baz said, and when a card arrives put the choice to your user before baz_act.',
+  'Saoirse is the conversational banking assistant inside Saoi, a prototype for Demo Bank. She discovers what',
+  'the customer is trying to do, proposes a plan, offers products as cards, collects what each',
+  'application needs once, and keeps everything across sessions. All data is synthetic Demo Bank',
+  'data: no real account is opened and no real money moves. Relay what your user says in their own',
+  'words with saoirse_say, read back what Saoirse said, and when a card arrives put the choice to your',
+  'user before saoirse_act.',
   'Keep the handle; it is the conversation.',
 ].join(' ')
 
@@ -18,7 +19,7 @@ const handle = z
   .string()
   .min(16)
   .max(2000)
-  .describe('Opaque conversation handle returned by baz_start. Pass it back unchanged.')
+  .describe('Opaque conversation handle returned by saoirse_start. Pass it back unchanged.')
 
 export const bazStartInput = z.object({
   source: z
@@ -41,7 +42,7 @@ export const bazSayInput = z.object({
 
 export const bazStatusInput = z.object({ handle })
 
-/** The taps an agent may make for its user; a subset of Baz's case actions. Each mirrors a card. */
+/** The taps an agent may make for its user; a subset of Saoirse's case actions. Each mirrors a card. */
 export const bazActAction = z.discriminatedUnion('action', [
   z.object({
     action: z.literal('select_products'),
@@ -158,21 +159,21 @@ export function actionsFor(cards: readonly unknown[]): readonly string[] {
   )
   const offers: string[] = []
   if (types.has('product_options') || types.has('arrangement'))
-    offers.push('baz_act select_products with the product and catalogueId of each option the user wants')
-  if (types.has('plan_proposal')) offers.push('baz_act decide_plan keep (or not_now) with the planId')
+    offers.push('saoirse_act select_products with the product and catalogueId of each option the user wants')
+  if (types.has('plan_proposal')) offers.push('saoirse_act decide_plan keep (or not_now) with the planId')
   if (types.has('review'))
     offers.push(
-      'baz_act submit_application with the applicationId and the requirementIds of the confirmations the user accepts',
+      'saoirse_act submit_application with the applicationId and the requirementIds of the confirmations the user accepts',
     )
   if (types.has('pause_prompt'))
-    offers.push('baz_act pause_application or resume_application with the applicationId')
-  if (types.has('connect_accounts')) offers.push('baz_act link_accounts with the bank id the user picks')
+    offers.push('saoirse_act pause_application or resume_application with the applicationId')
+  if (types.has('connect_accounts')) offers.push('saoirse_act link_accounts with the bank id the user picks')
   if (types.has('transfer'))
     offers.push(
-      'baz_act initiate_transfer with the fromAccountId, toApplicationId, amount and cadence on the card',
+      'saoirse_act initiate_transfer with the fromAccountId, toApplicationId, amount and cadence on the card',
     )
   if (types.has('sign_in'))
-    offers.push('signing in needs the person and an email code, so it happens in the Baz app, not here')
+    offers.push('signing in needs the person and an email code, so it happens in the Saoi app, not here')
   return offers
 }
 
@@ -196,21 +197,21 @@ async function guarded(run: () => Promise<CallToolResult>): Promise<CallToolResu
   } catch (error) {
     if (error instanceof BazError) return fail(error.message)
     if (error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError'))
-      return fail('Baz took too long to reply. Try again.')
+      return fail('Saoirse took too long to reply. Try again.')
     console.error('tool error:', error instanceof Error ? error.name : 'unknown')
-    return fail('Baz is unavailable right now. Try again shortly.')
+    return fail('Saoirse is unavailable right now. Try again shortly.')
   }
 }
 
 export function registerTools(server: McpServer, baz: BazApi): void {
   server.registerTool(
-    'baz_start',
+    'saoirse_start',
     {
-      title: 'Start a Baz conversation',
+      title: 'Start a Saoirse conversation',
       description:
-        'Start a new conversation with Baz, a conversational banking assistant for Demo Bank. Use this first, ' +
-        'once per customer, before any other baz_ tool. Returns a handle to pass to the other tools and the ' +
-        `opening question Baz asks. ${SYNTHETIC}`,
+        'Start a new conversation with Saoirse, the conversational banking assistant in Saoi, for Demo Bank. Use this first, ' +
+        'once per customer, before any other saoirse_ tool. Returns a handle to pass to the other tools and the ' +
+        `opening question Saoirse asks. ${SYNTHETIC}`,
       inputSchema: bazStartInput,
       annotations: {
         readOnlyHint: false,
@@ -223,21 +224,21 @@ export function registerTools(server: McpServer, baz: BazApi): void {
       guarded(async () => {
         const started = await baz.start(source)
         return ok(
-          'Baz is ready. It opens with one question: "What are you trying to do?" Relay your user\'s answer in their own words with baz_say. Keep the handle.',
+          'Saoirse is ready. She opens with one question: "What are you trying to do?" Relay your user\'s answer in their own words with saoirse_say. Keep the handle.',
           { handle: started.handle, caseId: started.caseId, opening: 'What are you trying to do?' },
         )
       }),
   )
 
   server.registerTool(
-    'baz_say',
+    'saoirse_say',
     {
-      title: 'Say something to Baz',
+      title: 'Say something to Saoirse',
       description:
-        "Say something to Baz as the customer, in the customer's own words, and get Baz's reply. Use this for " +
-        'every customer message after baz_start. The reply comes with any cards Baz put on screen as data ' +
-        '(product options, a plan, a review) and the baz_act actions each card offers. A card is a decision for ' +
-        `your user: put it to them before you call baz_act. ${SYNTHETIC}`,
+        "Say something to Saoirse as the customer, in the customer's own words, and get Saoirse's reply. Use this for " +
+        'every customer message after saoirse_start. The reply comes with any cards Saoirse put on screen as data ' +
+        '(product options, a plan, a review) and the saoirse_act actions each card offers. A card is a decision for ' +
+        `your user: put it to them before you call saoirse_act. ${SYNTHETIC}`,
       inputSchema: bazSayInput,
       annotations: {
         readOnlyHint: false,
@@ -255,13 +256,13 @@ export function registerTools(server: McpServer, baz: BazApi): void {
   )
 
   server.registerTool(
-    'baz_act',
+    'saoirse_act',
     {
-      title: 'Tap a Baz card for the user',
+      title: 'Tap a Saoirse card for the user',
       description:
         'Tap a card on behalf of your user, only after they have decided: start the products on an options card, ' +
         'keep or pause a plan, submit a review, link accounts, move money. Never call this without the user ' +
-        'having chosen. Set action, then only the fields that action needs. Baz replies to what was done. ' +
+        'having chosen. Set action, then only the fields that action needs. Saoirse replies to what was done. ' +
         SYNTHETIC,
       inputSchema: bazActInput,
       annotations: {
@@ -278,7 +279,7 @@ export function registerTools(server: McpServer, baz: BazApi): void {
         )
         if (!parsed.success)
           return fail(
-            `baz_act: ${parsed.error.issues.map((issue) => `${issue.path.join('.') || 'action'}: ${issue.message}`).join('; ')}`,
+            `saoirse_act: ${parsed.error.issues.map((issue) => `${issue.path.join('.') || 'action'}: ${issue.message}`).join('; ')}`,
           )
         const result = await baz.act(h, parsed.data)
         const next = actionsFor(result.turn.cards)
@@ -292,9 +293,9 @@ export function registerTools(server: McpServer, baz: BazApi): void {
   )
 
   server.registerTool(
-    'baz_status',
+    'saoirse_status',
     {
-      title: 'Baz application status',
+      title: 'Saoirse application status',
       description:
         'Where everything stands: the applications on the case and the state of each. Use it when the user asks ' +
         `"where are we" or after an action. Read-only. ${SYNTHETIC}`,

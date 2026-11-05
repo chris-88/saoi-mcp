@@ -98,7 +98,8 @@ export function readTurn(raw: string): TurnResult {
     else if (event['type'] === 'card') cards.push(event['card'])
     else if (event['type'] === 'error') {
       const err = event['error']
-      failure = isRecord(err) && typeof err['message'] === 'string' ? err['message'] : 'Baz could not reply.'
+      failure =
+        isRecord(err) && typeof err['message'] === 'string' ? err['message'] : 'Saoirse could not reply.'
     }
   }
   if (failure !== null) throw new BazError(failure)
@@ -143,7 +144,7 @@ function routeFor(caseId: string, action: Action): { path: string; body: unknown
         },
       }
     default:
-      throw new BazError('That action is not one Baz offers.')
+      throw new BazError('That action is not one Saoirse offers.')
   }
 }
 
@@ -190,12 +191,14 @@ export class BazClient implements BazApi {
     try {
       body = await response.json()
     } catch {
-      throw new BazError(`Baz service error (HTTP ${response.status}).`)
+      throw new BazError(`Saoirse service error (HTTP ${response.status}).`)
     }
     if (!response.ok) {
       const error = isRecord(body) ? (body as Partial<Schemas['ErrorResponse']>).error : undefined
       throw new BazError(
-        typeof error?.message === 'string' ? error.message : `Baz service error (HTTP ${response.status}).`,
+        typeof error?.message === 'string'
+          ? error.message
+          : `Saoirse service error (HTTP ${response.status}).`,
       )
     }
     return body
@@ -205,7 +208,7 @@ export class BazClient implements BazApi {
     const request: Schemas['StartSession'] = { mode: 'new', ...(source === undefined ? {} : { source }) }
     const data = await this.json(await this.api(token, 'POST', '/api/sessions', request))
     if (!isRecord(data) || typeof data['caseId'] !== 'string')
-      throw new BazError('Baz did not return a case.')
+      throw new BazError('Saoirse did not return a case.')
     return data['caseId']
   }
 

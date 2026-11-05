@@ -1,15 +1,23 @@
 /**
- * Thin HTTP client for the Baz services on the self-hosted Supabase stack: auth, the
- * `session`, `baz-turn` and `case-action` edge functions, and the applications table.
+ * Thin HTTP client for Baz: Supabase auth (to mint and sign in the synthetic customer) and the
+ * `baz-api` service's `/api` routes (sessions, turns, case actions, snapshot). Request and
+ * response types come from the service's OpenAPI document (`npm run gen`).
  *
  * The handle is a documented prototype shortcut (OAuth comes later): an opaque string that
  * encodes the synthetic credential of a user minted at `start`. Handles are never logged.
  */
 
+import type { components } from './generated/baz-api.js'
+
 export class BazError extends Error {}
 
+type Schemas = components['schemas']
+
 export interface BazClientOptions {
+  /** Supabase gateway, used only for auth. */
   readonly baseUrl: string
+  /** The baz-api service, e.g. http://baz-api:3000 (no trailing /api). */
+  readonly apiUrl: string
   readonly anonKey: string
   readonly serviceRoleKey: string
   readonly timeoutMs: number
@@ -49,8 +57,6 @@ interface Credential {
   readonly email: string
   readonly password: string
 }
-
-type Envelope = { ok: true; data: unknown } | { ok: false; error: { code?: string; message?: string } }
 
 export function encodeHandle(credential: Credential): string {
   return Buffer.from(JSON.stringify(credential), 'utf8').toString('base64url')
@@ -99,6 +105,48 @@ export function readTurn(raw: string): TurnResult {
   return { reply: reply.trim(), cards }
 }
 
+/** A card action an agent may take, mapped to one baz-api route each. */
+type Action = Record<string, unknown> & { action?: unknown }
+
+const str = (value: unknown): string => (typeof value === 'string' ? value : '')
+
+/** The route and body for an `act` action. Unknown actions are refused before any call. */
+function routeFor(caseId: string, action: Action): { path: string; body: unknown } {
+  const base = `/api/cases/${encodeURIComponent(caseId)}`
+  const app = `${base}/applications/${encodeURIComponent(str(action['applicationId']))}`
+  switch (action['action']) {
+    case 'select_products':
+      return { path: `${base}/products/select`, body: { products: action['products'] } }
+    case 'decide_plan':
+      return {
+        path: `${base}/plans/${encodeURIComponent(str(action['planId']))}/decisions`,
+        body: { decision: action['decision'] },
+      }
+    case 'submit_application':
+      return { path: `${app}/submit`, body: { confirmations: action['confirmations'] ?? [] } }
+    case 'pause_application':
+      return { path: `${app}/pause`, body: {} }
+    case 'resume_application':
+      return { path: `${app}/resume`, body: {} }
+    case 'decline_product':
+      return { path: `${base}/products/${encodeURIComponent(str(action['product']))}/decline`, body: {} }
+    case 'link_accounts':
+      return { path: `${base}/linked-accounts`, body: { bank: action['bank'], scope: action['scope'] } }
+    case 'initiate_transfer':
+      return {
+        path: `${base}/transfers`,
+        body: {
+          fromAccountId: action['fromAccountId'],
+          toApplicationId: action['toApplicationId'] ?? null,
+          amount: action['amount'],
+          cadence: action['cadence'] ?? 'once',
+        },
+      }
+    default:
+      throw new BazError('That action is not one Baz offers.')
+  }
+}
+
 export class BazClient implements BazApi {
   private readonly doFetch: typeof fetch
 
@@ -106,17 +154,14 @@ export class BazClient implements BazApi {
     this.doFetch = options.fetch ?? fetch
   }
 
-  private request(path: string, init: RequestInit): Promise<Response> {
-    return this.doFetch(`${this.options.baseUrl}${path}`, {
-      ...init,
-      signal: AbortSignal.timeout(this.options.timeoutMs),
-    })
+  private request(url: string, init: RequestInit): Promise<Response> {
+    return this.doFetch(url, { ...init, signal: AbortSignal.timeout(this.options.timeoutMs) })
   }
 
   private async signIn(handle: string): Promise<string> {
     const credential = decodeHandle(handle)
     if (credential === null) throw new BazError(NOT_OURS)
-    const response = await this.request('/auth/v1/token?grant_type=password', {
+    const response = await this.request(`${this.options.baseUrl}/auth/v1/token?grant_type=password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: this.options.anonKey },
       body: JSON.stringify(credential),
@@ -127,46 +172,47 @@ export class BazClient implements BazApi {
     return body['access_token']
   }
 
-  private asCustomer(token: string, fn: string, body: unknown): Promise<Response> {
-    return this.request(`/functions/v1/${fn}`, {
-      method: 'POST',
+  /** Call a baz-api route as the customer. The caller reads the response. */
+  private api(token: string, method: 'GET' | 'POST', path: string, body?: unknown): Promise<Response> {
+    return this.request(`${this.options.apiUrl}${path}`, {
+      method,
       headers: {
-        'Content-Type': 'application/json',
-        apikey: this.options.anonKey,
         Authorization: `Bearer ${token}`,
+        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
-      body: JSON.stringify(body),
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     })
   }
 
-  private async envelope(response: Response): Promise<unknown> {
+  /** A JSON route: the body on success, a BazError carrying the API's own message otherwise. */
+  private async json(response: Response): Promise<unknown> {
     let body: unknown
     try {
       body = await response.json()
     } catch {
       throw new BazError(`Baz service error (HTTP ${response.status}).`)
     }
-    const envelope = body as Envelope
-    if (!isRecord(envelope) || !envelope.ok) {
-      const message = isRecord(envelope) && isRecord(envelope.error) ? envelope.error.message : undefined
+    if (!response.ok) {
+      const error = isRecord(body) ? (body as Partial<Schemas['ErrorResponse']>).error : undefined
       throw new BazError(
-        typeof message === 'string' ? message : `Baz service error (HTTP ${response.status}).`,
+        typeof error?.message === 'string' ? error.message : `Baz service error (HTTP ${response.status}).`,
       )
     }
-    return envelope.data
+    return body
   }
 
   private async caseFor(token: string, source?: string): Promise<string> {
-    const data = await this.envelope(
-      await this.asCustomer(token, 'session', {
-        action: 'start',
-        mode: 'new',
-        ...(source === undefined ? {} : { source }),
-      }),
-    )
+    const request: Schemas['StartSession'] = { mode: 'new', ...(source === undefined ? {} : { source }) }
+    const data = await this.json(await this.api(token, 'POST', '/api/sessions', request))
     if (!isRecord(data) || typeof data['caseId'] !== 'string')
       throw new BazError('Baz did not return a case.')
     return data['caseId']
+  }
+
+  private async turn(token: string, caseId: string, request: Schemas['BazTurnRequest']): Promise<TurnResult> {
+    const response = await this.api(token, 'POST', `/api/cases/${encodeURIComponent(caseId)}/turns`, request)
+    if (!response.ok) await this.json(response)
+    return readTurn(await response.text())
   }
 
   async start(source: string | undefined): Promise<{ handle: string; caseId: string }> {
@@ -174,7 +220,7 @@ export class BazClient implements BazApi {
       email: `agent-${crypto.randomUUID()}@agent.baz.invalid`,
       password: crypto.randomUUID() + crypto.randomUUID(),
     }
-    const created = await this.request('/auth/v1/admin/users', {
+    const created = await this.request(`${this.options.baseUrl}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -193,7 +239,7 @@ export class BazClient implements BazApi {
   async say(handle: string, message: string): Promise<TurnResult> {
     const token = await this.signIn(handle)
     const caseId = await this.caseFor(token)
-    return readTurn(await (await this.asCustomer(token, 'baz-turn', { caseId, message })).text())
+    return this.turn(token, caseId, { trigger: 'message', message })
   }
 
   async act(
@@ -202,29 +248,28 @@ export class BazClient implements BazApi {
   ): Promise<{ done: unknown; summary: string; turn: TurnResult }> {
     const token = await this.signIn(handle)
     const caseId = await this.caseFor(token)
-    const done = await this.envelope(await this.asCustomer(token, 'case-action', { ...action, caseId }))
+    const { path, body } = routeFor(caseId, action)
+    const done = await this.json(await this.api(token, 'POST', path, body))
     const summary = isRecord(done) && typeof done['summary'] === 'string' ? done['summary'] : 'Done.'
     // The app reports a tap to Baz as an action turn, so the agent gets the reply a person would.
-    const turn = readTurn(
-      await (
-        await this.asCustomer(token, 'baz-turn', { caseId, trigger: 'action', message: summary })
-      ).text(),
-    )
+    const turn = await this.turn(token, caseId, { trigger: 'action', message: summary })
     return { done, summary, turn }
   }
 
   async status(handle: string): Promise<{ caseId: string; applications: readonly ApplicationRow[] }> {
     const token = await this.signIn(handle)
     const caseId = await this.caseFor(token)
-    const query = new URLSearchParams({
-      select: 'id,product,display_name,state,catalogue_id',
-      case_id: `eq.${caseId}`,
-    })
-    const response = await this.request(`/rest/v1/applications?${query.toString()}`, {
-      headers: { apikey: this.options.anonKey, Authorization: `Bearer ${token}` },
-    })
-    if (!response.ok) throw new BazError(`Could not read applications (HTTP ${response.status}).`)
-    const rows: unknown = await response.json()
-    return { caseId, applications: Array.isArray(rows) ? (rows as ApplicationRow[]) : [] }
+    const data = await this.json(
+      await this.api(token, 'GET', `/api/cases/${encodeURIComponent(caseId)}/snapshot`),
+    )
+    const rows = isRecord(data) && Array.isArray(data['applications']) ? data['applications'] : []
+    const applications = (rows as Schemas['CaseSnapshot']['applications']).map((row) => ({
+      id: row.id,
+      product: row.product,
+      display_name: null,
+      state: row.state,
+      catalogue_id: row.catalogue_id,
+    }))
+    return { caseId, applications }
   }
 }

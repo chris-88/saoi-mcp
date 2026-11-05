@@ -5,6 +5,7 @@ import { createHttpServer } from './server.js'
 const config = loadConfig()
 const baz = new BazClient({
   baseUrl: config.bazBaseUrl,
+  apiUrl: config.bazApiUrl,
   anonKey: config.bazAnonKey,
   serviceRoleKey: config.bazServiceRoleKey,
   timeoutMs: config.bazTimeoutMs,

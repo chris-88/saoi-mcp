@@ -2,6 +2,7 @@
 export interface Config {
   readonly port: number
   readonly bazBaseUrl: string
+  readonly bazApiUrl: string
   readonly bazAnonKey: string
   readonly bazServiceRoleKey: string
   readonly bazTimeoutMs: number
@@ -28,6 +29,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   return {
     port: Number(env['PORT'] ?? 3000),
     bazBaseUrl: required(env, 'BAZ_BASE_URL').replace(/\/+$/, ''),
+    bazApiUrl: (env['BAZ_API_URL'] ?? 'http://baz-api:3000').replace(/\/+$/, ''),
     bazAnonKey: required(env, 'BAZ_ANON_KEY'),
     bazServiceRoleKey: required(env, 'BAZ_SERVICE_ROLE_KEY'),
     bazTimeoutMs: Number(env['BAZ_TIMEOUT_MS'] ?? 60_000),

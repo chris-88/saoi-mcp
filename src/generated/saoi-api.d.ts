@@ -865,9 +865,9 @@ export interface paths {
         put?: never;
         /**
          * One conversation turn (Server-Sent Events)
-         * @description The port of the `saoi-turn` Edge Function: gate, Saoirse with tools, stream, persist. Send the bearer token in `Authorization`, so read it with `fetch` and not `EventSource`. Only the primary customer may take a turn: a partner is refused (403) and a stranger gets 404.
+         * @description The port of the `saoirse-turn` Edge Function: gate, Saoirse with tools, stream, persist. Send the bearer token in `Authorization`, so read it with `fetch` and not `EventSource`. Only the primary customer may take a turn: a partner is refused (403) and a stranger gets 404.
          *
-         *     The response is `200 text/event-stream` once the request is admitted; a turn that fails after that point fails inside the stream, as an `error` frame, never as a status code. Every frame is `data: <json>` and a blank line, the JSON being a `SaoiStreamEvent`:
+         *     The response is `200 text/event-stream` once the request is admitted; a turn that fails after that point fails inside the stream, as an `error` frame, never as a status code. Every frame is `data: <json>` and a blank line, the JSON being a `SaoirseStreamEvent`:
          *
          *     | `type` | Payload | When |
          *     | --- | --- | --- |
@@ -891,11 +891,11 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["SaoiTurnRequest"];
+                    "application/json": components["schemas"]["SaoirseTurnRequest"];
                 };
             };
             responses: {
-                /** @description The stream. Each `data:` line is a `SaoiStreamEvent`. */
+                /** @description The stream. Each `data:` line is a `SaoirseStreamEvent`. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -5487,7 +5487,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        SaoiStreamEvent: {
+        SaoirseStreamEvent: {
             /** @enum {string} */
             type: "text_delta";
             text: string;
@@ -5999,7 +5999,7 @@ export interface components {
             /** @description The form’s upload control. */
             fieldId?: string;
         };
-        SaoiTurnRequest: {
+        SaoirseTurnRequest: {
             /**
              * @default message
              * @enum {string}
@@ -7040,7 +7040,7 @@ export interface components {
                     application_channels: string[];
                     advice_model: string;
                     related_products: string[];
-                    saoi_usage: {
+                    assistant_usage: {
                         surface_when?: string[];
                         clarify?: string[];
                         must_not_say?: string[];
@@ -7081,7 +7081,7 @@ export interface components {
                 application_channels: string[];
                 advice_model: string;
                 related_products: string[];
-                saoi_usage: {
+                assistant_usage: {
                     surface_when?: string[];
                     clarify?: string[];
                     must_not_say?: string[];

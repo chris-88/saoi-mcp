@@ -215,7 +215,7 @@ export class SaoiClient implements SaoiApi {
   private async turn(
     token: string,
     caseId: string,
-    request: Schemas['SaoiTurnRequest'],
+    request: Schemas['SaoirseTurnRequest'],
   ): Promise<TurnResult> {
     const response = await this.api(token, 'POST', `/api/cases/${encodeURIComponent(caseId)}/turns`, request)
     if (!response.ok) await this.json(response)

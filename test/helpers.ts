@@ -1,22 +1,22 @@
 import type { AddressInfo } from 'node:net'
 import type { Server } from 'node:http'
 import { vi } from 'vitest'
-import type { BazApi } from '../src/bazClient.js'
+import type { SaoiApi } from '../src/saoiClient.js'
 import { createHttpServer } from '../src/server.js'
 
-export const mockBaz = (): { [K in keyof BazApi]: ReturnType<typeof vi.fn<BazApi[K]>> } => ({
-  start: vi.fn<BazApi['start']>(() => Promise.resolve({ handle: 'h'.repeat(40), caseId: 'case-1' })),
-  say: vi.fn<BazApi['say']>(() =>
+export const mockSaoi = (): { [K in keyof SaoiApi]: ReturnType<typeof vi.fn<SaoiApi[K]>> } => ({
+  start: vi.fn<SaoiApi['start']>(() => Promise.resolve({ handle: 'h'.repeat(40), caseId: 'case-1' })),
+  say: vi.fn<SaoiApi['say']>(() =>
     Promise.resolve({ reply: 'Hello from Saoirse', cards: [{ type: 'plan_proposal' }] }),
   ),
-  act: vi.fn<BazApi['act']>(() =>
+  act: vi.fn<SaoiApi['act']>(() =>
     Promise.resolve({
       done: { summary: 'Plan kept' },
       summary: 'Plan kept',
       turn: { reply: 'Great.', cards: [] },
     }),
   ),
-  status: vi.fn<BazApi['status']>(() =>
+  status: vi.fn<SaoiApi['status']>(() =>
     Promise.resolve({
       caseId: 'case-1',
       applications: [
@@ -32,14 +32,14 @@ export interface Running {
   close(): Promise<void>
 }
 
-export async function run(baz: BazApi): Promise<Running> {
+export async function run(saoi: SaoiApi): Promise<Running> {
   const server = createHttpServer(
     {
       allowedHosts: ['mcp.chrisquinn.ie', 'localhost', '127.0.0.1'],
       allowedOrigins: ['claude.ai', 'localhost'],
       keepAliveMs: 25_000,
     },
-    baz,
+    saoi,
   )
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const { port } = server.address() as AddressInfo

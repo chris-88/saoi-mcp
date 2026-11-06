@@ -1,18 +1,18 @@
-import { BazClient } from './bazClient.js'
+import { SaoiClient } from './saoiClient.js'
 import { loadConfig } from './config.js'
 import { createHttpServer } from './server.js'
 
 const config = loadConfig()
-const baz = new BazClient({
-  baseUrl: config.bazBaseUrl,
-  apiUrl: config.bazApiUrl,
-  anonKey: config.bazAnonKey,
-  serviceRoleKey: config.bazServiceRoleKey,
-  timeoutMs: config.bazTimeoutMs,
+const saoi = new SaoiClient({
+  baseUrl: config.saoiBaseUrl,
+  apiUrl: config.saoiApiUrl,
+  anonKey: config.saoiAnonKey,
+  serviceRoleKey: config.saoiServiceRoleKey,
+  timeoutMs: config.saoiTimeoutMs,
 })
-const server = createHttpServer(config, baz)
+const server = createHttpServer(config, saoi)
 server.listen(config.port, () => {
-  console.log(`baz-mcp listening on :${config.port}`)
+  console.log(`saoi-mcp listening on :${config.port}`)
 })
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

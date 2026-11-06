@@ -28,4 +28,4 @@ jobs:
         with:
           context: .
           push: false
-          tags: baz-mcp:ci
+          tags: saoi-mcp:ci

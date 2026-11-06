@@ -865,13 +865,13 @@ export interface paths {
         put?: never;
         /**
          * One conversation turn (Server-Sent Events)
-         * @description The port of the `baz-turn` Edge Function: gate, Baz with tools, stream, persist. Send the bearer token in `Authorization`, so read it with `fetch` and not `EventSource`. Only the primary customer may take a turn: a partner is refused (403) and a stranger gets 404.
+         * @description The port of the `saoi-turn` Edge Function: gate, Saoirse with tools, stream, persist. Send the bearer token in `Authorization`, so read it with `fetch` and not `EventSource`. Only the primary customer may take a turn: a partner is refused (403) and a stranger gets 404.
          *
-         *     The response is `200 text/event-stream` once the request is admitted; a turn that fails after that point fails inside the stream, as an `error` frame, never as a status code. Every frame is `data: <json>` and a blank line, the JSON being a `BazStreamEvent`:
+         *     The response is `200 text/event-stream` once the request is admitted; a turn that fails after that point fails inside the stream, as an `error` frame, never as a status code. Every frame is `data: <json>` and a blank line, the JSON being a `SaoiStreamEvent`:
          *
          *     | `type` | Payload | When |
          *     | --- | --- | --- |
-         *     | `text_delta` | `text` | Baz speaking, as it is written. |
+         *     | `text_delta` | `text` | Saoirse speaking, as it is written. |
          *     | `retract` | `length` | Takes the last `length` characters back: a round that spoke and then had a tool refused. |
          *     | `card` | `card` | A card to render. Held back until the text before it is finished. |
          *     | `status` | `caseId`, `invalidate` | The case changed; refetch. Absent on a blocked turn. |
@@ -891,11 +891,11 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["BazTurnRequest"];
+                    "application/json": components["schemas"]["SaoiTurnRequest"];
                 };
             };
             responses: {
-                /** @description The stream. Each `data:` line is a `BazStreamEvent`. */
+                /** @description The stream. Each `data:` line is a `SaoiStreamEvent`. */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -1058,7 +1058,7 @@ export interface paths {
         put?: never;
         /**
          * Leave a product to one side
-         * @description Declining twice is declining once: the repeat writes no second event. Baz will not raise it again (§49). Was `case-action` `decline_product`.
+         * @description Declining twice is declining once: the repeat writes no second event. Saoirse will not raise it again (§49). Was `case-action` `decline_product`.
          */
         post: {
             parameters: {
@@ -5487,7 +5487,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        BazStreamEvent: {
+        SaoiStreamEvent: {
             /** @enum {string} */
             type: "text_delta";
             text: string;
@@ -5999,7 +5999,7 @@ export interface components {
             /** @description The form’s upload control. */
             fieldId?: string;
         };
-        BazTurnRequest: {
+        SaoiTurnRequest: {
             /**
              * @default message
              * @enum {string}
@@ -6150,7 +6150,7 @@ export interface components {
                 kind: "message";
                 id: string;
                 /** @enum {string} */
-                author: "baz" | "customer";
+                author: "assistant" | "customer";
                 text: string;
                 messageId?: string;
             } | {
@@ -6865,7 +6865,7 @@ export interface components {
             }[];
             conversation: {
                 /** @enum {string} */
-                role: "customer" | "baz" | "system";
+                role: "customer" | "assistant" | "system";
                 content: string;
                 cards: string[];
                 at: string;
@@ -7040,7 +7040,7 @@ export interface components {
                     application_channels: string[];
                     advice_model: string;
                     related_products: string[];
-                    baz_usage: {
+                    saoi_usage: {
                         surface_when?: string[];
                         clarify?: string[];
                         must_not_say?: string[];
@@ -7081,7 +7081,7 @@ export interface components {
                 application_channels: string[];
                 advice_model: string;
                 related_products: string[];
-                baz_usage: {
+                saoi_usage: {
                     surface_when?: string[];
                     clarify?: string[];
                     must_not_say?: string[];

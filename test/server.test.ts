@@ -1,16 +1,16 @@
 import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { legacyPost, mockBaz, modernPost, rpc, run, type Running } from './helpers.js'
+import { legacyPost, mockSaoi, modernPost, rpc, run, type Running } from './helpers.js'
 
 type Rpc = { result?: Record<string, unknown>; error?: { code: number } }
 const asRpc = async (res: Response): Promise<Rpc> => await rpc(res)
 const HANDLE = 'h'.repeat(40)
 
-let baz: ReturnType<typeof mockBaz>
+let saoi: ReturnType<typeof mockSaoi>
 let srv: Running
 beforeEach(async () => {
-  baz = mockBaz()
-  srv = await run(baz)
+  saoi = mockSaoi()
+  srv = await run(saoi)
 })
 afterEach(async () => {
   await srv.close()
@@ -120,7 +120,7 @@ describe('tools/call', () => {
 
   it('saoirse_start calls the client and returns a handle', async () => {
     const body = await call('saoirse_start', { source: 'test' })
-    expect(baz.start).toHaveBeenCalledWith('test')
+    expect(saoi.start).toHaveBeenCalledWith('test')
     expect(body.result?.['structuredContent']).toMatchObject({
       caseId: 'case-1',
       opening: 'What are you trying to do?',
@@ -129,7 +129,7 @@ describe('tools/call', () => {
 
   it('saoirse_say relays the message and lists card actions', async () => {
     const body = await call('saoirse_say', { handle: HANDLE, message: 'I want to save' })
-    expect(baz.say).toHaveBeenCalledWith(HANDLE, 'I want to save')
+    expect(saoi.say).toHaveBeenCalledWith(HANDLE, 'I want to save')
     const text = (body.result?.['content'] as { text: string }[])[0]?.text ?? ''
     expect(text).toContain('Hello from Saoirse')
     expect(text).toContain('decide_plan')
@@ -143,14 +143,14 @@ describe('tools/call', () => {
       planId,
       decision: 'keep',
     })
-    expect(baz.act).toHaveBeenCalledWith(HANDLE, { action: 'decide_plan', planId, decision: 'keep' })
+    expect(saoi.act).toHaveBeenCalledWith(HANDLE, { action: 'decide_plan', planId, decision: 'keep' })
     expect(body.result?.['isError']).toBeUndefined()
   })
 
   it('saoirse_act returns isError when an action is missing its fields', async () => {
     const body = await call('saoirse_act', { handle: HANDLE, action: 'decide_plan' })
     expect(body.result?.['isError']).toBe(true)
-    expect(baz.act).not.toHaveBeenCalled()
+    expect(saoi.act).not.toHaveBeenCalled()
   })
 
   it('saoirse_status summarises applications', async () => {
@@ -159,7 +159,7 @@ describe('tools/call', () => {
   })
 
   it('maps a client failure to an isError result without leaking the handle', async () => {
-    baz.say.mockRejectedValueOnce(new Error(`boom ${HANDLE}`))
+    saoi.say.mockRejectedValueOnce(new Error(`boom ${HANDLE}`))
     const body = await call('saoirse_say', { handle: HANDLE, message: 'hi' })
     expect(body.result?.['isError']).toBe(true)
     expect(JSON.stringify(body)).not.toContain(HANDLE)
@@ -173,7 +173,7 @@ describe('tools/call', () => {
       'saoirse_say',
     )
     const body = await asRpc(res)
-    expect(baz.say).not.toHaveBeenCalled()
+    expect(saoi.say).not.toHaveBeenCalled()
     expect(body.error !== undefined || body.result?.['isError'] === true).toBe(true)
   })
 })

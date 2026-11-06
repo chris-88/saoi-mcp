@@ -1,18 +1,18 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { createMcpHandler, McpServer } from '@modelcontextprotocol/server'
 import { hostHeaderValidation, originValidation, toNodeHandler } from '@modelcontextprotocol/node'
-import type { BazApi } from './bazClient.js'
+import type { SaoiApi } from './saoiClient.js'
 import type { Config } from './config.js'
 import { registerTools, SERVER_INSTRUCTIONS } from './tools.js'
 
 export const VERSION = '0.1.0'
 
-export function createBazServer(baz: BazApi): McpServer {
+export function createSaoiServer(saoi: SaoiApi): McpServer {
   const server = new McpServer(
     { name: 'saoirse', title: 'Saoirse (Saoi)', version: VERSION },
     { instructions: SERVER_INSTRUCTIONS },
   )
-  registerTools(server, baz)
+  registerTools(server, saoi)
   return server
 }
 
@@ -35,9 +35,9 @@ const json = (
  */
 export function createHttpServer(
   config: Pick<Config, 'allowedHosts' | 'allowedOrigins' | 'keepAliveMs'>,
-  baz: BazApi,
+  saoi: SaoiApi,
 ): Server {
-  const handler = createMcpHandler(() => createBazServer(baz), {
+  const handler = createMcpHandler(() => createSaoiServer(saoi), {
     legacy: 'stateless',
     responseMode: 'auto',
     keepAliveMs: config.keepAliveMs,

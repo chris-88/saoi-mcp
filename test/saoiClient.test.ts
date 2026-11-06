@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { BazClient, decodeHandle, encodeHandle, readTurn } from '../src/bazClient.js'
+import { SaoiClient, decodeHandle, encodeHandle, readTurn } from '../src/saoiClient.js'
 
 describe('handles', () => {
   it('round-trips and rejects junk', () => {
@@ -23,10 +23,10 @@ describe('readTurn', () => {
   })
 })
 
-describe('BazClient', () => {
+describe('SaoiClient', () => {
   it('rejects a handle it did not mint without calling the network', async () => {
     const fetchMock = vi.fn<typeof fetch>()
-    const client = new BazClient({
+    const client = new SaoiClient({
       baseUrl: 'http://x',
       apiUrl: 'http://api',
       anonKey: 'a',
@@ -39,9 +39,9 @@ describe('BazClient', () => {
   })
 })
 
-describe('readTurn on a recorded baz-api turn', () => {
+describe('readTurn on a recorded saoi-api turn', () => {
   const recording = JSON.parse(
-    readFileSync(new URL('./recordings/baz-turn-opening.json', import.meta.url), 'utf8'),
+    readFileSync(new URL('./recordings/saoi-turn-opening.json', import.meta.url), 'utf8'),
   ) as { turns: string[] }
 
   it('reads text and the data notice card from the opening turn', () => {
@@ -57,7 +57,7 @@ describe('readTurn on a recorded baz-api turn', () => {
   })
 })
 
-describe('BazClient routes', () => {
+describe('SaoiClient routes', () => {
   const json = (body: unknown, status = 200): Response =>
     new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } })
   const sse = (): Response =>
@@ -67,7 +67,7 @@ describe('BazClient routes', () => {
   const handle = encodeHandle({ email: 'a@b.invalid', password: 'p' })
   const caseId = '0b0c6a0e-6d4e-4a42-9d3f-7a3d4a1d2c11'
 
-  function setup(): { client: BazClient; calls: { url: string; init: RequestInit | undefined }[] } {
+  function setup(): { client: SaoiClient; calls: { url: string; init: RequestInit | undefined }[] } {
     const calls: { url: string; init: RequestInit | undefined }[] = []
     const fetchMock = vi.fn<typeof fetch>((input, init) => {
       const url = input as string
@@ -86,7 +86,7 @@ describe('BazClient routes', () => {
       return Promise.resolve(json({ ok: false, error: { code: 'not_found', message: 'No such thing' } }, 404))
     })
     return {
-      client: new BazClient({
+      client: new SaoiClient({
         baseUrl: 'http://sb',
         apiUrl: 'http://api',
         anonKey: 'a',

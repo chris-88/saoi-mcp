@@ -1,11 +1,11 @@
 /** Runtime configuration, read once from the environment. Values are never logged. */
 export interface Config {
   readonly port: number
-  readonly bazBaseUrl: string
-  readonly bazApiUrl: string
-  readonly bazAnonKey: string
-  readonly bazServiceRoleKey: string
-  readonly bazTimeoutMs: number
+  readonly saoiBaseUrl: string
+  readonly saoiApiUrl: string
+  readonly saoiAnonKey: string
+  readonly saoiServiceRoleKey: string
+  readonly saoiTimeoutMs: number
   readonly allowedHosts: readonly string[]
   readonly allowedOrigins: readonly string[]
   readonly keepAliveMs: number
@@ -28,11 +28,11 @@ const required = (env: NodeJS.ProcessEnv, name: string): string => {
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   return {
     port: Number(env['PORT'] ?? 3000),
-    bazBaseUrl: required(env, 'BAZ_BASE_URL').replace(/\/+$/, ''),
-    bazApiUrl: (env['BAZ_API_URL'] ?? 'http://baz-api:3000').replace(/\/+$/, ''),
-    bazAnonKey: required(env, 'BAZ_ANON_KEY'),
-    bazServiceRoleKey: required(env, 'BAZ_SERVICE_ROLE_KEY'),
-    bazTimeoutMs: Number(env['BAZ_TIMEOUT_MS'] ?? 60_000),
+    saoiBaseUrl: required(env, 'SAOI_BASE_URL').replace(/\/+$/, ''),
+    saoiApiUrl: (env['SAOI_API_URL'] ?? 'http://saoi-api:3000').replace(/\/+$/, ''),
+    saoiAnonKey: required(env, 'SAOI_ANON_KEY'),
+    saoiServiceRoleKey: required(env, 'SAOI_SERVICE_ROLE_KEY'),
+    saoiTimeoutMs: Number(env['SAOI_TIMEOUT_MS'] ?? 60_000),
     allowedHosts: list(env['ALLOWED_HOSTS'], ['mcp.chrisquinn.ie', 'localhost', '127.0.0.1', '[::1]']),
     allowedOrigins: list(env['ALLOWED_ORIGINS'], [
       'mcp.chrisquinn.ie',

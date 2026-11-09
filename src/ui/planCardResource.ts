@@ -79,7 +79,7 @@ p, h2, h3, ul, ol { margin: 0; }
 .position { display: grid; gap: 4px; padding-top: 6px; }
 .total { font-size: var(--font-heading-md-size, 16px); font-weight: 600; }
 .product-name { min-width: 0; }
-.products.section { margin: 0; gap: 0; }
+.products.section { margin: 0; gap: 0; padding: 4px 16px; }
 .products.section > li { padding: 6px 0; }
 .products.section > li + li { border-top: 1px solid var(--line); }
 .folds { border-top: 1px solid var(--line); }
@@ -121,6 +121,7 @@ p, h2, h3, ul, ol { margin: 0; }
 .claim { color: var(--saoi); word-break: break-all; }
 .strong { font-weight: 600; }
 .muted { color: var(--fg3); }
+.muted-strong { color: var(--fg2); }
 .small { font-size: 12.5px; }
 .block { display: block; }
 .num { font-variant-numeric: tabular-nums; }

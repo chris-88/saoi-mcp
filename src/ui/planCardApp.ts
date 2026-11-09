@@ -147,6 +147,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
 
     const found = el('div', 'found')
     found.append(el('p', 'found-headline', view.moneyFound.headline))
+    if (view.moneyFound.note !== null) found.append(el('p', 'small muted-strong', view.moneyFound.note))
     root.append(found)
 
     const summary = el('section', 'section')

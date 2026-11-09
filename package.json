@@ -1,7 +1,7 @@
 {
   "name": "saoi-mcp",
-  "version": "0.1.0",
-  "description": "MCP server exposing Saoirse (a synthetic Demo Bank conversational assistant) as tools",
+  "version": "0.2.0",
+  "description": "MCP server for Saoi: compare Irish savings, deposit, mortgage and loan products against the customer's own figures",
   "license": "AGPL-3.0-only",
   "author": "Chris Quinn",
   "type": "module",
@@ -18,7 +18,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
-    "gen": "openapi-typescript \"${SAOI_OPENAPI_URL:-https://api.saoi.ie/api/openapi.json}\" -o src/generated/saoi-api.d.ts",
+    "gen": "node scripts/gen-operations.mjs && openapi-typescript \"${SAOI_OPENAPI_URL:-https://api.saoi.ie/api/openapi.json}\" -o src/generated/saoi-api.d.ts",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run build"
   },
   "dependencies": {

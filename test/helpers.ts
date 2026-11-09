@@ -1,29 +1,48 @@
 import type { AddressInfo } from 'node:net'
 import type { Server } from 'node:http'
 import { vi } from 'vitest'
-import type { SaoiApi } from '../src/saoiClient.js'
+import { readFileSync } from 'node:fs'
+import type {
+  About,
+  BuildPlanResult,
+  DebtResult,
+  MortgageResult,
+  ProductDetail,
+  ProjectionResult,
+  ReviewResult,
+  SaoiApi,
+  SavePlanResult,
+  SearchResult,
+} from '../src/saoiClient.js'
 import { createHttpServer } from '../src/server.js'
 
+const recording = (name: string): unknown =>
+  JSON.parse(readFileSync(new URL(`./recordings/${name}.json`, import.meta.url), 'utf8'))
+
+/** saoi-api's own answers, recorded live on 2026-11-09 for the design note's worked example. */
+export const recorded = {
+  search: recording('search') as SearchResult,
+  product: recording('product') as ProductDetail,
+  review: recording('review') as ReviewResult,
+  projection: recording('projection') as ProjectionResult,
+  affordability: recording('afford') as MortgageResult,
+  switch: recording('switch') as MortgageResult,
+  debt: recording('debt') as DebtResult,
+  plan: recording('plan') as BuildPlanResult,
+  ranking: recording('ranking') as About,
+  saved: recording('saved') as SavePlanResult,
+}
+
 export const mockSaoi = (): { [K in keyof SaoiApi]: ReturnType<typeof vi.fn<SaoiApi[K]>> } => ({
-  start: vi.fn<SaoiApi['start']>(() => Promise.resolve({ handle: 'h'.repeat(40), caseId: 'case-1' })),
-  say: vi.fn<SaoiApi['say']>(() =>
-    Promise.resolve({ reply: 'Hello from Saoirse', cards: [{ type: 'plan_proposal' }] }),
-  ),
-  act: vi.fn<SaoiApi['act']>(() =>
-    Promise.resolve({
-      done: { summary: 'Plan kept' },
-      summary: 'Plan kept',
-      turn: { reply: 'Great.', cards: [] },
-    }),
-  ),
-  status: vi.fn<SaoiApi['status']>(() =>
-    Promise.resolve({
-      caseId: 'case-1',
-      applications: [
-        { id: 'a1', product: 'savings', display_name: 'Rainy day', state: 'in_progress', catalogue_id: null },
-      ],
-    }),
-  ),
+  search: vi.fn<SaoiApi['search']>(() => Promise.resolve(recorded.search)),
+  product: vi.fn<SaoiApi['product']>(() => Promise.resolve(recorded.product)),
+  about: vi.fn<SaoiApi['about']>(() => Promise.resolve(recorded.ranking)),
+  review: vi.fn<SaoiApi['review']>(() => Promise.resolve(recorded.review)),
+  projection: vi.fn<SaoiApi['projection']>(() => Promise.resolve(recorded.projection)),
+  mortgage: vi.fn<SaoiApi['mortgage']>(() => Promise.resolve(recorded.affordability)),
+  debt: vi.fn<SaoiApi['debt']>(() => Promise.resolve(recorded.debt)),
+  buildPlan: vi.fn<SaoiApi['buildPlan']>(() => Promise.resolve(recorded.plan)),
+  savePlan: vi.fn<SaoiApi['savePlan']>(() => Promise.resolve(recorded.saved)),
 })
 
 export interface Running {
@@ -35,7 +54,7 @@ export interface Running {
 export async function run(saoi: SaoiApi): Promise<Running> {
   const server = createHttpServer(
     {
-      allowedHosts: ['mcp.chrisquinn.ie', 'localhost', '127.0.0.1'],
+      allowedHosts: ['mcp.saoi.ie', 'localhost', '127.0.0.1'],
       allowedOrigins: ['claude.ai', 'localhost'],
       keepAliveMs: 25_000,
     },

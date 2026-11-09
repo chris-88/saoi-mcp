@@ -1,0 +1,98 @@
+{
+  "product": {
+    "id": "boi:savings.supersaver",
+    "provider": "boi",
+    "providerName": "Bank of Ireland",
+    "name": "SuperSaver Account",
+    "category": "savings",
+    "terms": {
+      "kind": "deposit",
+      "access": "instant",
+      "noticeDays": null,
+      "aerPct": 3,
+      "basis": "fixed",
+      "bands": [
+        { "fromEur": 0, "toEur": 30000, "aerPct": 3 },
+        { "fromEur": 30000, "toEur": null, "aerPct": 0.5 }
+      ],
+      "lumpSumAerPct": null,
+      "introductory": { "months": 12, "thenAerPct": 2 },
+      "ladder": [],
+      "takesMonthly": true,
+      "takesLumpSum": false,
+      "minMonthlyEur": 5,
+      "maxMonthlyEur": 2500,
+      "minLumpSumEur": null,
+      "maxLumpSumEur": null,
+      "dirtApplies": true,
+      "bonus": null
+    },
+    "provenance": {
+      "source": "bank",
+      "sourceUrl": "https://personalbanking.bankofireland.com/save-and-invest/savings/regular-savings-accounts/supersaver-account/features-and-benefits/",
+      "providerUrl": null,
+      "checkedAt": "2026-11-09T12:14:36.808Z",
+      "lastChangedAt": null,
+      "firstRecordedAt": "2026-11-09T11:11:34.734Z",
+      "attribution": null,
+      "rows": [{ "source": "bank", "productId": "savings.supersaver" }],
+      "preferredOver": [
+        { "source": "ccpc", "productId": "savings.c5047", "providerProductName": "SuperSaver Account" }
+      ]
+    },
+    "platform": null,
+    "depositGuarantee": {
+      "scheme": "Deposit Guarantee Scheme (Central Bank of Ireland)",
+      "country": "Ireland",
+      "coverEur": 100000,
+      "basis": "recorded_by_saoi"
+    },
+    "unknowns": [],
+    "checks": [
+      "Minimum age 16.",
+      "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."
+    ]
+  },
+  "history": [
+    {
+      "source": "ccpc",
+      "productId": "savings.c5047",
+      "from": "2026-11-09T12:14:36.808Z",
+      "to": null,
+      "headline": "3.00% AER"
+    },
+    {
+      "source": "bank",
+      "productId": "savings.supersaver",
+      "from": "2026-11-09T11:11:34.734Z",
+      "to": null,
+      "headline": "3.00% AER"
+    }
+  ],
+  "verbatim": [
+    { "source": "bank", "productId": "savings.supersaver", "prose": {}, "details": {} },
+    {
+      "source": "ccpc",
+      "productId": "savings.c5047",
+      "prose": { "Introductory offers": "Get a fixed regular savings rate for 12 months" },
+      "details": {
+        "DIRT applicable:": "1",
+        "CCPC provider name": "Bank of Ireland",
+        "Interest rate(AER):": "3.00",
+        "Introductory offers:": "Get a fixed regular savings rate for 12 months",
+        "Penalty rates/details:": "N/a",
+        "Total maximum savings:": "N/a",
+        "Withdrawal notice period:": "Instant access",
+        "Date of interest payments:": "Annually on the anniversary of the first direct debit",
+        "Use tiers for calculations": "1",
+        "Maximum lodgement per month:": "€2,500",
+        "Minimum lodgement per month:": "€5",
+        "Ability to take payment holiday:": "No",
+        "Minimum savings period (months):": "No minimum",
+        "Ability to change monthly savings amount:": "Yes",
+        "Direct debit or standing order regular payment requirement:": "Monthly Direct Debit only",
+        "Maximum number of withdrawals allowed per year without penalty:": "No maximum"
+      }
+    }
+  ]
+}

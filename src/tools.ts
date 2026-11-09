@@ -1,218 +1,221 @@
-import type { CallToolResult } from '@modelcontextprotocol/server'
-import { McpServer } from '@modelcontextprotocol/server'
+import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/server'
+import { fromJsonSchema, McpServer } from '@modelcontextprotocol/server'
 import * as z from 'zod/v4'
-import { SaoiError, type SaoiApi } from './saoiClient.js'
+import { OPERATIONS } from './generated/operations.js'
+import {
+  renderAbout,
+  renderDebt,
+  renderMortgage,
+  renderPlan,
+  renderProduct,
+  renderProjection,
+  renderReview,
+  renderSaved,
+  renderSearch,
+} from './render.js'
+import { SaoiError, type Body, type SaoiApi } from './saoiClient.js'
 
 export const SERVER_INSTRUCTIONS = [
-  'Saoirse is the conversational banking assistant inside Saoi, a prototype for Demo Bank. She discovers what',
-  'the customer is trying to do, proposes a plan, offers products as cards, collects what each',
-  'application needs once, and keeps everything across sessions. All data is synthetic Demo Bank',
-  'data: no real account is opened and no real money moves. Relay what your user says in their own',
-  'words with saoirse_say, read back what Saoirse said, and when a card arrives put the choice to your',
-  'user before saoirse_act.',
-  'Keep the handle; it is the conversation.',
+  'Saoi compares Irish savings, deposit, mortgage, loan, credit card and current account products against',
+  "the customer's own figures, and does the arithmetic: interest after DIRT, repayments, total cost, the",
+  'month a goal is reached. Every tool is deterministic; quote its figures rather than working them out.',
+  'Results are information, not advice: each is ranked by a stated objective the customer can change, and',
+  'carries its source, when it was checked, what the data does not say, and eligibility to check. Show the',
+  'CCPC attribution with CCPC figures. Nothing is stored until saoi_save_plan. The money-check-up prompt',
+  'walks through it: situation, saoi_review_situation, goals, saoi_build_plan, then an offer to save.',
 ].join(' ')
 
-const SYNTHETIC = 'All data is synthetic Demo Bank data; nothing real is opened or moved.'
-
-const handle = z
-  .string()
-  .min(16)
-  .max(2000)
-  .describe('Opaque conversation handle returned by saoirse_start. Pass it back unchanged.')
-
-export const saoirseStartInput = z.object({
-  source: z
-    .string()
-    .trim()
-    .max(40)
-    .optional()
-    .describe('Optional short label for where the user came from, e.g. "claude".'),
-})
-
-export const saoirseSayInput = z.object({
-  handle,
-  message: z
-    .string()
-    .trim()
-    .min(1)
-    .max(2000)
-    .describe("What the customer said, in the customer's own words (max 2000 characters)."),
-})
-
-export const saoirseStatusInput = z.object({ handle })
-
-/** The taps an agent may make for its user; a subset of Saoirse's case actions. Each mirrors a card. */
-export const saoirseActAction = z.discriminatedUnion('action', [
-  z.object({
-    action: z.literal('select_products'),
-    products: z
-      .array(
-        z.object({ product: z.string().min(1).max(40), catalogueId: z.string().min(1).max(80).optional() }),
-      )
-      .min(1)
-      .max(6),
-  }),
-  z.object({
-    action: z.literal('decide_plan'),
-    planId: z.uuid(),
-    decision: z.enum(['keep', 'not_now', 'pause', 'resume', 'abandon']),
-  }),
-  z.object({
-    action: z.literal('submit_application'),
-    applicationId: z.uuid(),
-    confirmations: z.array(z.string().min(1).max(80)).max(40).default([]),
-  }),
-  z.object({ action: z.literal('pause_application'), applicationId: z.uuid() }),
-  z.object({ action: z.literal('resume_application'), applicationId: z.uuid() }),
-  z.object({ action: z.literal('decline_product'), product: z.string().min(1).max(40) }),
-  z.object({
-    action: z.literal('link_accounts'),
-    bank: z.string().min(1).max(40),
-    scope: z
-      .array(z.enum(['balances', 'transactions', 'payments']))
-      .min(1)
-      .default(['balances', 'transactions', 'payments']),
-  }),
-  z.object({
-    action: z.literal('initiate_transfer'),
-    fromAccountId: z.uuid(),
-    toApplicationId: z.uuid().nullable(),
-    amount: z.number().positive(),
-    cadence: z.enum(['once', 'monthly']).default('once'),
-  }),
-])
-
-/**
- * The tool-facing input is one flat object (many MCP clients reject a top-level `oneOf`); the
- * handler then validates the fields each action needs against `saoirseActAction`.
- */
-export const saoirseActInput = z.object({
-  handle,
-  action: z
-    .enum([
-      'select_products',
-      'decide_plan',
-      'submit_application',
-      'pause_application',
-      'resume_application',
-      'decline_product',
-      'link_accounts',
-      'initiate_transfer',
-    ])
-    .describe('Which card action to take. Each action needs its own fields below.'),
-  products: z
-    .array(
-      z.object({
-        product: z.string().min(1).max(40).describe('Product key from the options card.'),
-        catalogueId: z.string().min(1).max(80).optional().describe('Catalogue id from the options card.'),
-      }),
-    )
-    .min(1)
-    .max(6)
-    .optional()
-    .describe('select_products: the options the user chose (1 to 6).'),
-  planId: z.uuid().optional().describe('decide_plan: id of the plan on the plan_proposal card.'),
-  decision: z
-    .enum(['keep', 'not_now', 'pause', 'resume', 'abandon'])
-    .optional()
-    .describe('decide_plan: what the user decided about the plan.'),
-  applicationId: z
-    .uuid()
-    .optional()
-    .describe('submit_application, pause_application, resume_application: the application id.'),
-  confirmations: z
-    .array(z.string().min(1).max(80))
-    .max(40)
-    .optional()
-    .describe('submit_application: requirement ids of the confirmations the user accepted.'),
-  product: z
-    .string()
-    .min(1)
-    .max(40)
-    .optional()
-    .describe('decline_product: the product key the user declined.'),
-  bank: z.string().min(1).max(40).optional().describe('link_accounts: the bank id the user picked.'),
-  scope: z
-    .array(z.enum(['balances', 'transactions', 'payments']))
-    .min(1)
-    .optional()
-    .describe('link_accounts: what access to grant (default all three).'),
-  fromAccountId: z.uuid().optional().describe('initiate_transfer: source account id from the transfer card.'),
-  toApplicationId: z
-    .uuid()
-    .nullable()
-    .optional()
-    .describe('initiate_transfer: destination application id from the transfer card, or null.'),
-  amount: z.number().positive().optional().describe('initiate_transfer: amount in euro (positive).'),
-  cadence: z.enum(['once', 'monthly']).optional().describe('initiate_transfer: once (default) or monthly.'),
-})
-
-/** What an agent may do with each card, said once per card type so it never has to guess. */
-export function actionsFor(cards: readonly unknown[]): readonly string[] {
-  const types = new Set(
-    cards.flatMap((card) =>
-      typeof card === 'object' && card !== null && typeof (card as { type?: unknown }).type === 'string'
-        ? [(card as { type: string }).type]
-        : [],
-    ),
-  )
-  const offers: string[] = []
-  if (types.has('product_options') || types.has('arrangement'))
-    offers.push('saoirse_act select_products with the product and catalogueId of each option the user wants')
-  if (types.has('plan_proposal')) offers.push('saoirse_act decide_plan keep (or not_now) with the planId')
-  if (types.has('review'))
-    offers.push(
-      'saoirse_act submit_application with the applicationId and the requirementIds of the confirmations the user accepts',
-    )
-  if (types.has('pause_prompt'))
-    offers.push('saoirse_act pause_application or resume_application with the applicationId')
-  if (types.has('connect_accounts')) offers.push('saoirse_act link_accounts with the bank id the user picks')
-  if (types.has('transfer'))
-    offers.push(
-      'saoirse_act initiate_transfer with the fromAccountId, toApplicationId, amount and cadence on the card',
-    )
-  if (types.has('sign_in'))
-    offers.push('signing in needs the person and an email code, so it happens in the Saoi app, not here')
-  return offers
+const READ_ONLY: ToolAnnotations = {
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
 }
 
-const ok = (text: string, structuredContent: Record<string, unknown>): CallToolResult => ({
+type Name = keyof typeof OPERATIONS
+
+const describe = (name: Name, when: string): string => {
+  const operation = OPERATIONS[name]
+  return `${when} ${operation.summary}. ${operation.description}`
+}
+
+const ok = (text: string, structuredContent: object): CallToolResult => ({
   content: [{ type: 'text', text }],
-  structuredContent,
+  structuredContent: structuredContent,
 })
 
 const fail = (text: string): CallToolResult => ({ content: [{ type: 'text', text }], isError: true })
 
-const withOffers = (reply: string, offers: readonly string[]): string =>
-  [
-    reply,
-    ...(offers.length > 0 ? ['', 'Cards on screen offer:', ...offers.map((offer) => `- ${offer}`)] : []),
-  ].join('\n')
-
-/** Business failures become `isError` results with a plain message; detail never includes handles. */
-async function guarded(run: () => Promise<CallToolResult>): Promise<CallToolResult> {
+/** Errors become results the model can act on; nothing internal is passed through. */
+async function guarded(work: () => Promise<CallToolResult>): Promise<CallToolResult> {
   try {
-    return await run()
+    return await work()
   } catch (error) {
-    if (error instanceof SaoiError) return fail(error.message)
-    if (error instanceof DOMException && (error.name === 'TimeoutError' || error.name === 'AbortError'))
-      return fail('Saoirse took too long to reply. Try again.')
+    if (error instanceof SaoiError) {
+      if (error.status === 429) {
+        return fail(
+          `Saoi is limiting requests from this address. Try again in ${error.retryAfter ?? 'a minute'} seconds.`,
+        )
+      }
+      const details = error.details.length === 0 ? '' : `\n${error.details.map((d) => `- ${d}`).join('\n')}`
+      return fail(`${error.message}${details}`)
+    }
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      return fail('Saoi took too long to answer. Try again.')
+    }
     console.error('tool error:', error instanceof Error ? error.name : 'unknown')
-    return fail('Saoirse is unavailable right now. Try again shortly.')
+    return fail('Saoi is unavailable right now. Try again shortly.')
   }
 }
 
-export function registerTools(server: McpServer, saoi: SaoiApi): void {
+const input = (name: Name) => fromJsonSchema<Body>(OPERATIONS[name].inputSchema)
+
+/** `ip` is the end user's address from the request this server instance serves, if known. */
+export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): void {
   server.registerTool(
-    'saoirse_start',
+    'saoi_review_situation',
     {
-      title: 'Start a Saoirse conversation',
+      title: 'Review a money situation',
+      description: describe(
+        'saoi_review_situation',
+        'Use first, once the customer has described their money: income, outgoings, savings with what they earn, debts with rates.',
+      ),
+      inputSchema: input('saoi_review_situation'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.review(args, ip)
+        return ok(renderReview(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_search_products',
+    {
+      title: 'Search and rank products',
+      description: describe(
+        'saoi_search_products',
+        'Use to compare products in one category for the customer’s amounts.',
+      ),
+      inputSchema: input('saoi_search_products'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.search(args, ip)
+        return ok(renderSearch(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_product',
+    {
+      title: 'One product in full',
+      description: describe(
+        'saoi_product',
+        'Use when the customer asks about one product from a result: its terms, history, unknowns, source and the provider’s own words.',
+      ),
+      inputSchema: fromJsonSchema<{ id: string }>({
+        ...OPERATIONS.saoi_product.inputSchema,
+        properties: {
+          id: {
+            ...OPERATIONS.saoi_product.inputSchema.properties.id,
+            description: 'A product id from a search or plan result, e.g. "boi:savings.supersaver".',
+          },
+        },
+      }),
+      annotations: READ_ONLY,
+    },
+    ({ id }) =>
+      guarded(async () => {
+        const result = await saoi.product(id, ip)
+        return ok(renderProduct(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_savings_projection',
+    {
+      title: 'Project savings month by month',
+      description: describe(
+        'saoi_savings_projection',
+        'Use to show how savings grow, or when a target is reached, in named products or the best available.',
+      ),
+      inputSchema: input('saoi_savings_projection'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.projection(args, ip)
+        return ok(renderProjection(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_mortgage',
+    {
+      title: 'Mortgage affordability or switch',
+      description: describe(
+        'saoi_mortgage',
+        'Use for "how much can I borrow / what does my deposit unlock" (mode affordability) or "is it worth switching" (mode switch). Send the fields of the chosen mode only.',
+      ),
+      inputSchema: input('saoi_mortgage'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.mortgage(args, ip)
+        return ok(renderMortgage(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_debt',
+    {
+      title: 'What debts cost',
+      description: describe(
+        'saoi_debt',
+        'Use when the customer has debts: what each costs, which to clear first, overpaying against saving, and cheaper refinancing.',
+      ),
+      inputSchema: input('saoi_debt'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.debt(args, ip)
+        return ok(renderDebt(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_build_plan',
+    {
+      title: 'Build a plan for the customer’s goals',
+      description: describe(
+        'saoi_build_plan',
+        'Use once the customer has chosen their goals. Returns the plan with its reasoning; offer saoi_save_plan afterwards.',
+      ),
+      inputSchema: input('saoi_build_plan'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.buildPlan(args, ip)
+        return ok(renderPlan(result), result)
+      }),
+  )
+
+  server.registerTool(
+    'saoi_save_plan',
+    {
+      title: 'Save the plan into the Saoi app',
       description:
-        'Start a new conversation with Saoirse, the conversational banking assistant in Saoi, for Demo Bank. Use this first, ' +
-        'once per customer, before any other saoirse_ tool. Returns a handle to pass to the other tools and the ' +
-        `opening question Saoirse asks. ${SYNTHETIC}`,
-      inputSchema: saoirseStartInput,
+        'Use only when the customer asks to keep their plan. Pass `plan` exactly as saoi_build_plan returned it. ' +
+        'This is the first time anything about the customer is stored: Saoi keeps the plan behind a one-time link ' +
+        'into app.saoi.ie, valid for seven days, and returns that link to give them. ' +
+        OPERATIONS.saoi_save_plan.description,
+      inputSchema: input('saoi_save_plan'),
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -220,98 +223,84 @@ export function registerTools(server: McpServer, saoi: SaoiApi): void {
         openWorldHint: false,
       },
     },
-    ({ source }) =>
+    (args) =>
       guarded(async () => {
-        const started = await saoi.start(source)
-        return ok(
-          'Saoirse is ready. She opens with one question: "What are you trying to do?" Relay your user\'s answer in their own words with saoirse_say. Keep the handle.',
-          { handle: started.handle, caseId: started.caseId, opening: 'What are you trying to do?' },
-        )
+        const result = await saoi.savePlan(args, ip)
+        return ok(renderSaved(result), { ...result, storedBeforeThisCall: false })
       }),
   )
+}
 
-  server.registerTool(
-    'saoirse_say',
-    {
-      title: 'Say something to Saoirse',
-      description:
-        "Say something to Saoirse as the customer, in the customer's own words, and get Saoirse's reply. Use this for " +
-        'every customer message after saoirse_start. The reply comes with any cards Saoirse put on screen as data ' +
-        '(product options, a plan, a review) and the saoirse_act actions each card offers. A card is a decision for ' +
-        `your user: put it to them before you call saoirse_act. ${SYNTHETIC}`,
-      inputSchema: saoirseSayInput,
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: false,
+export const ABOUT_RESOURCES = {
+  ranking: { uri: 'saoi://about/ranking', name: 'how-saoi-ranks', title: 'How Saoi ranks' },
+  earnings: { uri: 'saoi://about/earnings', name: 'how-saoi-earns', title: 'How Saoi earns' },
+} as const
+
+export function registerResources(server: McpServer, saoi: SaoiApi, ip?: string): void {
+  for (const [topic, resource] of Object.entries(ABOUT_RESOURCES) as [
+    keyof typeof ABOUT_RESOURCES,
+    (typeof ABOUT_RESOURCES)[keyof typeof ABOUT_RESOURCES],
+  ][]) {
+    server.registerResource(
+      resource.name,
+      resource.uri,
+      {
+        title: resource.title,
+        description:
+          topic === 'ranking'
+            ? 'How results are ordered and every figure worked out: objectives, DIRT, unknowns, sources.'
+            : 'How Saoi earns: referral fees, disclosed and never used in ranking; information, not advice; the CCPC attribution.',
+        mimeType: 'text/markdown',
       },
-    },
-    ({ handle: h, message }) =>
-      guarded(async () => {
-        const turn = await saoi.say(h, message)
-        const next = actionsFor(turn.cards)
-        return ok(withOffers(turn.reply, next), { reply: turn.reply, cards: turn.cards, actions: next })
-      }),
-  )
-
-  server.registerTool(
-    'saoirse_act',
-    {
-      title: 'Tap a Saoirse card for the user',
-      description:
-        'Tap a card on behalf of your user, only after they have decided: start the products on an options card, ' +
-        'keep or pause a plan, submit a review, link accounts, move money. Never call this without the user ' +
-        'having chosen. Set action, then only the fields that action needs. Saoirse replies to what was done. ' +
-        SYNTHETIC,
-      inputSchema: saoirseActInput,
-      annotations: {
-        readOnlyHint: false,
-        destructiveHint: false,
-        idempotentHint: false,
-        openWorldHint: false,
+      async (uri) => {
+        const about = await saoi.about(topic, ip)
+        return { contents: [{ uri: uri.href, mimeType: 'text/markdown', text: renderAbout(about) }] }
       },
-    },
-    ({ handle: h, ...fields }) =>
-      guarded(async () => {
-        const parsed = saoirseActAction.safeParse(
-          Object.fromEntries(Object.entries<unknown>(fields).filter(([, value]) => value !== undefined)),
-        )
-        if (!parsed.success)
-          return fail(
-            `saoirse_act: ${parsed.error.issues.map((issue) => `${issue.path.join('.') || 'action'}: ${issue.message}`).join('; ')}`,
-          )
-        const result = await saoi.act(h, parsed.data)
-        const next = actionsFor(result.turn.cards)
-        return ok(withOffers(`${result.summary}\n\n${result.turn.reply}`, next), {
-          done: result.done,
-          reply: result.turn.reply,
-          cards: result.turn.cards,
-          actions: next,
-        })
-      }),
-  )
+    )
+  }
+}
 
-  server.registerTool(
-    'saoirse_status',
+export const moneyCheckUpArgs = z.object({
+  focus: z
+    .string()
+    .trim()
+    .max(200)
+    .optional()
+    .describe('Optional: what the customer wants to start with, e.g. "saving for a house" or "my car loan".'),
+})
+
+export function moneyCheckUp(focus: string | undefined): string {
+  return [
+    'Run a money check-up with me using the Saoi tools. Follow these steps, in order, and keep it conversational.',
+    '',
+    '1. Situation. Ask only for what the tools need, a few things at a time: take-home pay (and gross income if a mortgage is in view),',
+    '   monthly outgoings (rent and the rest), what I can save each month, savings I hold (where, how much, the rate if I know it),',
+    '   and debts (what kind, balance, rate, monthly repayment, months left). Rough figures are fine. Do not ask for anything else.',
+    '2. Review. Call saoi_review_situation with what I said. Tell me the findings with their euro figures.',
+    '3. Goals. Ask what I want: the candidate goals the review suggests and my own, each with an amount and a date where I have one.',
+    '4. Plan. Call saoi_build_plan with my situation and chosen goals. For a house deposit, saoi_mortgage (affordability) shows what it',
+    '   unlocks. Show the products, figures, the date each goal is reached, flags and unknowns, and the CCPC attribution.',
+    '5. Offer to save. Ask whether I want to keep the plan in the Saoi app. Only if I say yes, call saoi_save_plan with the plan',
+    '   unchanged and give me the link. Nothing is stored before that.',
+    '',
+    'Throughout: quote the tools’ figures and never work them out yourself. Present results as information for the inputs given',
+    '("the highest return after DIRT for these figures is…"), never as advice or "you should". Say what each result is ranked by,',
+    'and that I can ask for a different objective. Say "check eligibility" where a result does.',
+    ...(focus === undefined || focus === '' ? [] : ['', `I would like to start with: ${focus}`]),
+  ].join('\n')
+}
+
+export function registerPrompts(server: McpServer): void {
+  server.registerPrompt(
+    'money-check-up',
     {
-      title: 'Saoirse application status',
+      title: 'Money check-up',
       description:
-        'Where everything stands: the applications on the case and the state of each. Use it when the user asks ' +
-        `"where are we" or after an action. Read-only. ${SYNTHETIC}`,
-      inputSchema: saoirseStatusInput,
-      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+        'A guided check-up: the customer’s situation, a review with euro figures, their goals, a plan across the Irish market, then an offer to save it.',
+      argsSchema: moneyCheckUpArgs,
     },
-    ({ handle: h }) =>
-      guarded(async () => {
-        const { caseId, applications } = await saoi.status(h)
-        const text =
-          applications.length === 0
-            ? 'Nothing has been started yet.'
-            : applications
-                .map((row) => `${row.display_name ?? row.product}: ${row.state.replaceAll('_', ' ')}`)
-                .join('\n')
-        return ok(text, { caseId, applications })
-      }),
+    ({ focus }) => ({
+      messages: [{ role: 'user' as const, content: { type: 'text' as const, text: moneyCheckUp(focus) } }],
+    }),
   )
 }

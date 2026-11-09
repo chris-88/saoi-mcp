@@ -1,282 +1,131 @@
 /**
- * Thin HTTP client for Saoi: Supabase auth (to mint and sign in the synthetic customer) and the
- * `saoi-api` service's `/api` routes (sessions, turns, case actions, snapshot). Request and
- * response types come from the service's OpenAPI document (`npm run gen`).
+ * Thin HTTP client for saoi-api's public comparison routes (`/api/market/*`, `/api/calc/*`) and
+ * `POST /api/plans`. No credentials: the routes are public and rate-limited per address, so the
+ * caller's address is forwarded as `X-Forwarded-For` and the limit is per person, not one bucket
+ * for everybody this server serves.
  *
- * The handle is a documented prototype shortcut (OAuth comes later): an opaque string that
- * encodes the synthetic credential of a user minted at `start`. Handles are never logged.
+ * Request bodies are passed through as the tool received them (the tool's input schema is the
+ * route's, generated from the OpenAPI document) and saoi-api validates them. Response types are
+ * generated from the same document (`npm run gen`).
  */
 
 import type { components } from './generated/saoi-api.js'
 
-export class SaoiError extends Error {}
-
 type Schemas = components['schemas']
 
+export type SearchResult = Schemas['MarketSearchResult']
+export type ProductDetail = Schemas['MarketProductDetail']
+export type About = Schemas['MarketAbout']
+export type ReviewResult = Schemas['ReviewSituationResult']
+export type ProjectionResult = Schemas['SavingsProjectionResult']
+export type MortgageResult = Schemas['MortgageCalculationResult']
+export type DebtResult = Schemas['DebtCalculationResult']
+export type BuildPlanResult = Schemas['BuildPlanResult']
+export type SavePlanResult = Schemas['SavePlanResponse']
+
+/** A refusal from saoi-api, with what it says is wrong. Safe to show: saoi-api writes it for callers. */
+export class SaoiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly details: readonly string[] = [],
+    readonly retryAfter: string | null = null,
+  ) {
+    super(message)
+  }
+}
+
+export type Body = Record<string, unknown>
+
+/** What the tools need from saoi-api. Tests mock this. `ip` is the end user's address, if known. */
+export interface SaoiApi {
+  search(body: Body, ip?: string): Promise<SearchResult>
+  product(id: string, ip?: string): Promise<ProductDetail>
+  about(topic: 'ranking' | 'earnings', ip?: string): Promise<About>
+  review(body: Body, ip?: string): Promise<ReviewResult>
+  projection(body: Body, ip?: string): Promise<ProjectionResult>
+  mortgage(body: Body, ip?: string): Promise<MortgageResult>
+  debt(body: Body, ip?: string): Promise<DebtResult>
+  buildPlan(body: Body, ip?: string): Promise<BuildPlanResult>
+  savePlan(body: Body, ip?: string): Promise<SavePlanResult>
+}
+
 export interface SaoiClientOptions {
-  /** Supabase gateway, used only for auth. */
-  readonly baseUrl: string
   /** The saoi-api service, e.g. http://saoi-api:3000 (no trailing /api). */
   readonly apiUrl: string
-  readonly anonKey: string
-  readonly serviceRoleKey: string
   readonly timeoutMs: number
   readonly fetch?: typeof fetch
 }
 
-export interface SaoiCard {
-  readonly type?: string
-  readonly [key: string]: unknown
-}
-
-export interface TurnResult {
-  readonly reply: string
-  readonly cards: readonly unknown[]
-}
-
-export interface ApplicationRow {
-  readonly id: string
-  readonly product: string
-  readonly display_name: string | null
-  readonly state: string
-  readonly catalogue_id: string | null
-}
-
-/** What the tools need from Saoirse. Tests mock this. */
-export interface SaoiApi {
-  start(source: string | undefined): Promise<{ handle: string; caseId: string }>
-  say(handle: string, message: string): Promise<TurnResult>
-  act(
-    handle: string,
-    action: Record<string, unknown>,
-  ): Promise<{ done: unknown; summary: string; turn: TurnResult }>
-  status(handle: string): Promise<{ caseId: string; applications: readonly ApplicationRow[] }>
-}
-
-interface Credential {
-  readonly email: string
-  readonly password: string
-}
-
-export function encodeHandle(credential: Credential): string {
-  return Buffer.from(JSON.stringify(credential), 'utf8').toString('base64url')
-}
-
-export function decodeHandle(handle: string): Credential | null {
-  try {
-    const parsed: unknown = JSON.parse(Buffer.from(handle, 'base64url').toString('utf8'))
-    if (typeof parsed !== 'object' || parsed === null) return null
-    const { email, password } = parsed as Record<string, unknown>
-    return typeof email === 'string' && typeof password === 'string' ? { email, password } : null
-  } catch {
-    return null
-  }
-}
-
-const NOT_OURS = 'That handle is not a conversation this server started.'
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
-
-/** Saoirse's reply as the browser would read it: text with withdrawn rounds taken back, plus cards. */
-export function readTurn(raw: string): TurnResult {
-  let reply = ''
-  const cards: unknown[] = []
-  let failure: string | null = null
-  for (const line of raw.split('\n')) {
-    if (!line.startsWith('data: ')) continue
-    let event: unknown
-    try {
-      event = JSON.parse(line.slice(6))
-    } catch {
-      continue
-    }
-    if (!isRecord(event)) continue
-    if (event['type'] === 'text_delta' && typeof event['text'] === 'string') reply += event['text']
-    else if (event['type'] === 'retract' && typeof event['length'] === 'number')
-      reply = reply.slice(0, Math.max(0, reply.length - event['length']))
-    else if (event['type'] === 'card') cards.push(event['card'])
-    else if (event['type'] === 'error') {
-      const err = event['error']
-      failure =
-        isRecord(err) && typeof err['message'] === 'string' ? err['message'] : 'Saoirse could not reply.'
-    }
-  }
-  if (failure !== null) throw new SaoiError(failure)
-  return { reply: reply.trim(), cards }
-}
-
-/** A card action an agent may take, mapped to one saoi-api route each. */
-type Action = Record<string, unknown> & { action?: unknown }
-
-const str = (value: unknown): string => (typeof value === 'string' ? value : '')
-
-/** The route and body for an `act` action. Unknown actions are refused before any call. */
-function routeFor(caseId: string, action: Action): { path: string; body: unknown } {
-  const base = `/api/cases/${encodeURIComponent(caseId)}`
-  const app = `${base}/applications/${encodeURIComponent(str(action['applicationId']))}`
-  switch (action['action']) {
-    case 'select_products':
-      return { path: `${base}/products/select`, body: { products: action['products'] } }
-    case 'decide_plan':
-      return {
-        path: `${base}/plans/${encodeURIComponent(str(action['planId']))}/decisions`,
-        body: { decision: action['decision'] },
-      }
-    case 'submit_application':
-      return { path: `${app}/submit`, body: { confirmations: action['confirmations'] ?? [] } }
-    case 'pause_application':
-      return { path: `${app}/pause`, body: {} }
-    case 'resume_application':
-      return { path: `${app}/resume`, body: {} }
-    case 'decline_product':
-      return { path: `${base}/products/${encodeURIComponent(str(action['product']))}/decline`, body: {} }
-    case 'link_accounts':
-      return { path: `${base}/linked-accounts`, body: { bank: action['bank'], scope: action['scope'] } }
-    case 'initiate_transfer':
-      return {
-        path: `${base}/transfers`,
-        body: {
-          fromAccountId: action['fromAccountId'],
-          toApplicationId: action['toApplicationId'] ?? null,
-          amount: action['amount'],
-          cadence: action['cadence'] ?? 'once',
-        },
-      }
-    default:
-      throw new SaoiError('That action is not one Saoirse offers.')
-  }
+interface ErrorBody {
+  readonly error?: { readonly message?: string; readonly details?: readonly string[] }
 }
 
 export class SaoiClient implements SaoiApi {
-  private readonly doFetch: typeof fetch
+  private readonly fetchImpl: typeof fetch
 
   constructor(private readonly options: SaoiClientOptions) {
-    this.doFetch = options.fetch ?? fetch
+    this.fetchImpl = options.fetch ?? fetch
   }
 
-  private request(url: string, init: RequestInit): Promise<Response> {
-    return this.doFetch(url, { ...init, signal: AbortSignal.timeout(this.options.timeoutMs) })
+  search(body: Body, ip?: string) {
+    return this.call<SearchResult>('POST', '/api/market/search', body, ip)
+  }
+  product(id: string, ip?: string) {
+    return this.call<ProductDetail>('GET', `/api/market/products/${encodeURIComponent(id)}`, undefined, ip)
+  }
+  about(topic: 'ranking' | 'earnings', ip?: string) {
+    return this.call<About>('GET', `/api/market/about/${topic}`, undefined, ip)
+  }
+  review(body: Body, ip?: string) {
+    return this.call<ReviewResult>('POST', '/api/calc/review-situation', body, ip)
+  }
+  projection(body: Body, ip?: string) {
+    return this.call<ProjectionResult>('POST', '/api/calc/savings-projection', body, ip)
+  }
+  mortgage(body: Body, ip?: string) {
+    return this.call<MortgageResult>('POST', '/api/calc/mortgage', body, ip)
+  }
+  debt(body: Body, ip?: string) {
+    return this.call<DebtResult>('POST', '/api/calc/debt', body, ip)
+  }
+  buildPlan(body: Body, ip?: string) {
+    return this.call<BuildPlanResult>('POST', '/api/calc/build-plan', body, ip)
+  }
+  savePlan(body: Body, ip?: string) {
+    return this.call<SavePlanResult>('POST', '/api/plans', { ...body, client: 'mcp' }, ip)
   }
 
-  private async signIn(handle: string): Promise<string> {
-    const credential = decodeHandle(handle)
-    if (credential === null) throw new SaoiError(NOT_OURS)
-    const response = await this.request(`${this.options.baseUrl}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: this.options.anonKey },
-      body: JSON.stringify(credential),
-    })
-    if (!response.ok) throw new SaoiError(NOT_OURS)
-    const body: unknown = await response.json()
-    if (!isRecord(body) || typeof body['access_token'] !== 'string') throw new SaoiError(NOT_OURS)
-    return body['access_token']
-  }
-
-  /** Call a saoi-api route as the customer. The caller reads the response. */
-  private api(token: string, method: 'GET' | 'POST', path: string, body?: unknown): Promise<Response> {
-    return this.request(`${this.options.apiUrl}${path}`, {
+  private async call<T>(
+    method: 'GET' | 'POST',
+    route: string,
+    body: Body | undefined,
+    ip?: string,
+  ): Promise<T> {
+    const headers: Record<string, string> = { Accept: 'application/json' }
+    if (body !== undefined) headers['Content-Type'] = 'application/json'
+    if (ip !== undefined) headers['X-Forwarded-For'] = ip
+    const res = await this.fetchImpl(`${this.options.apiUrl}${route}`, {
       method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      },
+      headers,
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      signal: AbortSignal.timeout(this.options.timeoutMs),
     })
-  }
-
-  /** A JSON route: the body on success, a SaoiError carrying the API's own message otherwise. */
-  private async json(response: Response): Promise<unknown> {
-    let body: unknown
-    try {
-      body = await response.json()
-    } catch {
-      throw new SaoiError(`Saoirse service error (HTTP ${response.status}).`)
-    }
-    if (!response.ok) {
-      const error = isRecord(body) ? (body as Partial<Schemas['ErrorResponse']>).error : undefined
+    const text = await res.text()
+    if (!res.ok) {
+      let parsed: ErrorBody = {}
+      try {
+        parsed = JSON.parse(text) as ErrorBody
+      } catch {
+        // Not JSON (a proxy page): the status says enough.
+      }
       throw new SaoiError(
-        typeof error?.message === 'string'
-          ? error.message
-          : `Saoirse service error (HTTP ${response.status}).`,
+        parsed.error?.message ?? `Saoi answered ${String(res.status)}.`,
+        res.status,
+        parsed.error?.details ?? [],
+        res.headers.get('retry-after'),
       )
     }
-    return body
-  }
-
-  private async caseFor(token: string, source?: string): Promise<string> {
-    const request: Schemas['StartSession'] = { mode: 'new', ...(source === undefined ? {} : { source }) }
-    const data = await this.json(await this.api(token, 'POST', '/api/sessions', request))
-    if (!isRecord(data) || typeof data['caseId'] !== 'string')
-      throw new SaoiError('Saoirse did not return a case.')
-    return data['caseId']
-  }
-
-  private async turn(
-    token: string,
-    caseId: string,
-    request: Schemas['SaoirseTurnRequest'],
-  ): Promise<TurnResult> {
-    const response = await this.api(token, 'POST', `/api/cases/${encodeURIComponent(caseId)}/turns`, request)
-    if (!response.ok) await this.json(response)
-    return readTurn(await response.text())
-  }
-
-  async start(source: string | undefined): Promise<{ handle: string; caseId: string }> {
-    const credential: Credential = {
-      email: `agent-${crypto.randomUUID()}@agent.saoi.invalid`,
-      password: crypto.randomUUID() + crypto.randomUUID(),
-    }
-    const created = await this.request(`${this.options.baseUrl}/auth/v1/admin/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: this.options.serviceRoleKey,
-        Authorization: `Bearer ${this.options.serviceRoleKey}`,
-      },
-      body: JSON.stringify({ ...credential, email_confirm: true, user_metadata: { agent: true } }),
-    })
-    if (!created.ok) throw new SaoiError(`Could not start: auth service returned HTTP ${created.status}.`)
-    const handle = encodeHandle(credential)
-    const token = await this.signIn(handle)
-    const caseId = await this.caseFor(token, source ?? 'mcp')
-    return { handle, caseId }
-  }
-
-  async say(handle: string, message: string): Promise<TurnResult> {
-    const token = await this.signIn(handle)
-    const caseId = await this.caseFor(token)
-    return this.turn(token, caseId, { trigger: 'message', message })
-  }
-
-  async act(
-    handle: string,
-    action: Record<string, unknown>,
-  ): Promise<{ done: unknown; summary: string; turn: TurnResult }> {
-    const token = await this.signIn(handle)
-    const caseId = await this.caseFor(token)
-    const { path, body } = routeFor(caseId, action)
-    const done = await this.json(await this.api(token, 'POST', path, body))
-    const summary = isRecord(done) && typeof done['summary'] === 'string' ? done['summary'] : 'Done.'
-    // The app reports a tap to Saoirse as an action turn, so the agent gets the reply a person would.
-    const turn = await this.turn(token, caseId, { trigger: 'action', message: summary })
-    return { done, summary, turn }
-  }
-
-  async status(handle: string): Promise<{ caseId: string; applications: readonly ApplicationRow[] }> {
-    const token = await this.signIn(handle)
-    const caseId = await this.caseFor(token)
-    const data = await this.json(
-      await this.api(token, 'GET', `/api/cases/${encodeURIComponent(caseId)}/snapshot`),
-    )
-    const rows = isRecord(data) && Array.isArray(data['applications']) ? data['applications'] : []
-    const applications = (rows as Schemas['CaseSnapshot']['applications']).map((row) => ({
-      id: row.id,
-      product: row.product,
-      display_name: null,
-      state: row.state,
-      catalogue_id: row.catalogue_id,
-    }))
-    return { caseId, applications }
+    return JSON.parse(text) as T
   }
 }

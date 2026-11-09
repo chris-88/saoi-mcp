@@ -230,16 +230,70 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     root.removeAttribute('aria-busy')
   }
 
+  /**
+   * A money check before there is a plan (saoi_money_check with `plan` null): what Saoi found and
+   * the questions that unlock a plan. Nothing to save yet, so no button.
+   */
+  const renderCheck = (content: Record<string, unknown>): void => {
+    const strings = (value: unknown): string[] =>
+      Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : []
+    const review = record(content['review'])
+    root.replaceChildren()
+    root.removeAttribute('aria-busy')
+    const header = el('header', 'header')
+    header.append(el('p', 'eyebrow', 'Saoi money check'))
+    root.append(header)
+    const headline = record(review?.['moneyFound'])?.['headline']
+    if (typeof headline === 'string') {
+      const found = el('div', 'found')
+      found.append(el('p', 'found-headline', headline))
+      root.append(found)
+    }
+    const findings = (Array.isArray(review?.['findings']) ? (review['findings'] as unknown[]) : [])
+      .map((finding) => record(finding)?.['headline'])
+      .filter((line): line is string => typeof line === 'string')
+    if (findings.length > 0) {
+      const block = section('What Saoi found')
+      const list = el('ul', 'flags')
+      for (const line of findings) list.append(el('li', '', line))
+      block.append(list)
+      root.append(block)
+    }
+    const questions = strings(content['questions'])
+    if (questions.length > 0) {
+      const block = section('To build a plan, Saoi needs')
+      const list = el('ul', 'flags')
+      for (const line of questions) list.append(el('li', '', line))
+      block.append(list)
+      root.append(block)
+    }
+    const foot = el('footer', 'footer')
+    foot.append(
+      el('p', 'small muted', 'Information, not advice: options with their figures, for you to decide.'),
+    )
+    for (const line of strings(review?.['attributions'])) foot.append(el('p', 'small muted', line))
+    root.append(foot)
+  }
+
+  /** A build-plan result: `saoi_build_plan`'s own, or the `plan` inside a money check. */
+  const asPlan = (value: Record<string, unknown> | null): BuildPlanResult | null =>
+    value !== null && record(value['plan']) !== null && record(value['moneyFound']) !== null
+      ? (value as unknown as BuildPlanResult)
+      : null
+
   const onResult = (params: Record<string, unknown> | null): void => {
     const content = record(params?.['structuredContent'])
-    if (params?.['isError'] === true || content === null || record(content['plan']) === null) {
-      showText('No plan to show. The details are in the conversation.')
+    if (params?.['isError'] === true || content === null) {
+      showText('Nothing to show here. The details are in the conversation.')
       return
     }
     try {
-      render(model(content as unknown as BuildPlanResult))
+      const plan = asPlan(content) ?? asPlan(record(content['plan']))
+      if (plan !== null) render(model(plan))
+      else if (record(content['review']) !== null) renderCheck(content)
+      else showText('Nothing to show here. The details are in the conversation.')
     } catch {
-      showText('The plan could not be drawn here. The details are in the conversation.')
+      showText('The card could not be drawn here. The details are in the conversation.')
     }
   }
 

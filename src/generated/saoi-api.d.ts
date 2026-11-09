@@ -3284,6 +3284,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/calc/first-home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A first home: Help to Buy, the Central Bank limits with it, green rates, the mortgages that fit
+         * @description For a first-time buyer: Help to Buy (Revenue: new builds and self-builds up to €500,000; the lesser of 10% of the price, €35,000 and Income Tax and DIRT paid over the last four tax years; a mortgage of at least 70%; bought by 31 December 2029), what is available, not available, or depends on something not given; the Central Bank limits (loan to income 4 times, loan to value 90%, the 15% allowances, the exemptions) with Help to Buy counted towards the deposit; for a price, the deposit needed, the shortfall and whether the loan is within the income limit; green rates from the market data (no rule sets them; lenders do); the First Home shared equity scheme only as far as it is confirmed; and the mortgages that fit, ranked by total cost. Every rule carries its source page and the day it was read. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FirstHome"];
+                };
+            };
+            responses: {
+                /** @description The first-home figures. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FirstHomeResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calc/build-plan": {
         parameters: {
             query?: never;
@@ -8086,9 +8156,36 @@ export interface components {
             updatedOn: string;
         };
         ReviewSituationResult: {
+            /** @description Money a year the figures support finding: idle cash against the best accessible rate after DIRT, debt interest not paid, a mortgage switch. Each part sourced and dated. */
+            moneyFound: {
+                /** @description The total a year, after DIRT: the sum of `parts`. Nothing in `notCounted` is in it. */
+                annualEur: number;
+                /** @description One line for the host to lead with. */
+                headline: string;
+                parts: {
+                    /** @enum {string} */
+                    kind: "idle_cash" | "debt_interest" | "mortgage_switch";
+                    label: string;
+                    annualEur: number;
+                    /** @description How the figure is worked out, with its inputs. */
+                    detail: string;
+                    /** @description Where the rate behind it comes from: a provider or CCPC, or the customer’s own figures. */
+                    source: string;
+                    sourceUrl: string | null;
+                    /** @description When that rate was last checked. */
+                    checkedAt: string | null;
+                }[];
+                /** @description Money that may be there but is not counted: a rate not confirmed beyond CCPC’s one figure, a current rate not given, bonuses, cashback. */
+                notCounted: {
+                    label: string;
+                    annualEur: number | null;
+                    why: string;
+                }[];
+                basis: string;
+            };
             findings: {
                 /** @enum {string} */
-                kind: "idle_money" | "no_emergency_fund" | "debt_costs_more_than_savings_earn" | "fixed_term_ending" | "goal_short_at_current_pace" | "unknown_rate";
+                kind: "idle_money" | "no_emergency_fund" | "debt_costs_more_than_savings_earn" | "fixed_term_ending" | "goal_short_at_current_pace" | "unknown_rate" | "help_to_buy";
                 headline: string;
                 detail: string;
                 /** @description The euro figures behind the finding, by name. */
@@ -9273,7 +9370,374 @@ export interface components {
             /** @description Savings that could clear debt, to compare clearing against saving. */
             lumpSum?: number;
         };
+        FirstHomeResult: {
+            helpToBuy: {
+                /**
+                 * @description `depends`: on something not given (the kind of property, or tax paid).
+                 * @enum {string}
+                 */
+                status: "available" | "not_available" | "depends";
+                /** @description The refund, when every input it rests on was given. Null otherwise. */
+                amountEur: number | null;
+                /** @description The most it could be: 10% of the price, at most the cap, before the tax-paid limit. */
+                upToEur: number;
+                /** @enum {string|null} */
+                limitedBy: "share_of_price" | "cap" | "tax_paid" | null;
+                /** @description Why it is, or is not, or may be, available, with the figures. */
+                reasons: string[];
+                /** @description What has to hold for it, from Revenue. */
+                conditions: string[];
+                capEur: number;
+                maxPriceEur: number;
+                endsOn: string;
+                sources: {
+                    fact: string;
+                    url: string;
+                    /** @description YYYY-MM-DD the page was read. */
+                    checkedOn: string;
+                }[];
+            };
+            lending: {
+                loanToIncome: number;
+                maxLtvPct: number;
+                /** @description The share of each lender’s lending allowed above the limits. */
+                allowancePct: number;
+                allowance: string;
+                exemptions: string;
+                maxLoanByIncome: number;
+                maxPriceWithoutHelpToBuy: number;
+                /** @description With Help to Buy counted towards the deposit (a new build or self-build, within its price cap). Null when it cannot apply. */
+                maxPriceWithHelpToBuy: number | null;
+                forPrice: {
+                    price: number;
+                    /** @description 10% of the price. */
+                    depositNeeded: number;
+                    /** @description Counted towards the deposit: the amount, or "up to" when tax paid was not given. */
+                    helpToBuy: number;
+                    depositShortfall: number;
+                    loanNeeded: number;
+                    ltvPct: number;
+                    withinIncomeLimit: boolean;
+                    aboveIncomeLimitBy: number;
+                    /** @description Whether the mortgage is at least 70% of the price, as Help to Buy needs. Null when Help to Buy does not apply. */
+                    helpToBuyMortgageShareMet: boolean | null;
+                } | null;
+                source: {
+                    fact: string;
+                    url: string;
+                    /** @description YYYY-MM-DD the page was read. */
+                    checkedOn: string;
+                };
+            };
+            firstHomeScheme: {
+                /** @description False: not confirmed from a primary page; nothing about it is stated as fact. */
+                confirmed: boolean;
+                note: string;
+                source: {
+                    fact: string;
+                    url: string;
+                    /** @description YYYY-MM-DD the page was read. */
+                    checkedOn: string;
+                };
+            };
+            greenRates: {
+                note: string;
+                cheapestGreen: {
+                    productId: string;
+                    name: string;
+                    ratePct: number;
+                    berNeeded: string | null;
+                } | null;
+                cheapestStandard: {
+                    productId: string;
+                    name: string;
+                    ratePct: number;
+                } | null;
+            };
+            options: {
+                /** @description One product in one comparable shape, whichever source it was read from. */
+                product: {
+                    /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                    id: string;
+                    /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                    provider: string;
+                    providerName: string;
+                    /** @description The provider’s own name for the product. */
+                    name: string;
+                    /** @enum {string} */
+                    category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                    terms: {
+                        /** @enum {string} */
+                        kind: "deposit";
+                        /**
+                         * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                         * @enum {string}
+                         */
+                        access: "instant" | "notice" | "fixed_term";
+                        noticeDays: number | null;
+                        /** @description The headline AER, percent. Null for a term ladder. */
+                        aerPct: number | null;
+                        /** @enum {string|null} */
+                        basis: "fixed" | "variable" | null;
+                        /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                        bands: {
+                            fromEur: number;
+                            toEur: number | null;
+                            aerPct: number;
+                        }[];
+                        /** @description What a lump sum earns where it differs from the headline. */
+                        lumpSumAerPct: number | null;
+                        /** @description A rate guaranteed for a period, and what follows it. */
+                        introductory: {
+                            months: number;
+                            /** @description The rate after it. Null: not known. */
+                            thenAerPct: number | null;
+                        } | null;
+                        /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                        ladder: {
+                            months: number;
+                            aerPct: number;
+                            /** @description The source row for this term. */
+                            productId: string;
+                        }[];
+                        /** @description Takes regular monthly saving. Null: not known. */
+                        takesMonthly: boolean | null;
+                        /** @description Takes a lump sum. Null: not known. */
+                        takesLumpSum: boolean | null;
+                        minMonthlyEur: number | null;
+                        /** @description The most that can be paid in each month. */
+                        maxMonthlyEur: number | null;
+                        minLumpSumEur: number | null;
+                        maxLumpSumEur: number | null;
+                        /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                        thresholdBonus: {
+                            bonusAerPct: number;
+                            resetMonths: number[];
+                            lookbackMonths: number;
+                            baseBands: {
+                                fromEur: number;
+                                toEur: number | null;
+                                aerPct: number;
+                            }[];
+                        } | null;
+                        /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                        dirtApplies: boolean;
+                        /** @description A conditional bonus, kept apart from interest. */
+                        bonus: {
+                            amountEur: number;
+                            conditions: string[];
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "mortgage";
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        fixedYears: number | null;
+                        initialRatePct: number;
+                        /** @description What the provider says the rate may become after the fixed period. */
+                        followOnRatePct: number | null;
+                        /** @description CCPC’s “rate for full term”. */
+                        fullTermRatePct: number | null;
+                        ltvMinPct: number | null;
+                        ltvMaxPct: number | null;
+                        /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                        ber: string | null;
+                        /** @description The BER was read from the product’s name. */
+                        berFromName: boolean;
+                        buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                        cashback: {
+                            offered: boolean | null;
+                            /** @description Cashback as a percent of the loan, where the source states one. */
+                            pct: number | null;
+                            /** @description The source’s own words. */
+                            stated: string | null;
+                        };
+                        /** @description Fees as the source states them, verbatim. */
+                        fees: {
+                            [key: string]: string;
+                        };
+                        /** @description A high-value-mortgage rate (larger loans only). */
+                        highValue: boolean;
+                    } | {
+                        /** @enum {string} */
+                        kind: "loan";
+                        aprPct: number;
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        maxAmountEur: number | null;
+                        /** @description Null where the source gives no unit for the maximum term. */
+                        maxTermMonths: number | null;
+                        /** @description The maximum term as the source states it. */
+                        maxTermStated: string | null;
+                        purposes: string[];
+                        setupFees: string | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "credit_card";
+                        aprPct: number | null;
+                        purchaseRatePct: number | null;
+                        cashRatePct: number | null;
+                        balanceTransfer: {
+                            introMonths: number;
+                            introPct: number;
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "current_account";
+                        quarterlyFeeEur: number | null;
+                        annualFeeEur: number | null;
+                        creditInterestPct: number | null;
+                        overdraft: boolean | null;
+                    };
+                    /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                    provenance: {
+                        /**
+                         * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                         * @enum {string}
+                         */
+                        source: "bank" | "ccpc";
+                        /** @description Where the figures were read. */
+                        sourceUrl: string;
+                        /** @description The provider’s own page, where known. */
+                        providerUrl: string | null;
+                        /** @description When Saoi last read the source and found these figures. */
+                        checkedAt: string;
+                        /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                        lastChangedAt: string | null;
+                        /** @description When Saoi first recorded this product. */
+                        firstRecordedAt: string;
+                        /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                        attribution: string | null;
+                        /** @description The source rows this product view is built from (several for a term ladder). */
+                        rows: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                        }[];
+                        /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                        preferredOver: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            providerProductName: string;
+                        }[];
+                    };
+                    /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                    platform: {
+                        /** @enum {string} */
+                        name: "Raisin";
+                        note: string;
+                    } | null;
+                    /** @description Which deposit guarantee scheme covers the money, and where that was read. */
+                    depositGuarantee: {
+                        /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
+                        scheme: string | null;
+                        country: string | null;
+                        /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
+                        coverEur: number | null;
+                        /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                        note: string | null;
+                        /**
+                         * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
+                         * @enum {string}
+                         */
+                        basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                        /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                        sourceUrl: string | null;
+                        /** @description When that page was read: YYYY-MM-DD. */
+                        checkedOn: string | null;
+                    } | null;
+                    unknowns: {
+                        /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                        field: string;
+                        /** @description What is not known, in words. */
+                        meaning: string;
+                    }[];
+                    /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                    rateConfirmed: boolean;
+                    /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                    checks: string[];
+                };
+                figures: {
+                    /** @enum {string} */
+                    kind: "mortgage";
+                    loanAmount: number;
+                    ltvPct: number | null;
+                    termYears: number;
+                    monthlyRepayment: number;
+                    /** @description At the follow-on rate, where stated. */
+                    monthlyAfterFixed: number | null;
+                    paidDuringFixed: number | null;
+                    /** @description Over the whole term, assuming the follow-on rate holds after the fixed period. */
+                    totalRepaid: number | null;
+                    cashbackEur: number | null;
+                    /** @description Interest over the term less cashback. */
+                    totalCostAfterCashback: number | null;
+                };
+                flags: string[];
+            }[];
+            /** @description How the results are ordered. Information, not advice: the caller can change the objective. */
+            ranking: {
+                /** @enum {string} */
+                objective: "highest_net_return" | "easiest_access" | "lowest_total_cost" | "lowest_monthly_repayment";
+                /** @description What the ranking measures, stated with the inputs. */
+                basis: string;
+            };
+            assumptions: string[];
+            dataCheckedAt: string | null;
+            attributions: string[];
+            next: string;
+        };
+        FirstHome: {
+            /** @description Gross income a year, before tax; joint for two applicants. */
+            annualGrossIncome: number;
+            /** @description Savings for the deposit, not counting Help to Buy. */
+            deposit: number;
+            /** @description A price in mind (for a self-build, the approved valuation). Without it, the most the limits allow. */
+            propertyPrice?: number;
+            /**
+             * @description `new_build` bought from a builder, `self_build`, or `second_hand`. Help to Buy is for new builds and self-builds only. Absent: Help to Buy is shown as depending on it.
+             * @enum {string}
+             */
+            propertyKind?: "new_build" | "self_build" | "second_hand";
+            /** @description Default true. */
+            firstTimeBuyer?: boolean;
+            /** @description Income Tax and DIRT paid over the four tax years before applying (not USC or PRSI), across the buyers, less any Help to Buy already claimed. Help to Buy cannot be more than this. Absent: the amount is shown as "up to". */
+            taxPaidLastFourYearsEur?: number;
+            /** @description Default 30. */
+            termYears?: number;
+            /** @description The home’s BER, for green rates. Absent: green rates are shown with the BER they need. */
+            ber?: string;
+            limit?: number;
+        };
         BuildPlanResult: {
+            /** @description Money a year the figures support finding: idle cash against the best accessible rate after DIRT, debt interest not paid, a mortgage switch. Each part sourced and dated. */
+            moneyFound: {
+                /** @description The total a year, after DIRT: the sum of `parts`. Nothing in `notCounted` is in it. */
+                annualEur: number;
+                /** @description One line for the host to lead with. */
+                headline: string;
+                parts: {
+                    /** @enum {string} */
+                    kind: "idle_cash" | "debt_interest" | "mortgage_switch";
+                    label: string;
+                    annualEur: number;
+                    /** @description How the figure is worked out, with its inputs. */
+                    detail: string;
+                    /** @description Where the rate behind it comes from: a provider or CCPC, or the customer’s own figures. */
+                    source: string;
+                    sourceUrl: string | null;
+                    /** @description When that rate was last checked. */
+                    checkedAt: string | null;
+                }[];
+                /** @description Money that may be there but is not counted: a rate not confirmed beyond CCPC’s one figure, a current rate not given, bonuses, cashback. */
+                notCounted: {
+                    label: string;
+                    annualEur: number | null;
+                    why: string;
+                }[];
+                basis: string;
+            };
             /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a one-time link into the Saoi app. */
             plan: {
                 /** @enum {number} */
@@ -9429,7 +9893,7 @@ export interface components {
                  */
                 chosen: "kept" | "cleared";
             }[];
-            /** @description For a house deposit with an income given: what the projected deposit supports under the Central Bank limits. */
+            /** @description For a house deposit with an income given: what the projected deposit supports under the Central Bank limits, and for a first-time buyer, with Help to Buy. */
             affordability: {
                 deposit: number;
                 maxPrice: number;
@@ -9437,6 +9901,16 @@ export interface components {
                 /** @enum {string} */
                 bindingLimit: "income" | "deposit";
                 note: string;
+                /** @description For a first-time buyer: what Help to Buy would add for a new build. Null otherwise. */
+                helpToBuy: {
+                    /** @description Help to Buy at the price shown, before the tax-paid limit. */
+                    upToEur: number;
+                    /** @description The highest price the limits allow with Help to Buy towards the deposit, for a new build or self-build. */
+                    maxPriceWithHelpToBuy: number | null;
+                    note: string;
+                    sourceUrl: string;
+                    checkedOn: string;
+                } | null;
             } | null;
             unplaced: {
                 lumpSum: number;

@@ -9,6 +9,7 @@ import type {
   About,
   BuildPlanResult,
   DebtResult,
+  FirstHomeResult,
   MortgageResult,
   ProductDetail,
   ProjectionResult,
@@ -137,8 +138,33 @@ export function renderAbout(about: About): string {
   return about.text
 }
 
+type MoneyFound = ReviewResult['moneyFound']
+
+/** The headline first: the figure a year, its parts with their sources, and what is not counted. */
+export function renderMoneyFound(found: MoneyFound): string[] {
+  return [
+    found.headline,
+    ...found.parts.map(
+      (part) =>
+        `- ${eur(part.annualEur)} a year: ${part.label}. ${part.detail} (${part.source}${part.checkedAt === null ? '' : `, checked ${day(part.checkedAt)}`})`,
+    ),
+    ...(found.notCounted.length === 0
+      ? []
+      : [
+          'Not counted:',
+          ...found.notCounted.map(
+            (item) =>
+              `- ${item.label}${item.annualEur === null ? '' : ` (${eur(item.annualEur)} a year)`}: ${item.why}`,
+          ),
+        ]),
+    found.basis,
+    '',
+  ]
+}
+
 export function renderReview(result: ReviewResult): string {
   return [
+    ...renderMoneyFound(result.moneyFound),
     result.findings.length === 0 ? 'No findings for the figures given.' : 'Findings:',
     ...result.findings.flatMap((finding) => [`- ${finding.headline}`, `  ${finding.detail}`]),
     ...(result.candidateGoals.length === 0
@@ -271,6 +297,7 @@ const DEBT_ACTIONS: Record<BuildPlanResult['plan']['debts'][number]['action'], s
 export function renderPlan(result: BuildPlanResult): string {
   const { plan } = result
   return [
+    ...renderMoneyFound(result.moneyFound),
     plan.title,
     `Ranked by ${plan.ranking.objective.replaceAll('_', ' ')}: ${plan.ranking.basis}`,
     '',
@@ -306,6 +333,12 @@ export function renderPlan(result: BuildPlanResult): string {
             return `- ${debt?.label ?? step.debtId}: ${DEBT_ACTIONS[step.action]}. ${step.why}`
           }),
         ]),
+    ...(result.affordability?.helpToBuy === null || result.affordability?.helpToBuy === undefined
+      ? []
+      : [
+          '',
+          `Help to Buy: ${result.affordability.helpToBuy.note} (Revenue, ${result.affordability.helpToBuy.sourceUrl}, checked ${result.affordability.helpToBuy.checkedOn})`,
+        ]),
     ...footer({
       assumptions: plan.assumptions,
       dataCheckedAt: plan.dataCheckedAt,
@@ -315,6 +348,39 @@ export function renderPlan(result: BuildPlanResult): string {
         ),
       ],
     }),
+    '',
+    `Next: ${result.next}`,
+  ].join('\n')
+}
+
+export function renderFirstHome(result: FirstHomeResult): string {
+  const { helpToBuy: htb, lending } = result
+  const price = lending.forPrice
+  return [
+    `Help to Buy: ${htb.status.replace('_', ' ')}${htb.amountEur === null ? `, up to ${eur(htb.upToEur)}` : `, ${eur(htb.amountEur)}`}.`,
+    ...htb.reasons.map((reason) => `- ${reason}`),
+    'Conditions (Revenue):',
+    ...htb.conditions.map((condition) => `- ${condition}`),
+    ...htb.sources.map((source) => `  Source: ${source.url} (checked ${source.checkedOn})`),
+    '',
+    `Central Bank limits: loan up to ${String(lending.loanToIncome)} times income (${eur(lending.maxLoanByIncome)}), loan-to-value up to ${pct(lending.maxLtvPct)}. ${lending.allowance} ${lending.exemptions}`,
+    `Highest price the limits allow: ${eur(lending.maxPriceWithoutHelpToBuy)} without Help to Buy${lending.maxPriceWithHelpToBuy === null ? '' : `, ${eur(lending.maxPriceWithHelpToBuy)} for a new build with Help to Buy towards the deposit`}.`,
+    ...(price === null
+      ? []
+      : [
+          `At ${eur(price.price)}: deposit needed ${eur(price.depositNeeded)}; Help to Buy counted ${eur(price.helpToBuy)}; short by ${eur(price.depositShortfall)}; loan ${eur(price.loanNeeded)} (LTV ${pct(price.ltvPct)}), ${price.withinIncomeLimit ? 'within' : `${eur(price.aboveIncomeLimitBy)} above`} the income limit${price.helpToBuyMortgageShareMet === null ? '' : price.helpToBuyMortgageShareMet ? '; the mortgage is at least 70% of the price, as Help to Buy needs' : '; the mortgage is under 70% of the price, which Help to Buy does not allow'}.`,
+        ]),
+    `  Source: ${lending.source.url} (checked ${lending.source.checkedOn})`,
+    '',
+    `First Home shared equity: ${result.firstHomeScheme.note}`,
+    '',
+    `Green rates: ${result.greenRates.note}${result.greenRates.cheapestGreen === null ? '' : ` Cheapest green rate at this loan-to-value: ${result.greenRates.cheapestGreen.name}, ${pct(result.greenRates.cheapestGreen.ratePct)}${result.greenRates.cheapestGreen.berNeeded === null ? '' : ` (BER ${result.greenRates.cheapestGreen.berNeeded})`}.`}${result.greenRates.cheapestStandard === null ? '' : ` Cheapest standard: ${result.greenRates.cheapestStandard.name}, ${pct(result.greenRates.cheapestStandard.ratePct)}.`}`,
+    '',
+    `Mortgages that fit. ${result.ranking.basis}`,
+    ...result.options.flatMap((option, index) =>
+      productLines(`${String(index + 1)}.`, option.product, figuresLine(option.figures), option.flags),
+    ),
+    ...footer(result),
     '',
     `Next: ${result.next}`,
   ].join('\n')

@@ -27,9 +27,10 @@ It is a thin adapter over `saoi-api`'s public routes (`/api/market/*`, `/api/cal
 | `saoi_mortgage`           | `POST /api/calc/mortgage`           | `mode: affordability` (Central Bank limits) or `mode: switch` (saving, cashback, break-even)    |
 | `saoi_debt`               | `POST /api/calc/debt`               | What debts cost, payoff order, overpay versus save, refinance rates                             |
 | `saoi_build_plan`         | `POST /api/calc/build-plan`         | The fastest combination for the chosen goals, as a plan                                         |
+| `saoi_first_home`         | `POST /api/calc/first-home`         | Help to Buy, the Central Bank limits with it, green rates; every rule with its source page      |
 | `saoi_save_plan`          | `POST /api/plans`                   | Store the plan behind a one-time link into app.saoi.ie (the only tool that writes)              |
 
-All but `saoi_save_plan` are annotated read-only. Each result is structured content (saoi-api's response as is) plus a short text rendering with the figures, flags, unknowns, the data date and the CCPC attribution, for hosts that do not read structured content.
+`saoi_review_situation` and `saoi_build_plan` lead with **money found**: one euro-a-year figure in sourced, dated parts, with what is not counted (unconfirmed rates, unknown current rates, bonuses) shown apart. All but `saoi_save_plan` are annotated read-only. Each result is structured content (saoi-api's response as is) plus a short text rendering with the figures, flags, unknowns, the data date and the CCPC attribution, for hosts that do not read structured content.
 
 **Resources:** `saoi://about/ranking` (how Saoi ranks) and `saoi://about/earnings` (how Saoi earns: referral fees, disclosed, never used in ranking), Markdown from `GET /api/market/about/*`.
 

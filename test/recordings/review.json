@@ -1,4 +1,36 @@
 {
+  "moneyFound": {
+    "annualEur": 752,
+    "headline": "Money found: about €752 a year after DIRT (€572 car loan: cleared from savings; €180 current account: €16,000 moved to bunq Savings Account).",
+    "parts": [
+      {
+        "kind": "debt_interest",
+        "label": "Car loan: cleared from savings",
+        "annualEur": 572,
+        "detail": "€9,000 of savings against €9,000 at 9%: €673.56 of interest not paid in the next twelve months, less €101.30 the same money would earn after DIRT in bunq Savings Account.",
+        "source": "bunq’s own site",
+        "sourceUrl": "https://www.bunq.com/en-ie/personal/features/savings-accounts",
+        "checkedAt": "2026-11-09T13:38:43.806Z"
+      },
+      {
+        "kind": "idle_cash",
+        "label": "Current account: €16,000 moved to bunq Savings Account",
+        "annualEur": 180,
+        "detail": "€180.10 a year after DIRT in bunq Savings Account, against €0 at 0% now, with access kept.",
+        "source": "bunq’s own site",
+        "sourceUrl": "https://www.bunq.com/en-ie/personal/features/savings-accounts",
+        "checkedAt": "2026-11-09T13:38:43.806Z"
+      }
+    ],
+    "notCounted": [
+      {
+        "label": "Current account: MoCo EasySaver",
+        "annualEur": 45,
+        "why": "€45 a year more at MoCo EasySaver’s rate, but that rate rests on CCPC’s one figure: the provider may pay it only for a period or on part of the balance."
+      }
+    ],
+    "basis": "A year’s figures, after DIRT at 33%: idle cash against the best confirmed instant-access rate (only where its current rate was given), debt interest not paid in the next twelve months less what the same money would earn, and a mortgage switch’s lower repayment. Bonuses, cashback and rates resting on CCPC’s one figure are not counted."
+  },
   "findings": [
     {
       "kind": "idle_money",
@@ -18,6 +50,17 @@
         "sameMoneyInSavingsEarns": 126.9,
         "interestRemaining": 1274.96
       }
+    },
+    {
+      "kind": "help_to_buy",
+      "headline": "Help to Buy: up to €35,000 towards a new build, for a first-time buyer",
+      "detail": "Revenue refunds the lesser of 10% of a new build’s or self-build’s price (up to €500,000), €35,000, and the Income Tax and DIRT paid over the last four tax years, for homes bought or built by 2029-12-31. With €25,000 saved and €62,000 income, the Central Bank limits allow a price up to €250,000, or €303,333.33 for a new build with Help to Buy towards the deposit. saoi_first_home works it out for a price.",
+      "figures": {
+        "capEur": 35000,
+        "maxPriceEur": 500000,
+        "maxPriceWithoutHelpToBuy": 250000,
+        "maxPriceWithHelpToBuy": 303333.33
+      }
     }
   ],
   "candidateGoals": [
@@ -35,7 +78,8 @@
   "assumptions": [
     "Savings rates are compared after DIRT at 33%, over twelve months, in instant-access accounts.",
     "Variable rates are assumed to stay as published.",
-    "Goal pace counts savings held and monthly saving before interest; every goal is set against all savings held."
+    "Goal pace counts savings held and monthly saving before interest; every goal is set against all savings held.",
+    "Help to Buy as Revenue states it (https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09)."
   ],
   "dataCheckedAt": "2026-11-09T13:16:08.102Z",
   "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"],

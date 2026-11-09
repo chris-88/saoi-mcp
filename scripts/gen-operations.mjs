@@ -50,7 +50,7 @@ function deref(node, seen = []) {
   return Object.fromEntries(Object.entries(node).map(([key, value]) => [key, deref(value, seen)]))
 }
 
-/** OpenAPI 3.0 spellings to JSON Schema 2020-12: numeric exclusive bounds, no `example`. */
+/** OpenAPI 3.0 spellings to JSON Schema 2020-12: numeric exclusive bounds, `nullable`, no `example`. */
 function jsonSchema(node) {
   if (Array.isArray(node)) return node.map(jsonSchema)
   if (node === null || typeof node !== 'object') return node
@@ -70,6 +70,15 @@ function jsonSchema(node) {
     out.exclusiveMaximum = out.maximum
     delete out.maximum
   } else if (out.exclusiveMaximum === false) delete out.exclusiveMaximum
+  // `nullable: true` is OpenAPI 3.0 only; JSON Schema spells it as a `null` type.
+  if ('nullable' in out) {
+    const nullable = out.nullable === true
+    delete out.nullable
+    if (nullable && typeof out.type === 'string') {
+      out.type = [out.type, 'null']
+      if (Array.isArray(out.enum)) out.enum = [...out.enum, null]
+    } else if (nullable) return { anyOf: [out, { type: 'null' }] }
+  }
   return out
 }
 

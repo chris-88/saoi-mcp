@@ -20,7 +20,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.2.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.3.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -75,6 +75,11 @@ describe('protocol eras', () => {
     })
     const body = await asRpc(res)
     expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoi' })
+    const instructions = String(body.result?.['instructions'])
+    expect(instructions).toMatch(/Present results as options with their figures/)
+    expect(instructions).toMatch(/call the tool again with the/)
+    expect(instructions).toMatch(/offer saoi_save_plan/)
+    expect(instructions).toMatch(/Nothing is kept until the customer saves/)
   })
 
   it('serves server/discover on the 2026-07-28 path', async () => {
@@ -158,7 +163,8 @@ describe('resources and prompts', () => {
     )
     const text = (got.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
     expect(text).toMatch(/saoi_review_situation[\s\S]*saoi_build_plan[\s\S]*saoi_save_plan/)
-    expect(text).toMatch(/never as advice/)
+    expect(text).toMatch(/never as instructions, advice or "you should"/)
+    expect(text).toMatch(/call the tool again/)
     expect(text).toMatch(/a house/)
   })
 })
@@ -210,6 +216,11 @@ describe('tools/call', () => {
     const plan = text(await call('saoi_build_plan', { situation: {}, goals: [GOAL] }))
     expect(plan).toMatch(/House deposit by November 2028/)
     expect(plan).toMatch(/Nothing has been stored/)
+    expect(plan).toMatch(/Next: .*saoi_save_plan.*rate changes/)
+    expect(plan).toMatch(/Locked or accessible: /)
+    expect(plan).toMatch(/What if:\n- /)
+    expect(plan).toMatch(/Deposit guarantee: /)
+    expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(/Next: .*saoi_build_plan/)
   })
 
   it('saoi_save_plan returns the link and says nothing was kept before', async () => {

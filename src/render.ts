@@ -113,11 +113,7 @@ export function renderProduct(detail: ProductDetail): string {
     `Source: ${product.provenance.source === 'bank' ? 'the provider’s own site' : 'CCPC'} (${product.provenance.sourceUrl}); checked ${day(product.provenance.checkedAt)}; last changed ${product.provenance.lastChangedAt === null ? 'no change seen since first recorded' : day(product.provenance.lastChangedAt)}.`,
     ...(product.provenance.providerUrl === null ? [] : [`Provider page: ${product.provenance.providerUrl}`]),
     ...(product.platform === null ? [] : [product.platform.note]),
-    ...(product.depositGuarantee === null || product.depositGuarantee.scheme === null
-      ? []
-      : [
-          `Deposit guarantee: ${product.depositGuarantee.scheme}${product.depositGuarantee.coverEur === null ? '' : `, up to ${eur(product.depositGuarantee.coverEur)}`}.`,
-        ]),
+    ...(product.depositGuarantee === null ? [] : [guaranteeLine(product.depositGuarantee)]),
     '',
     'Rate history (newest first):',
     ...detail.history.map(
@@ -149,6 +145,8 @@ export function renderReview(result: ReviewResult): string {
       ? []
       : ['', 'Goals these suggest:', ...result.candidateGoals.map((goal) => `- ${goal.label}: ${goal.why}`)]),
     ...footer(result),
+    '',
+    `Next: ${result.next}`,
   ].join('\n')
 }
 
@@ -246,6 +244,22 @@ export function renderDebt(result: DebtResult): string {
   ].join('\n')
 }
 
+type PlanGuarantee = NonNullable<
+  BuildPlanResult['plan']['recommendation']['products'][number]['depositGuarantee']
+>
+
+/** The deposit guarantee in one line, with where it was read. */
+export function guaranteeLine(guarantee: PlanGuarantee): string {
+  const where =
+    guarantee.sourceUrl === null || guarantee.sourceUrl === undefined
+      ? ''
+      : ` (source: ${guarantee.sourceUrl}${guarantee.checkedOn === null || guarantee.checkedOn === undefined ? '' : `, checked ${guarantee.checkedOn}`})`
+  if (guarantee.scheme === null) {
+    return `Deposit guarantee: ${guarantee.note ?? 'not recorded; confirm with the provider'}${where}.`
+  }
+  return `Deposit guarantee: ${guarantee.scheme}${guarantee.coverEur === null ? '' : `, up to ${eur(guarantee.coverEur)}`}${guarantee.note === null || guarantee.note === undefined ? '' : `. ${guarantee.note}`}${where}.`
+}
+
 export function renderPlan(result: BuildPlanResult): string {
   const { plan } = result
   return [
@@ -265,9 +279,15 @@ export function renderPlan(result: BuildPlanResult): string {
         (product.projected?.netInterest === undefined
           ? ''
           : `; ${eur(product.projected.netInterest)} after DIRT over ${String(product.projected.horizonMonths)} months`),
+      ...(product.depositGuarantee === undefined ? [] : [`  · ${guaranteeLine(product.depositGuarantee)}`]),
       ...product.unknowns.map((unknown) => `  · Not stated: ${unknown}`),
       ...product.checks.map((check) => `  · ${check}`),
     ]),
+    '',
+    `Locked or accessible: ${result.liquidity.why}`,
+    ...(result.whatIf.lines.length === 0
+      ? []
+      : ['', 'What if:', ...result.whatIf.lines.map((line) => `- ${line}`)]),
     ...(plan.debts.length === 0
       ? []
       : [
@@ -285,7 +305,7 @@ export function renderPlan(result: BuildPlanResult): string {
       ],
     }),
     '',
-    'Nothing has been stored. To keep this plan in the Saoi app, call saoi_save_plan with `plan` exactly as returned.',
+    `Next: ${result.next}`,
   ].join('\n')
 }
 

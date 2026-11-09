@@ -35,28 +35,39 @@
         {
           "role": "lump_sum",
           "goalIds": ["deposit"],
-          "provider": "aib",
-          "providerName": "AIB",
+          "provider": "moco",
+          "providerName": "MoCo",
           "source": "ccpc",
           "category": "deposit",
-          "productId": "deposit.c5065",
-          "productName": "Personal Fixed Term Deposit (24 months)",
+          "productId": "deposit.c8548",
+          "productName": "MoCo EasySaver",
           "amount": 16000,
-          "ratePct": 2.26,
+          "ratePct": 2.1,
           "projected": {
             "horizonMonths": 24,
-            "balance": 16488.21,
-            "netInterest": 488.21,
+            "balance": 16453.41,
+            "netInterest": 453.41,
             "goalReachedOn": "2028-05"
           },
-          "why": "€16,000 in AIB Personal Fixed Term Deposit for 24 months: the most known interest after DIRT for this part of the money.",
-          "unknowns": ["the minimum age to open it", "whether it takes regular monthly saving"],
+          "why": "€16,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+          "unknowns": ["the minimum age to open it"],
           "checks": [
-            "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
+            "Protected by the Austrian deposit guarantee (Einlagensicherung AUSTRIA) up to €100,000, not the Irish scheme.",
+            "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+            "Check eligibility with MoCo: CCPC does not record who can open it (for example, whether an account with MoCo is needed first)."
           ],
+          "depositGuarantee": {
+            "scheme": "Austrian deposit guarantee (Einlagensicherung AUSTRIA)",
+            "country": "Austria",
+            "coverEur": 100000,
+            "note": "MoCo is a trading name of BAWAG P.S.K. (Irish branch); the €100,000 is shared across BAWAG’s brands.",
+            "sourceUrl": "https://www.moco.ie/resource/blob/107468/bedec0b9ce4be4800c611c57f4114991/moco-depositor-information-sheet-july-2025-data.pdf",
+            "checkedOn": "2026-11-09"
+          },
           "checkedAt": "2026-11-09T13:16:08.102Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
-          "url": "https://aib.ie/our-products/savings-and-deposits/personal-fixed-term-deposit-account"
+          "url": "https://www.moco.ie/"
         },
         {
           "role": "regular_saver",
@@ -83,9 +94,17 @@
             "the rate paid on a lump sum"
           ],
           "checks": [
-            "Introductory or tiered rate not confirmed: CCPC states this one rate and nothing after it, and Saoi has not read the provider’s own terms. The provider may pay it only for a period or only on part of…",
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
             "Check eligibility with EBS d.a.c: CCPC does not record who can open it (for example, whether an account with EBS d.a.c is needed first)."
           ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": "EBS d.a.c. holds its own banking licence (Central Bank register), so its €100,000 is separate from AIB’s.",
+            "sourceUrl": "https://registers.centralbank.ie/prerenderedreports/2.pdf",
+            "checkedOn": "2026-11-09"
+          },
           "checkedAt": "2026-11-09T13:16:08.102Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
           "url": "https://www.ebs.ie/regular-savings.html"
@@ -115,28 +134,36 @@
             "the rate paid on a lump sum"
           ],
           "checks": [
-            "Introductory or tiered rate not confirmed: CCPC states this one rate and nothing after it, and Saoi has not read the provider’s own terms. The provider may pay it only for a period or only on part of…",
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
             "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
           ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": null,
+            "sourceUrl": "https://www.aib.ie/content/dam/aib/personal/docs/help-and-guidance/aib-depositor-information-sheet.pdf",
+            "checkedOn": "2026-11-09"
+          },
           "checkedAt": "2026-11-09T13:16:08.102Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
           "url": "https://personal.aib.ie/our-products/savings-and-deposits/online-saver"
         }
       ],
-      "totals": { "monthly": 1080, "lumpSum": 16000, "netInterest": 1033.74 }
+      "totals": { "monthly": 1080, "lumpSum": 16000, "netInterest": 998.94 }
     },
     "debts": [
       {
         "debtId": "car-loan",
         "action": "pay_off_first",
-        "why": "At 9% it costs more than the savings earn. Clearing from the lump sum and saving its €280 a month leaves €972.14 more at month 24 than keeping it. Keeping it reaches €35,000 sooner, in November 2027 rather than May 2028, with €3,385.33 still owed at the end.",
+        "why": "At 9% it costs more than the savings earn. Clearing from the lump sum and saving its €280 a month leaves €991.72 more at month 24 than keeping it. Keeping it reaches €35,000 sooner, in November 2027 rather than May 2028, with €3,385.33 still owed at the end.",
         "costIfKept": 1274.96,
         "costWithStep": 0
       }
     ],
     "ranking": {
       "objective": "highest_net_return",
-      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €16,000 placed and €1,080 a month, for the inputs given; debts set against savings by net position at month 24."
+      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €16,000 placed and €1,080 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 24."
     },
     "assumptions": [
       "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
@@ -144,9 +171,11 @@
       "Variable rates are assumed to stay as published today; they can change.",
       "Bonuses are not counted as interest.",
       "Every other euro of savings held is treated as available to place.",
-      "A €42,953.74 deposit and €62,000 gross income support a price up to €290,953.74 under the Central Bank limits (the income limit binds)."
+      "The €280 a month the Car loan took is saved instead from the next month: with the €800 a month already saved, €1,080 a month goes into the accounts below.",
+      "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant ac…",
+      "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
     ],
-    "createdAt": "2026-11-09T13:42:42.014Z",
+    "createdAt": "2026-11-09T14:21:51.754Z",
     "dataCheckedAt": "2026-11-09T13:16:08.102Z"
   },
   "horizonMonths": 24,
@@ -154,38 +183,61 @@
   "goalReachedOn": "2028-05",
   "reasoning": [
     "€25,000 held and €800 a month to place, over 24 months.",
-    "Car loan: cleared from the lump sum. Net position (savings less debt) at month 24: €42,953.74, against €41,981.60 if kept. Keeping it reaches €35,000 sooner, in November 2027 rather than May 2028, with €3,385.33 still owed at the end.",
-    "€16,000 in AIB Personal Fixed Term Deposit for 24 months: the most known interest after DIRT for this part of the money.",
+    "Car loan: cleared from the lump sum. Net position (savings less debt) at month 24: €42,918.94, against €41,927.22 if kept. Keeping it reaches €35,000 sooner, in November 2027 rather than May 2028, with €3,385.33 still owed at the end.",
+    "The €280 a month the Car loan took is saved instead from the next month: with the €800 a month already saved, €1,080 a month goes into the accounts below.",
+    "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "€16,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
     "€586 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
     "€494 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
     "House deposit: €35,000 is reached in May 2028.",
-    "A €42,953.74 deposit and €62,000 gross income support a price up to €290,953.74 under the Central Bank limits (the income limit binds)."
+    "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
   ],
   "debtScenarios": [
     {
       "debtId": "car-loan",
       "amount": 9000,
       "kept": {
-        "savingsAtHorizon": 45366.93,
+        "savingsAtHorizon": 45312.55,
         "debtAtHorizon": 3385.33,
-        "netPosition": 41981.6,
+        "netPosition": 41927.22,
         "goalReachedOn": "2027-11"
       },
       "cleared": {
-        "savingsAtHorizon": 42953.74,
+        "savingsAtHorizon": 42918.94,
         "debtAtHorizon": 0,
-        "netPosition": 42953.74,
+        "netPosition": 42918.94,
         "goalReachedOn": "2028-05"
       },
       "chosen": "cleared"
     }
   ],
   "affordability": {
-    "deposit": 42953.74,
-    "maxPrice": 290953.74,
+    "deposit": 42918.94,
+    "maxPrice": 290918.94,
     "maxLoanByIncome": 248000,
     "bindingLimit": "income",
-    "note": "A €42,953.74 deposit and €62,000 gross income support a price up to €290,953.74 under the Central Bank limits (the income limit binds)."
+    "note": "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
   },
-  "unplaced": { "lumpSum": 0, "monthly": 0 }
+  "unplaced": { "lumpSum": 0, "monthly": 0 },
+  "liquidity": {
+    "decision": "instant_access",
+    "why": "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "lockedNetPosition": 42953.74,
+    "instantNetPosition": 42918.94,
+    "gainEur": 34.8,
+    "gainPctPerYear": 0.11,
+    "thresholdEur": 100,
+    "thresholdPctPerYear": 0.25
+  },
+  "whatIf": {
+    "extraMonthly": { "extra": 100, "addsAtHorizon": 2450.52, "goalReachedOn": "2028-03" },
+    "goalReachedAtCurrentPace": "2028-05",
+    "lines": [
+      "Locking it anyway: €42,953.74 at November 2028, €34.80 more, with the money tied up (minLockGainEur: 0 and minLockGainPctPerYear: 0).",
+      "Each extra €100 a month adds about €2,450.52 by November 2028, after DIRT, and reaches €35,000 in March 2028.",
+      "Car loan: cleared from the lump sum, €42,918.94 net (savings less debt) at November 2028; kept, €41,927.22 with €3,385.33 still owed. The difference is €991.72.",
+      "At this pace €35,000 is reached in May 2028."
+    ]
+  },
+  "next": "Nothing has been stored. If the customer wants to keep this plan, offer saoi_save_plan: it saves the plan into the Saoi app (app.saoi.ie) behind a one-time link, valid for seven days. In the app the plan carries on: alerts when a chosen product’s rate changes, reminders as the goal date nears, and a partner can join the plan. To change an assumption (the buffer, keeping the money accessible, the monthly amount, the date), call saoi_build_plan again with the new inputs; the figures come from that call."
 }

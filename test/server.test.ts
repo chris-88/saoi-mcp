@@ -79,6 +79,8 @@ describe('protocol eras', () => {
     expect(instructions).toMatch(/Present results as options with their figures/)
     expect(instructions).toMatch(/call the tool again with the/)
     expect(instructions).toMatch(/offer saoi_save_plan/)
+    expect(instructions).toMatch(/coming, not built/)
+    expect(instructions).not.toMatch(/partner/)
     expect(instructions).toMatch(/Nothing is kept until the customer saves/)
   })
 
@@ -216,7 +218,7 @@ describe('tools/call', () => {
     const plan = text(await call('saoi_build_plan', { situation: {}, goals: [GOAL] }))
     expect(plan).toMatch(/House deposit by November 2028/)
     expect(plan).toMatch(/Nothing has been stored/)
-    expect(plan).toMatch(/Next: .*saoi_save_plan.*rate changes/)
+    expect(plan).toMatch(/Next: .*saoi_save_plan/)
     expect(plan).toMatch(/Locked or accessible: /)
     expect(plan).toMatch(/What if:\n- /)
     expect(plan).toMatch(/Deposit guarantee: /)

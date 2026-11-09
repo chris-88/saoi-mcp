@@ -1,4 +1,12 @@
 {
+  "presentation": [
+    "Help to Buy: depends, up to €35,000. 10% of €380,000 is €38,000, above the €35,000 cap: up to €35,000. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Cap €35,000 for applications from 2026-10-07; homes bought or built by 2029-12-31 (Revenue, checked 2026-11-09).",
+    "Central Bank limits: borrowing up to 4 times income (€248,000) and 90% of the price. The highest price they allow is €283,000, or €314,444.44 for a new build with Help to Buy towards the deposit.",
+    "At €380,000: a €38,000 deposit is needed, €35,000 of it from Help to Buy; the loan of €310,000 is €62,000 above the income limit, which lenders can exceed for up to 15% of their lending (their decision).",
+    "Green rates are the lenders’ own: the lowest at this loan-to-value is AIB 3-year fixed Green A Mortgage, LTV over 80% at 3.2%, against 3.5% standard.",
+    "The First Home shared equity scheme could not be confirmed from a primary page, so it is not included.",
+    "These are the published rules and the figures for the inputs given; the customer decides."
+  ],
   "helpToBuy": {
     "conditions": [
       "A first-time buyer: never bought or built a home before, alone or jointly, in Ireland or abroad.",
@@ -72,15 +80,15 @@
   "greenRates": {
     "note": "No Central Bank or government rule sets mortgage rates by BER: lenders set their own green rates. The green rates here are the lenders’ own, from the market data.",
     "cheapestGreen": {
-      "productId": "boi:mortgage.c3836",
-      "name": "Bank of Ireland 4 Year Fixed HVM BER A",
-      "ratePct": 3.1,
-      "berNeeded": "A"
+      "productId": "aib:mortgage.c7287",
+      "name": "AIB 3-year fixed Green A Mortgage, LTV over 80%",
+      "ratePct": 3.2,
+      "berNeeded": null
     },
     "cheapestStandard": {
-      "productId": "aib:mortgage.c2039",
-      "name": "AIB Higher Value 4 Year Fixed Rate, LTV Greater than 80%",
-      "ratePct": 3.25
+      "productId": "aib:mortgage.c419",
+      "name": "AIB 1 year fixed, LTV over 80%",
+      "ratePct": 3.5
     }
   },
   "options": [
@@ -125,7 +133,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T13:16:08.102Z",
+          "checkedAt": "2026-11-09T15:51:47.160Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -135,6 +143,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "eligibility": null,
         "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
@@ -199,8 +208,8 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T13:16:08.102Z",
-          "lastChangedAt": null,
+          "checkedAt": "2026-11-09T15:51:47.160Z",
+          "lastChangedAt": "2026-11-09T15:51:47.160Z",
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
           "rows": [{ "source": "ccpc", "productId": "mortgage.c1760" }],
@@ -209,6 +218,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "eligibility": null,
         "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
@@ -273,8 +283,8 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T13:16:08.102Z",
-          "lastChangedAt": null,
+          "checkedAt": "2026-11-09T15:51:47.160Z",
+          "lastChangedAt": "2026-11-09T15:51:47.160Z",
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
           "rows": [{ "source": "ccpc", "productId": "mortgage.c2014" }],
@@ -283,6 +293,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "eligibility": null,
         "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
@@ -347,8 +358,8 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T13:16:08.102Z",
-          "lastChangedAt": null,
+          "checkedAt": "2026-11-09T15:51:47.160Z",
+          "lastChangedAt": "2026-11-09T15:51:47.160Z",
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
           "rows": [{ "source": "ccpc", "productId": "mortgage.c1748" }],
@@ -357,6 +368,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "eligibility": null,
         "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
@@ -421,7 +433,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.creditunionmortgages.com/",
-          "checkedAt": "2026-11-09T13:16:08.102Z",
+          "checkedAt": "2026-11-09T15:51:47.160Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -431,6 +443,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "eligibility": null,
         "rateConfirmed": true,
         "checks": [
           "Credit union rates and terms vary by credit union; membership is needed.",
@@ -470,7 +483,7 @@
     "Help to Buy is counted towards the deposit, as Revenue pays it to the builder or into the self-build loan.",
     "Rules as recorded on 2026-11-09 from Revenue and the Central Bank; each is listed with its page."
   ],
-  "dataCheckedAt": "2026-11-09T13:16:08.102Z",
+  "dataCheckedAt": "2026-11-09T15:51:47.160Z",
   "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"],
-  "next": "Nothing has been stored. Help to Buy and the limits above are information for the customer to weigh. With a target price and date, saoi_build_plan works out the saving towards the deposit; a plan can then be saved into the Saoi app with saoi_save_plan."
+  "next": "Nothing is stored from this. Help to Buy and the limits above are information for the customer to weigh. With a target and a date, saoi_build_plan works out the saving towards the deposit and returns a link that holds the plan for 24 hours so it can be opened in the Saoi app."
 }

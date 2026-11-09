@@ -7,6 +7,7 @@ import type {
   BuildPlanResult,
   DebtResult,
   FirstHomeResult,
+  MoneyCheckResult,
   MortgageResult,
   ProductDetail,
   ProjectionResult,
@@ -31,6 +32,7 @@ export const recorded = {
   debt: recording('debt') as DebtResult,
   plan: recording('plan') as BuildPlanResult,
   firstHome: recording('first-home') as FirstHomeResult,
+  moneyCheck: recording('money-check') as MoneyCheckResult,
   ranking: recording('ranking') as About,
   saved: recording('saved') as SavePlanResult,
 }
@@ -45,6 +47,7 @@ export const mockSaoi = (): { [K in keyof SaoiApi]: ReturnType<typeof vi.fn<Saoi
   debt: vi.fn<SaoiApi['debt']>(() => Promise.resolve(recorded.debt)),
   buildPlan: vi.fn<SaoiApi['buildPlan']>(() => Promise.resolve(recorded.plan)),
   firstHome: vi.fn<SaoiApi['firstHome']>(() => Promise.resolve(recorded.firstHome)),
+  moneyCheck: vi.fn<SaoiApi['moneyCheck']>(() => Promise.resolve(recorded.moneyCheck)),
   savePlan: vi.fn<SaoiApi['savePlan']>(() => Promise.resolve(recorded.saved)),
 })
 

@@ -10,6 +10,7 @@ import type {
   BuildPlanResult,
   DebtResult,
   FirstHomeResult,
+  MoneyCheckResult,
   MortgageResult,
   ProductDetail,
   ProjectionResult,
@@ -44,6 +45,16 @@ function footer(input: {
   for (const attribution of input.attributions ?? []) lines.push(attribution)
   return lines
 }
+
+/**
+ * The block every result opens with: what to tell the customer, in order. Hosts read the top of a
+ * result and relay it, so the headline sentences go here and the detail follows under "Detail".
+ */
+export function present(lines: readonly string[]): string[] {
+  return ['Present to the customer:', ...lines.map((line) => `- ${line}`), '', 'Detail:']
+}
+
+const DECIDES = 'These are options with their figures, for the inputs given; the customer decides.'
 
 export const productName = (product: Pick<Product, 'name' | 'providerName'>): string =>
   product.name.toLowerCase().startsWith(product.providerName.toLowerCase())
@@ -89,6 +100,12 @@ function productLines(rank: string, product: Product, figures: string, flags: re
 
 export function renderSearch(result: SearchResult): string {
   return [
+    ...present([
+      ...result.results
+        .slice(0, 3)
+        .map((row) => `${String(row.rank)}. ${productName(row.product)}: ${figuresLine(row.figures)}.`),
+      `Ranked by ${result.ranking.objective.replaceAll('_', ' ')}; another order can be asked for. ${DECIDES}`,
+    ]),
     `Ranked by ${result.ranking.objective.replaceAll('_', ' ')}: ${result.ranking.basis}`,
     `${String(result.matched)} matched; ${String(result.results.length)} shown.`,
     '',
@@ -104,12 +121,18 @@ export function renderSearch(result: SearchResult): string {
 
 export function renderProduct(detail: ProductDetail): string {
   const { product } = detail
+  const latest = detail.history[0]
   const prose = detail.verbatim.flatMap((row) =>
     Object.entries(row.prose).map(
       ([label, text]) => `${label}: ${text.length > 600 ? `${text.slice(0, 599)}…` : text}`,
     ),
   )
   return [
+    ...present([
+      `${productName(product)}${latest === undefined ? '' : `: ${latest.headline}`} (${product.provenance.source === 'bank' ? 'the provider’s own site' : 'CCPC'}, checked ${day(product.provenance.checkedAt)}).`,
+      ...(product.depositGuarantee === null ? [] : [guaranteeLine(product.depositGuarantee)]),
+      ...product.checks.slice(0, 2),
+    ]),
     `${productName(product)} [${product.id}], ${product.category.replace('_', ' ')}`,
     `Source: ${product.provenance.source === 'bank' ? 'the provider’s own site' : 'CCPC'} (${product.provenance.sourceUrl}); checked ${day(product.provenance.checkedAt)}; last changed ${product.provenance.lastChangedAt === null ? 'no change seen since first recorded' : day(product.provenance.lastChangedAt)}.`,
     ...(product.provenance.providerUrl === null ? [] : [`Provider page: ${product.provenance.providerUrl}`]),
@@ -164,6 +187,7 @@ export function renderMoneyFound(found: MoneyFound): string[] {
 
 export function renderReview(result: ReviewResult): string {
   return [
+    ...present(result.presentation),
     ...renderMoneyFound(result.moneyFound),
     result.findings.length === 0 ? 'No findings for the figures given.' : 'Findings:',
     ...result.findings.flatMap((finding) => [`- ${finding.headline}`, `  ${finding.detail}`]),
@@ -178,6 +202,17 @@ export function renderReview(result: ReviewResult): string {
 
 export function renderProjection(result: ProjectionResult): string {
   return [
+    ...present([
+      `To month ${String(result.totals.knownThroughMonth)}: ${eur(result.totals.paidIn)} paid in, ${eur(result.totals.netInterest)} interest after DIRT, ${eur(result.totals.balance)} in all.`,
+      ...(result.goal === null
+        ? []
+        : [
+            result.goal.reachedOn === null
+              ? `${eur(result.goal.targetAmount)} is not reached within the months the figures cover.`
+              : `${eur(result.goal.targetAmount)} is reached in ${result.goal.reachedOn}.`,
+          ]),
+      DECIDES,
+    ]),
     result.basis,
     '',
     ...result.lines.flatMap((line) => [
@@ -206,6 +241,16 @@ export function renderProjection(result: ProjectionResult): string {
 export function renderMortgage(result: MortgageResult): string {
   if (result.mode === 'affordability') {
     return [
+      ...present([
+        `Under the Central Bank limits the highest price is ${eur(result.maxPrice)} (the ${result.bindingLimit} limit binds): up to ${eur(result.maxLoanByIncome)} borrowed.`,
+        ...(result.forProperty === null
+          ? []
+          : [
+              `At ${eur(result.forProperty.propertyValue)}: a ${eur(result.forProperty.depositNeeded)} deposit${result.forProperty.depositShortfall > 0 ? `, ${eur(result.forProperty.depositShortfall)} short` : ''}; the loan is ${result.forProperty.withinIncomeLimit ? 'within' : 'above'} the income limit.`,
+            ]),
+        'For a first home, saoi_first_home adds Help to Buy.',
+        DECIDES,
+      ]),
       `Central Bank limits: loan up to ${String(result.limits.loanToIncome)} times income, loan-to-value up to ${pct(result.limits.maxLtvPct)}. ${result.limits.allowance}`,
       `Most the income allows: ${eur(result.maxLoanByIncome)} borrowed. Most the deposit supports: a price of ${eur(result.maxPriceByDeposit)}.`,
       `Highest price within both: ${eur(result.maxPrice)} (the ${result.bindingLimit} limit binds).`,
@@ -222,7 +267,17 @@ export function renderMortgage(result: MortgageResult): string {
       ...footer(result),
     ].join('\n')
   }
+  const best = result.options[0]
   return [
+    ...present([
+      `Now: ${pct(result.current.ratePct)}, ${eur(result.current.monthlyRepayment)} a month.`,
+      ...(best === undefined
+        ? ['No switcher rate in the data is lower for these figures.']
+        : [
+            `The lowest whole-term cost: ${productName(best.product)}, ${eur(best.monthlySaving)} a month less${best.lifetimeSaving === null ? '' : `, ${eur(best.lifetimeSaving)} over the term`} (fees as stated, not counted).`,
+          ]),
+      DECIDES,
+    ]),
     `Now: ${pct(result.current.ratePct)}, ${eur(result.current.monthlyRepayment)} a month, ${eur(result.current.totalRemaining)} over the rest of the term.${result.ltvPct === null ? '' : ` LTV ${pct(result.ltvPct)}.`}`,
     result.ranking.basis,
     '',
@@ -240,6 +295,17 @@ export function renderMortgage(result: MortgageResult): string {
 
 export function renderDebt(result: DebtResult): string {
   return [
+    ...present([
+      ...result.costs.map(
+        (cost) =>
+          `${cost.label}: ${cost.ratePct === null ? 'rate not given' : pct(cost.ratePct)}${cost.interestRemaining === null ? '' : `, ${eur(cost.interestRemaining)} interest still to pay at the current repayment`}.`,
+      ),
+      ...result.overpayVersusSave.map(
+        (row) =>
+          `${eur(row.amount)}${row.cadence === 'monthly' ? ' a month' : ' once'}: put against ${row.debtId} it saves ${eur(row.interestSavedByOverpaying)} in interest; saved, it earns ${eur(row.netInterestBySaving)} after DIRT.`,
+      ),
+      DECIDES,
+    ]),
     'What each debt costs:',
     ...result.costs.flatMap((cost) => [
       `- ${cost.label}: ${cost.ratePct === null ? 'rate not given' : pct(cost.ratePct)}` +
@@ -297,6 +363,7 @@ const DEBT_ACTIONS: Record<BuildPlanResult['plan']['debts'][number]['action'], s
 export function renderPlan(result: BuildPlanResult): string {
   const { plan } = result
   return [
+    ...present(result.presentation),
     ...renderMoneyFound(result.moneyFound),
     plan.title,
     `Ranked by ${plan.ranking.objective.replaceAll('_', ' ')}: ${plan.ranking.basis}`,
@@ -333,11 +400,11 @@ export function renderPlan(result: BuildPlanResult): string {
             return `- ${debt?.label ?? step.debtId}: ${DEBT_ACTIONS[step.action]}. ${step.why}`
           }),
         ]),
-    ...(result.affordability?.helpToBuy === null || result.affordability?.helpToBuy === undefined
+    ...(result.helpToBuy === null
       ? []
       : [
           '',
-          `Help to Buy: ${result.affordability.helpToBuy.note} (Revenue, ${result.affordability.helpToBuy.sourceUrl}, checked ${result.affordability.helpToBuy.checkedOn})`,
+          `${result.helpToBuy.note} Source: ${result.helpToBuy.sourceUrl} (checked ${result.helpToBuy.checkedOn}).`,
         ]),
     ...footer({
       assumptions: plan.assumptions,
@@ -357,6 +424,7 @@ export function renderFirstHome(result: FirstHomeResult): string {
   const { helpToBuy: htb, lending } = result
   const price = lending.forPrice
   return [
+    ...present(result.presentation),
     `Help to Buy: ${htb.status.replace('_', ' ')}${htb.amountEur === null ? `, up to ${eur(htb.upToEur)}` : `, ${eur(htb.amountEur)}`}.`,
     ...htb.reasons.map((reason) => `- ${reason}`),
     'Conditions (Revenue):',
@@ -386,10 +454,21 @@ export function renderFirstHome(result: FirstHomeResult): string {
   ].join('\n')
 }
 
+export function renderMoneyCheck(result: MoneyCheckResult): string {
+  return [
+    ...present(result.presentation),
+    ...(result.planGoalAssumed === null ? [] : [`Plan built for: ${result.planGoalAssumed}.`, '']),
+    ...(result.plan === null
+      ? [renderReview(result.review).split('\nDetail:\n').slice(1).join('\nDetail:\n')]
+      : [renderPlan(result.plan).split('\nDetail:\n').slice(1).join('\nDetail:\n')]),
+  ].join('\n')
+}
+
 export function renderSaved(result: SavePlanResult): string {
   return [
-    `Saved. Open this link to carry the plan into the Saoi app: ${result.claimUrl}`,
-    `It works once and expires ${day(result.expiresAt)}.`,
-    'Nothing about the customer was kept before this call; the plan is stored only now, behind this link.',
+    ...present([
+      `Save this plan to the Saoi app: ${result.claimUrl} (held for 24 hours so it can be opened, then deleted unless opened).`,
+    ]),
+    `It works once and expires ${result.expiresAt}. Nothing else about the customer is stored.`,
   ].join('\n')
 }

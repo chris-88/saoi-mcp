@@ -2633,7 +2633,7 @@ export interface paths {
         put?: never;
         /**
          * Save a plan made in the customer’s own AI, behind a one-time link
-         * @description Public: no sign-in. Called by the Saoi MCP server (`saoi_save_plan`) with the plan `saoi_build_plan` returned (`MarketPlan`, version 1). Stores it and returns a claim link into app.saoi.ie that works once, for seven days. The body is capped at 64 KiB; saves are rate-limited per address and capped per day.
+         * @description Public: no sign-in. Called by the Saoi MCP server (`saoi_save_plan`) with the plan `saoi_build_plan` returned (`MarketPlan`, version 1). Holds it and returns a claim link into app.saoi.ie that works once, for 24 hours; unopened, it is then deleted. `saoi_build_plan` already returns such a link with every plan. The body is capped at 64 KiB; saves are rate-limited per address and capped per day.
          */
         post: {
             parameters: {
@@ -3387,6 +3387,76 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["BuildPlanResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calc/money-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start here: a money check on whatever the customer has said so far
+         * @description Call this as soon as the customer talks about their own money in Ireland: money sitting in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Takes whatever has been said so far, however partial, and returns in one result: what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, the two or three questions that would sharpen it, the presentation to lead with, and a link that holds the plan for 24 hours so it can be opened in the Saoi app (the only thing stored). Call it again as the customer says more. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MoneyCheck"];
+                };
+            };
+            responses: {
+                /** @description The money check. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MoneyCheckResult"];
                     };
                 };
                 /** @description The request is not valid. `details` says where. */
@@ -7656,6 +7726,13 @@ export interface components {
                                 aerPct: number;
                             }[];
                         } | null;
+                        /**
+                         * @description How often interest is credited, as the provider states it. Null: not stated.
+                         * @enum {string|null}
+                         */
+                        interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                        /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                        rateForNewAccounts: boolean;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -7789,6 +7866,18 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                    eligibility: {
+                        minAge: number | null;
+                        /** @description The country the holder must live in. */
+                        residentIn: string | null;
+                        notForUsCitizens: boolean | null;
+                        individualsOnly: boolean | null;
+                        /** @description Whether joint accounts can be opened. */
+                        jointAccounts: boolean | null;
+                        /** @description Another account with the provider to hold first, in its own words. */
+                        needsAccountWithProvider: string | null;
+                    } | null;
                     /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                     rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -7983,6 +8072,13 @@ export interface components {
                             aerPct: number;
                         }[];
                     } | null;
+                    /**
+                     * @description How often interest is credited, as the provider states it. Null: not stated.
+                     * @enum {string|null}
+                     */
+                    interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                    /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                    rateForNewAccounts: boolean;
                     /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                     dirtApplies: boolean;
                     /** @description A conditional bonus, kept apart from interest. */
@@ -8116,6 +8212,18 @@ export interface components {
                     /** @description What is not known, in words. */
                     meaning: string;
                 }[];
+                /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                eligibility: {
+                    minAge: number | null;
+                    /** @description The country the holder must live in. */
+                    residentIn: string | null;
+                    notForUsCitizens: boolean | null;
+                    individualsOnly: boolean | null;
+                    /** @description Whether joint accounts can be opened. */
+                    jointAccounts: boolean | null;
+                    /** @description Another account with the provider to hold first, in its own words. */
+                    needsAccountWithProvider: string | null;
+                } | null;
                 /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                 rateConfirmed: boolean;
                 /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -8156,6 +8264,8 @@ export interface components {
             updatedOn: string;
         };
         ReviewSituationResult: {
+            /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
+            presentation: string[];
             /** @description Money a year the figures support finding: idle cash against the best accessible rate after DIRT, debt interest not paid, a mortgage switch. Each part sourced and dated. */
             moneyFound: {
                 /** @description The total a year, after DIRT: the sum of `parts`. Nothing in `notCounted` is in it. */
@@ -8206,7 +8316,7 @@ export interface components {
             next: string;
         };
         ReviewSituation: {
-            /** @description The customer’s circumstances. Sent with each call and never stored. Every figure is what they said. */
+            /** @description The customer’s circumstances, sent with each call. Only a plan is ever held, as a 24-hour draft behind a single-use link. Every figure is what they said. */
             situation: {
                 /** @description Two or three sentences of what the customer said. */
                 summary?: string;
@@ -8325,6 +8435,13 @@ export interface components {
                                 aerPct: number;
                             }[];
                         } | null;
+                        /**
+                         * @description How often interest is credited, as the provider states it. Null: not stated.
+                         * @enum {string|null}
+                         */
+                        interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                        /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                        rateForNewAccounts: boolean;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -8458,6 +8575,18 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                    eligibility: {
+                        minAge: number | null;
+                        /** @description The country the holder must live in. */
+                        residentIn: string | null;
+                        notForUsCitizens: boolean | null;
+                        individualsOnly: boolean | null;
+                        /** @description Whether joint accounts can be opened. */
+                        jointAccounts: boolean | null;
+                        /** @description Another account with the provider to hold first, in its own words. */
+                        needsAccountWithProvider: string | null;
+                    } | null;
                     /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                     rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -8644,6 +8773,13 @@ export interface components {
                                 aerPct: number;
                             }[];
                         } | null;
+                        /**
+                         * @description How often interest is credited, as the provider states it. Null: not stated.
+                         * @enum {string|null}
+                         */
+                        interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                        /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                        rateForNewAccounts: boolean;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -8777,6 +8913,18 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                    eligibility: {
+                        minAge: number | null;
+                        /** @description The country the holder must live in. */
+                        residentIn: string | null;
+                        notForUsCitizens: boolean | null;
+                        individualsOnly: boolean | null;
+                        /** @description Whether joint accounts can be opened. */
+                        jointAccounts: boolean | null;
+                        /** @description Another account with the provider to hold first, in its own words. */
+                        needsAccountWithProvider: string | null;
+                    } | null;
                     /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                     rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -8885,6 +9033,13 @@ export interface components {
                                 aerPct: number;
                             }[];
                         } | null;
+                        /**
+                         * @description How often interest is credited, as the provider states it. Null: not stated.
+                         * @enum {string|null}
+                         */
+                        interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                        /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                        rateForNewAccounts: boolean;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -9018,6 +9173,18 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                    eligibility: {
+                        minAge: number | null;
+                        /** @description The country the holder must live in. */
+                        residentIn: string | null;
+                        notForUsCitizens: boolean | null;
+                        individualsOnly: boolean | null;
+                        /** @description Whether joint accounts can be opened. */
+                        jointAccounts: boolean | null;
+                        /** @description Another account with the provider to hold first, in its own words. */
+                        needsAccountWithProvider: string | null;
+                    } | null;
                     /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                     rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -9191,6 +9358,13 @@ export interface components {
                                     aerPct: number;
                                 }[];
                             } | null;
+                            /**
+                             * @description How often interest is credited, as the provider states it. Null: not stated.
+                             * @enum {string|null}
+                             */
+                            interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                            /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                            rateForNewAccounts: boolean;
                             /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                             dirtApplies: boolean;
                             /** @description A conditional bonus, kept apart from interest. */
@@ -9324,6 +9498,18 @@ export interface components {
                             /** @description What is not known, in words. */
                             meaning: string;
                         }[];
+                        /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                        eligibility: {
+                            minAge: number | null;
+                            /** @description The country the holder must live in. */
+                            residentIn: string | null;
+                            notForUsCitizens: boolean | null;
+                            individualsOnly: boolean | null;
+                            /** @description Whether joint accounts can be opened. */
+                            jointAccounts: boolean | null;
+                            /** @description Another account with the provider to hold first, in its own words. */
+                            needsAccountWithProvider: string | null;
+                        } | null;
                         /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                         rateConfirmed: boolean;
                         /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -9371,6 +9557,8 @@ export interface components {
             lumpSum?: number;
         };
         FirstHomeResult: {
+            /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
+            presentation: string[];
             helpToBuy: {
                 /**
                  * @description `depends`: on something not given (the kind of property, or tax paid).
@@ -9520,6 +9708,13 @@ export interface components {
                                 aerPct: number;
                             }[];
                         } | null;
+                        /**
+                         * @description How often interest is credited, as the provider states it. Null: not stated.
+                         * @enum {string|null}
+                         */
+                        interestPaid: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity" | null;
+                        /** @description The rate is for accounts opened now; an account already open may earn another rate. */
+                        rateForNewAccounts: boolean;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -9653,6 +9848,18 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description Who can open it, as the provider’s own page states it; a field it does not state is null. Null when no provider page recording it was read. */
+                    eligibility: {
+                        minAge: number | null;
+                        /** @description The country the holder must live in. */
+                        residentIn: string | null;
+                        notForUsCitizens: boolean | null;
+                        individualsOnly: boolean | null;
+                        /** @description Whether joint accounts can be opened. */
+                        jointAccounts: boolean | null;
+                        /** @description Another account with the provider to hold first, in its own words. */
+                        needsAccountWithProvider: string | null;
+                    } | null;
                     /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
                     rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
@@ -9711,6 +9918,24 @@ export interface components {
             limit?: number;
         };
         BuildPlanResult: {
+            /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
+            presentation: string[];
+            /** @description The plan held as a draft for 24 hours behind a single-use link, then deleted unless opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
+            saveLink: {
+                /** @description Opens the plan in the Saoi app, once. */
+                url: string;
+                expiresAt: string;
+            } | null;
+            /** @description For a house deposit goal and a first-time buyer: Help to Buy, as far as the inputs allow. Null otherwise. */
+            helpToBuy: {
+                /** @enum {string} */
+                status: "available" | "not_available" | "depends";
+                amountEur: number | null;
+                upToEur: number;
+                note: string;
+                sourceUrl: string;
+                checkedOn: string;
+            } | null;
             /** @description Money a year the figures support finding: idle cash against the best accessible rate after DIRT, debt interest not paid, a mortgage switch. Each part sourced and dated. */
             moneyFound: {
                 /** @description The total a year, after DIRT: the sum of `parts`. Nothing in `notCounted` is in it. */
@@ -9954,7 +10179,7 @@ export interface components {
             next: string;
         };
         BuildPlan: {
-            /** @description The customer’s circumstances. Sent with each call and never stored. Every figure is what they said. */
+            /** @description The customer’s circumstances, sent with each call. Only a plan is ever held, as a 24-hour draft behind a single-use link. Every figure is what they said. */
             situation: {
                 /** @description Two or three sentences of what the customer said. */
                 summary?: string;
@@ -10020,6 +10245,424 @@ export interface components {
             minLockGainPctPerYear?: number;
             /** @description The most accounts the plan may open. Default 5. */
             maxAccounts?: number;
+            /** @description For a house deposit: the price in mind, for Help to Buy and the Central Bank limits. */
+            homePrice?: number;
+            /**
+             * @description For a house deposit: `new_build`, `self_build` or `second_hand`. Help to Buy is for the first two.
+             * @enum {string}
+             */
+            propertyKind?: "new_build" | "self_build" | "second_hand";
+            /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
+            taxPaidLastFourYearsEur?: number;
+        };
+        MoneyCheckResult: {
+            /** @description Present to the customer: the headline sentences in order, ending with the questions to ask and, when there is a plan, the link to save it. */
+            presentation: string[];
+            /** @description The two or three questions that would unlock or sharpen the plan, for the host to ask in its own words. Call this tool again with the answers. */
+            questions: string[];
+            review: {
+                /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
+                presentation: string[];
+                /** @description Money a year the figures support finding: idle cash against the best accessible rate after DIRT, debt interest not paid, a mortgage switch. Each part sourced and dated. */
+                moneyFound: {
+                    /** @description The total a year, after DIRT: the sum of `parts`. Nothing in `notCounted` is in it. */
+                    annualEur: number;
+                    /** @description One line for the host to lead with. */
+                    headline: string;
+                    parts: {
+                        /** @enum {string} */
+                        kind: "idle_cash" | "debt_interest" | "mortgage_switch";
+                        label: string;
+                        annualEur: number;
+                        /** @description How the figure is worked out, with its inputs. */
+                        detail: string;
+                        /** @description Where the rate behind it comes from: a provider or CCPC, or the customer’s own figures. */
+                        source: string;
+                        sourceUrl: string | null;
+                        /** @description When that rate was last checked. */
+                        checkedAt: string | null;
+                    }[];
+                    /** @description Money that may be there but is not counted: a rate not confirmed beyond CCPC’s one figure, a current rate not given, bonuses, cashback. */
+                    notCounted: {
+                        label: string;
+                        annualEur: number | null;
+                        why: string;
+                    }[];
+                    basis: string;
+                };
+                findings: {
+                    /** @enum {string} */
+                    kind: "idle_money" | "no_emergency_fund" | "debt_costs_more_than_savings_earn" | "fixed_term_ending" | "goal_short_at_current_pace" | "unknown_rate" | "help_to_buy";
+                    headline: string;
+                    detail: string;
+                    /** @description The euro figures behind the finding, by name. */
+                    figures: {
+                        [key: string]: number;
+                    };
+                }[];
+                candidateGoals: {
+                    /** @enum {string} */
+                    kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                    label: string;
+                    why: string;
+                }[];
+                assumptions: string[];
+                dataCheckedAt: string | null;
+                attributions: string[];
+                /** @description For the host to relay: what can be done next, including a plan saved into the Saoi app. */
+                next: string;
+            };
+            /** @description A plan, when there was enough to build one (money to place, or a debt to weigh). Null otherwise. */
+            plan: {
+                /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
+                presentation: string[];
+                /** @description The plan held as a draft for 24 hours behind a single-use link, then deleted unless opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
+                saveLink: {
+                    /** @description Opens the plan in the Saoi app, once. */
+                    url: string;
+                    expiresAt: string;
+                } | null;
+                /** @description For a house deposit goal and a first-time buyer: Help to Buy, as far as the inputs allow. Null otherwise. */
+                helpToBuy: {
+                    /** @enum {string} */
+                    status: "available" | "not_available" | "depends";
+                    amountEur: number | null;
+                    upToEur: number;
+                    note: string;
+                    sourceUrl: string;
+                    checkedOn: string;
+                } | null;
+                /** @description Money a year the figures support finding: idle cash against the best accessible rate after DIRT, debt interest not paid, a mortgage switch. Each part sourced and dated. */
+                moneyFound: {
+                    /** @description The total a year, after DIRT: the sum of `parts`. Nothing in `notCounted` is in it. */
+                    annualEur: number;
+                    /** @description One line for the host to lead with. */
+                    headline: string;
+                    parts: {
+                        /** @enum {string} */
+                        kind: "idle_cash" | "debt_interest" | "mortgage_switch";
+                        label: string;
+                        annualEur: number;
+                        /** @description How the figure is worked out, with its inputs. */
+                        detail: string;
+                        /** @description Where the rate behind it comes from: a provider or CCPC, or the customer’s own figures. */
+                        source: string;
+                        sourceUrl: string | null;
+                        /** @description When that rate was last checked. */
+                        checkedAt: string | null;
+                    }[];
+                    /** @description Money that may be there but is not counted: a rate not confirmed beyond CCPC’s one figure, a current rate not given, bonuses, cashback. */
+                    notCounted: {
+                        label: string;
+                        annualEur: number | null;
+                        why: string;
+                    }[];
+                    basis: string;
+                };
+                /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a one-time link into the Saoi app. */
+                plan: {
+                    /** @enum {number} */
+                    version: 1;
+                    title: string;
+                    situation: {
+                        summary: string;
+                        income?: {
+                            annualGross?: number;
+                            netMonthly?: number;
+                        };
+                        outgoings?: {
+                            rentMonthly?: number;
+                            otherMonthly?: number;
+                        };
+                        monthlySaving?: number;
+                        /** @default [] */
+                        savings: {
+                            label: string;
+                            balance: number;
+                            provider?: string;
+                            aerPct?: number;
+                        }[];
+                        /** @default [] */
+                        debts: {
+                            id: string;
+                            label: string;
+                            /** @enum {string} */
+                            kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                            balance: number;
+                            ratePct?: number;
+                            monthlyRepayment?: number;
+                            monthsRemaining?: number;
+                        }[];
+                    };
+                    goals: {
+                        id: string;
+                        /** @enum {string} */
+                        kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                        label: string;
+                        targetAmount?: number;
+                        targetDate?: string;
+                        priority?: number;
+                    }[];
+                    recommendation: {
+                        products: {
+                            /** @enum {string} */
+                            role: "regular_saver" | "lump_sum" | "emergency_fund" | "mortgage" | "refinance" | "current_account" | "other";
+                            /** @default [] */
+                            goalIds: string[];
+                            provider: string;
+                            providerName: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            /** @enum {string} */
+                            category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                            productId: string;
+                            productName: string;
+                            amount?: number;
+                            monthlyAmount?: number;
+                            ratePct?: number;
+                            projected?: {
+                                horizonMonths: number;
+                                balance?: number;
+                                netInterest?: number;
+                                totalCost?: number;
+                                monthlyRepayment?: number;
+                                goalReachedOn?: string;
+                            };
+                            why?: string;
+                            /** @default [] */
+                            unknowns: string[];
+                            /** @default [] */
+                            checks: string[];
+                            depositGuarantee?: {
+                                scheme: string | null;
+                                country: string | null;
+                                coverEur: number | null;
+                                note?: string | null;
+                                /** Format: uri */
+                                sourceUrl?: string | null;
+                                checkedOn?: string | null;
+                            };
+                            /** Format: date-time */
+                            checkedAt: string;
+                            attribution?: string;
+                            /** Format: uri */
+                            url?: string;
+                        }[];
+                        totals?: {
+                            monthly?: number;
+                            lumpSum?: number;
+                            netInterest?: number;
+                        };
+                    };
+                    /** @default [] */
+                    debts: {
+                        debtId: string;
+                        /** @enum {string} */
+                        action: "pay_off_first" | "overpay" | "keep_paying" | "refinance";
+                        why: string;
+                        costIfKept?: number;
+                        costWithStep?: number;
+                    }[];
+                    ranking: {
+                        /** @enum {string} */
+                        objective: "highest_net_return" | "lowest_total_cost" | "fastest_to_goal" | "easiest_access";
+                        basis: string;
+                    };
+                    /** @default [] */
+                    assumptions: string[];
+                    /** Format: date-time */
+                    createdAt: string;
+                    /** Format: date-time */
+                    dataCheckedAt: string;
+                };
+                /** @description Months to the main goal’s date, or 12 when there is no date. */
+                horizonMonths: number;
+                /** @description The figures run to here; less than the horizon where a rate after that is not known. */
+                knownThroughMonth: number;
+                /** @description YYYY-MM the main goal is reached, if within the figures. */
+                goalReachedOn: string | null;
+                /** @description Why the plan has the shape it has, step by step, with the figures. */
+                reasoning: string[];
+                /** @description Each debt that costs more than savings earn, with both outcomes worked out. */
+                debtScenarios: {
+                    debtId: string;
+                    /** @description What clearing or overpaying would take from the lump sum. */
+                    amount: number;
+                    kept: {
+                        /** @description Savings at the end of the months the figures cover, after DIRT. */
+                        savingsAtHorizon: number;
+                        /** @description What is still owed on the debt then. */
+                        debtAtHorizon: number;
+                        /** @description Savings less debt. */
+                        netPosition: number;
+                        /** @description YYYY-MM the main goal is reached, if within the figures. */
+                        goalReachedOn: string | null;
+                    };
+                    cleared: {
+                        /** @description Savings at the end of the months the figures cover, after DIRT. */
+                        savingsAtHorizon: number;
+                        /** @description What is still owed on the debt then. */
+                        debtAtHorizon: number;
+                        /** @description Savings less debt. */
+                        netPosition: number;
+                        /** @description YYYY-MM the main goal is reached, if within the figures. */
+                        goalReachedOn: string | null;
+                    };
+                    /**
+                     * @description The one with the larger net position.
+                     * @enum {string}
+                     */
+                    chosen: "kept" | "cleared";
+                }[];
+                /** @description For a house deposit with an income given: what the projected deposit supports under the Central Bank limits, and for a first-time buyer, with Help to Buy. */
+                affordability: {
+                    deposit: number;
+                    maxPrice: number;
+                    maxLoanByIncome: number;
+                    /** @enum {string} */
+                    bindingLimit: "income" | "deposit";
+                    note: string;
+                    /** @description For a first-time buyer: what Help to Buy would add for a new build. Null otherwise. */
+                    helpToBuy: {
+                        /** @description Help to Buy at the price shown, before the tax-paid limit. */
+                        upToEur: number;
+                        /** @description The highest price the limits allow with Help to Buy towards the deposit, for a new build or self-build. */
+                        maxPriceWithHelpToBuy: number | null;
+                        note: string;
+                        sourceUrl: string;
+                        checkedOn: string;
+                    } | null;
+                } | null;
+                unplaced: {
+                    lumpSum: number;
+                    monthly: number;
+                };
+                /** @description Whether money is locked away, and why: the liquidity rule, stated. */
+                liquidity: {
+                    /**
+                     * @description `locked`: a fixed term or notice account beat instant access by the thresholds. `instant_access`: it did not, or the customer asked to keep the money accessible, or the goal date is not certain. `not_compared`: no lump sum, or no term ends by the goal date.
+                     * @enum {string}
+                     */
+                    decision: "locked" | "instant_access" | "not_compared";
+                    /** @description The reason, with both figures where they were worked out. */
+                    why: string;
+                    /** @description Savings less debt at the horizon with terms allowed, after DIRT. */
+                    lockedNetPosition: number | null;
+                    /** @description The same with every euro in instant access. */
+                    instantNetPosition: number | null;
+                    /** @description Locked less instant. */
+                    gainEur: number | null;
+                    /** @description The gain a year as a percentage of the lump sum placed. */
+                    gainPctPerYear: number | null;
+                    thresholdEur: number;
+                    thresholdPctPerYear: number;
+                };
+                /** @description How the result moves when one input changes. */
+                whatIf: {
+                    extraMonthly: {
+                        /** @description The extra a month tried: €100. */
+                        extra: number;
+                        /** @description What it adds to savings at the horizon, after DIRT. */
+                        addsAtHorizon: number;
+                        goalReachedOn: string | null;
+                    } | null;
+                    /** @description YYYY-MM the main goal’s target is reached at this plan’s pace, looking up to ten years ahead in instant access where the horizon is not enough. Null without a target, or when it is not reached within the figures. */
+                    goalReachedAtCurrentPace: string | null;
+                    /** @description The what-ifs in words, with their figures, for the host to relay. To try one, call saoi_build_plan again with the changed input; do not adjust the figures by hand. */
+                    lines: string[];
+                };
+                /** @description For the host to relay: what can be done next with this plan, including saving it into the Saoi app. */
+                next: string;
+            } | null;
+            /** @description When no goal was given, the goal the plan was built for, stated. Null when the customer gave one. */
+            planGoalAssumed: string | null;
+        };
+        MoneyCheck: {
+            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To try a different buffer, call again with a new figure. */
+            emergencyBufferEur?: number;
+            /** @description An emergency buffer sized as months of outgoings (`situation.outgoings`, rent plus other). Used when `emergencyBufferEur` is absent. Without either field the buffer comes from an `emergency_fund` goal (its `targetAmount`, else 3 months of outgoings); with neither, none is held. */
+            emergencyBufferMonths?: number;
+            /** @description Older name for `emergencyBufferMonths`; that field wins when both are sent. */
+            emergencyFundMonths?: number;
+            /** @description True: every euro stays in instant access, nothing in a fixed term or notice account (the customer wants to reach the money at any time). Default false: a term is used only where it beats instant access by the lock thresholds. */
+            keepAccessible?: boolean;
+            /** @description False: the main goal may come sooner than its date (a house sale agreed early, a purchase brought forward), so nothing is locked. Default true. */
+            goalDateCertain?: boolean;
+            /** @description A fixed term or notice account is used only if the plan with it leaves at least this much more, after DIRT, at the goal date than the best plan in instant access. Default 100. */
+            minLockGainEur?: number;
+            /** @description ...and at least this much more a year, as a percentage of the lump sum placed. Default 0.25. Below either threshold the plan keeps the money in instant access and says why, with both figures. */
+            minLockGainPctPerYear?: number;
+            /** @description The most accounts the plan may open. Default 5. */
+            maxAccounts?: number;
+            /** @description For a house deposit: the price in mind, for Help to Buy and the Central Bank limits. */
+            homePrice?: number;
+            /**
+             * @description For a house deposit: `new_build`, `self_build` or `second_hand`. Help to Buy is for the first two.
+             * @enum {string}
+             */
+            propertyKind?: "new_build" | "self_build" | "second_hand";
+            /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
+            taxPaidLastFourYearsEur?: number;
+            /**
+             * @description Whatever the customer has said about their money so far, however partial: savings and where they are, what they can save a month, loans and cards, a mortgage, income, outgoings. Leave out what was not said; never guess.
+             * @default {
+             *       "savings": [],
+             *       "debts": []
+             *     }
+             */
+            situation: {
+                /** @description Two or three sentences of what the customer said. */
+                summary?: string;
+                income?: {
+                    /** @description Gross income a year, before tax; joint for two applicants. */
+                    annualGross?: number;
+                    /** @description Take-home pay a month. */
+                    netMonthly?: number;
+                };
+                outgoings?: {
+                    rentMonthly?: number;
+                    otherMonthly?: number;
+                };
+                /** @description What they can put aside each month. */
+                monthlySaving?: number;
+                /** @default [] */
+                savings: {
+                    /** @description In the customer’s words: "current account", "credit union". */
+                    label: string;
+                    balance: number;
+                    provider?: string;
+                    /** @description What it earns now. Absent: not known (it is not treated as zero). */
+                    aerPct?: number;
+                    /** @enum {string} */
+                    access?: "instant" | "notice" | "fixed_term" | "current_account";
+                    fixedTermEndsOn?: string;
+                }[];
+                /** @default [] */
+                debts: {
+                    id: string;
+                    label: string;
+                    /** @enum {string} */
+                    kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                    balance: number;
+                    ratePct?: number;
+                    monthlyRepayment?: number;
+                    monthsRemaining?: number;
+                }[];
+                firstTimeBuyer?: boolean;
+            };
+            /**
+             * @description What the money is for, if they said: a house, a car, a buffer. Empty is fine.
+             * @default []
+             */
+            goals: {
+                id: string;
+                /** @enum {string} */
+                kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                label: string;
+                targetAmount?: number;
+                targetDate?: string;
+                priority?: number;
+            }[];
         };
         AdminOverview: {
             killSwitch: boolean;
@@ -10905,6 +11548,16 @@ export interface components {
                     minLumpSumEur?: number;
                     maxLumpSumEur?: number;
                     minAge?: number;
+                    eligibility?: {
+                        residentIn?: string;
+                        notForUsCitizens?: boolean;
+                        individualsOnly?: boolean;
+                        jointAccounts?: boolean;
+                        needsAccountWithProvider?: string;
+                    };
+                    /** @enum {string} */
+                    interestPaid?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity";
+                    rateForNewAccounts?: boolean;
                     bonus?: {
                         amountEur: number;
                         lessDirt: boolean;

@@ -1,4 +1,11 @@
 {
+  "presentation": [
+    "Money found: about €752 a year after DIRT (€572 car loan: cleared from savings; €180 current account: €16,000 moved to bunq Savings Account).",
+    "€25,000 in Current account earns €0 a year after DIRT.",
+    "Car loan at 9% costs more than any savings account earns.",
+    "Help to Buy: up to €35,000 towards a new build, for a first-time buyer.",
+    "These are figures for the inputs given; the customer decides what matters. With goals chosen, saoi_build_plan works out a plan and returns a link to open it in the Saoi app."
+  ],
   "moneyFound": {
     "annualEur": 752,
     "headline": "Money found: about €752 a year after DIRT (€572 car loan: cleared from savings; €180 current account: €16,000 moved to bunq Savings Account).",
@@ -66,12 +73,12 @@
   "candidateGoals": [
     {
       "kind": "pay_off_debt",
-      "label": "Clear the highest-rate debt",
+      "label": "Clearing the highest-rate debt",
       "why": "A debt costs more in interest than any savings account earns."
     },
     {
       "kind": "grow_savings",
-      "label": "Put idle money to work",
+      "label": "Idle money earning more",
       "why": "Money is held at a rate well below what instant access pays."
     }
   ],
@@ -81,7 +88,7 @@
     "Goal pace counts savings held and monthly saving before interest; every goal is set against all savings held.",
     "Help to Buy as Revenue states it (https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09)."
   ],
-  "dataCheckedAt": "2026-11-09T13:16:08.102Z",
+  "dataCheckedAt": "2026-11-09T15:51:47.160Z",
   "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"],
-  "next": "Nothing has been stored. These findings are figures for the customer to weigh; they decide what matters. Once they have chosen goals (with an amount and a date where they have one), saoi_build_plan turns this into a plan with products, figures and the month each goal is reached. A plan can then be saved into the Saoi app with saoi_save_plan: it opens there as a card that Saoirse, Saoi’s assistant, knows and can talk through, and signing in keeps it across devices."
+  "next": "Nothing is stored from a review. These findings are figures for the customer to weigh; they decide what matters. Once they have chosen goals (with an amount and a date where they have one), saoi_build_plan turns this into a plan with products, figures and the month each goal is reached. Every plan comes with a link that opens it in the Saoi app, held for 24 hours and then deleted unless opened: a card that Saoirse, Saoi’s assistant, knows and can talk through, and signing in keeps it across devices."
 }

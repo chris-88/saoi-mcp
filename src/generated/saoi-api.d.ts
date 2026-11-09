@@ -2622,6 +2622,738 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save a plan made in the customer’s own AI, behind a one-time link
+         * @description Public: no sign-in. Called by the Saoi MCP server (`saoi_save_plan`) with the plan `saoi_build_plan` returned (`MarketPlan`, version 1). Stores it and returns a claim link into app.saoi.ie that works once, for seven days. The body is capped at 64 KiB; saves are rate-limited per address and capped per day.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SavePlan"];
+                };
+            };
+            responses: {
+                /** @description Saved. Give the customer the link; it opens the plan in the app once. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SavePlanResponse"];
+                    };
+                };
+                /** @description The plan is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 64 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many saves. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/plans/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Open a saved plan in this browser’s conversation
+         * @description Spends the link’s token and puts the plan in a conversation: the browser’s current one when it is still empty, otherwise a new one. Records the situation’s facts that map cleanly onto the fact catalogue (`customer_stated`) and writes `plan_saved` and `plan_claimed`, which the next turn narrates with the plan card. Opening it again in the same browser returns the same conversation (`reopened`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ClaimPlan"];
+                };
+            };
+            responses: {
+                /** @description The conversation the plan is in, which this browser now opens. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ClaimPlanResponse"];
+                    };
+                };
+                /** @description The body is not valid. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No plan was saved behind this link. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Somebody has already opened this link. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The link has expired. */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/market/search": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Search and rank Irish financial products for the customer’s own figures
+         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), a Raisin-platform flag with the home deposit guarantee, and eligibility to check. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MarketSearch"];
+                };
+            };
+            responses: {
+                /** @description Ranked products. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MarketSearchResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/market/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One product in full: figures, rate history, unknowns, source
+         * @description Takes a product id from search (`aib:deposit.ladder_personal_fixed_term_deposit`) or a source row id (`aib:deposit.c3743`). Returns the comparable view, every version Saoi has recorded (newest first), and the source’s own words for each row, verbatim.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The product. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MarketProductDetail"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No product with this id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/market/about/{topic}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How Saoi ranks, and how Saoi earns
+         * @description `ranking`: how results are ordered and every figure worked out. `earnings`: referral fees (disclosed, never used in ranking), information not advice, and the CCPC attribution. Markdown, static.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    topic: "ranking" | "earnings";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The text. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MarketAbout"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calc/review-situation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deterministic findings on a customer’s situation, with euro figures
+         * @description Given income, outgoings, savings (with what they earn) and debts (with rates and terms), returns findings with the figures behind each: money earning little against the best instant-access rate, no emergency fund (three months of outgoings), a debt costing more than savings earn, a fixed term ending within three months, a goal short at the current pace. Also the goals the findings suggest. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ReviewSituation"];
+                };
+            };
+            responses: {
+                /** @description Findings. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ReviewSituationResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calc/savings-projection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Savings month by month, net of DIRT, within caps and tiers
+         * @description Projects named products and amounts (`lines`, product ids from search) or, with no lines, the best available split of `lumpSum` and `monthly` across the market. Month by month, after DIRT, honouring monthly caps and balance tiers. A line stops at the end of a known period (a fixed term’s maturity, an introductory rate with no stated reversion) and says so; the totals run only as far as every line is known. With `targetAmount`, reports the month the goal is reached. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SavingsProjection"];
+                };
+            };
+            responses: {
+                /** @description The projection. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SavingsProjectionResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calc/mortgage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mortgage affordability under the Central Bank limits, or a switch against the market
+         * @description `mode: affordability`: the Central Bank of Ireland limits (loan to income 4 times for first-time buyers, 3.5 for second and subsequent buyers; loan to value 90%), the most the income and deposit allow, the deposit a price needs, and the matching mortgages ranked by total cost. `mode: switch`: the current mortgage against switcher rates: monthly and lifetime saving, cashback, fees as stated, and break-even on any switching costs given. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["MortgageCalculation"];
+                };
+            };
+            responses: {
+                /** @description The calculation. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MortgageCalculationResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calc/debt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * What debts cost, the payoff order, overpay versus save, refinance rates
+         * @description For each debt: months to clear and interest still to pay at the current repayment. The payoff order (highest rate first). With `extraMonthly` or `lumpSum`: interest saved by overpaying the top debt against interest earned saving the same money. The market’s loans and cards for the same balance, with the saving. Nothing is arranged. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DebtCalculation"];
+                };
+            };
+            responses: {
+                /** @description The calculation. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DebtCalculationResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/calc/build-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The fastest combination of products for the customer’s goals, as a plan
+         * @description Given a situation and chosen goals: an emergency fund (if a goal) in the best instant access; each debt costing more than savings earn worked out cleared and kept, with both figures; the rest split across the market (regular savers to their monthly caps, the lump sum to the longest fixed term or notice account that ends by the goal’s date, at most €100,000 per provider); projected to the date the main goal is reached; for a house deposit, what it supports under the Central Bank limits. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link) with the reasoning and every figure. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BuildPlan"];
+                };
+            };
+            responses: {
+                /** @description The plan. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BuildPlanResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/overview": {
         parameters: {
             query?: never;
@@ -5483,6 +6215,90 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/market-products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Market data read from provider websites and the CCPC comparison tables
+         * @description The current version of every provider product, or every version with `history=true`. Ordered by provider and product, newest version first.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Include superseded versions. */
+                    history?: "true" | "false";
+                    /** @description Only this provider. */
+                    provider?: string;
+                    /** @description Only rows read from this source: the provider site, or CCPC. */
+                    source?: "bank" | "ccpc";
+                    /** @description Only this product (all its versions are returned). */
+                    productId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The market products. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminMarketProductList"];
+                    };
+                };
+                /** @description The query is not valid. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Not an administrator. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -5777,6 +6593,35 @@ export interface components {
                 next: string[];
             } | {
                 /** @enum {string} */
+                type: "saved_plan";
+                /** Format: uuid */
+                planId: string;
+                title: string;
+                summary: string;
+                goals: {
+                    label: string;
+                    target: string | null;
+                }[];
+                products: {
+                    name: string;
+                    providerName: string;
+                    role: string;
+                    amounts: string[];
+                    rate: string | null;
+                    projected: string | null;
+                    provenance: string;
+                    unknowns: string[];
+                    checks: string[];
+                    url: string | null;
+                }[];
+                debts: string[];
+                basis: string;
+                assumptions: string[];
+                attributions: string[];
+                createdAt: string;
+                dataCheckedAt: string;
+            } | {
+                /** @enum {string} */
                 type: "connect_accounts";
                 why: string;
                 banks: {
@@ -5846,7 +6691,7 @@ export interface components {
             type: "error";
             error: {
                 /** @enum {string} */
-                code: "bad_request" | "unauthorised" | "forbidden" | "not_found" | "conflict" | "illegal_transition" | "rate_limited" | "upstream_unavailable" | "demo_paused" | "internal";
+                code: "bad_request" | "unauthorised" | "forbidden" | "not_found" | "conflict" | "expired" | "illegal_transition" | "rate_limited" | "upstream_unavailable" | "demo_paused" | "internal";
                 message: string;
                 details?: string[];
                 requestId?: string;
@@ -5890,7 +6735,7 @@ export interface components {
             ok: false;
             error: {
                 /** @enum {string} */
-                code: "bad_request" | "unauthorised" | "forbidden" | "not_found" | "conflict" | "illegal_transition" | "rate_limited" | "upstream_unavailable" | "demo_paused" | "internal";
+                code: "bad_request" | "unauthorised" | "forbidden" | "not_found" | "conflict" | "expired" | "illegal_transition" | "rate_limited" | "upstream_unavailable" | "demo_paused" | "internal";
                 message: string;
                 details?: string[];
                 /** @description Quote this when reporting a problem. */
@@ -6436,6 +7281,35 @@ export interface components {
                     next: string[];
                 } | {
                     /** @enum {string} */
+                    type: "saved_plan";
+                    /** Format: uuid */
+                    planId: string;
+                    title: string;
+                    summary: string;
+                    goals: {
+                        label: string;
+                        target: string | null;
+                    }[];
+                    products: {
+                        name: string;
+                        providerName: string;
+                        role: string;
+                        amounts: string[];
+                        rate: string | null;
+                        projected: string | null;
+                        provenance: string;
+                        unknowns: string[];
+                        checks: string[];
+                        url: string | null;
+                    }[];
+                    debts: string[];
+                    basis: string;
+                    assumptions: string[];
+                    attributions: string[];
+                    createdAt: string;
+                    dataCheckedAt: string;
+                } | {
+                    /** @enum {string} */
                     type: "connect_accounts";
                     why: string;
                     banks: {
@@ -6493,6 +7367,2008 @@ export interface components {
                     note?: string;
                 };
             })[];
+        };
+        SavePlanResponse: {
+            /** Format: uri */
+            claimUrl: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        SavePlan: {
+            plan: {
+                /** @enum {number} */
+                version: 1;
+                title: string;
+                situation: {
+                    summary: string;
+                    income?: {
+                        annualGross?: number;
+                        netMonthly?: number;
+                    };
+                    outgoings?: {
+                        rentMonthly?: number;
+                        otherMonthly?: number;
+                    };
+                    monthlySaving?: number;
+                    /** @default [] */
+                    savings: {
+                        label: string;
+                        balance: number;
+                        provider?: string;
+                        aerPct?: number;
+                    }[];
+                    /** @default [] */
+                    debts: {
+                        id: string;
+                        label: string;
+                        /** @enum {string} */
+                        kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                        balance: number;
+                        ratePct?: number;
+                        monthlyRepayment?: number;
+                        monthsRemaining?: number;
+                    }[];
+                };
+                goals: {
+                    id: string;
+                    /** @enum {string} */
+                    kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                    label: string;
+                    targetAmount?: number;
+                    targetDate?: string;
+                    priority?: number;
+                }[];
+                recommendation: {
+                    products: {
+                        /** @enum {string} */
+                        role: "regular_saver" | "lump_sum" | "emergency_fund" | "mortgage" | "refinance" | "current_account" | "other";
+                        /** @default [] */
+                        goalIds: string[];
+                        provider: string;
+                        providerName: string;
+                        /** @enum {string} */
+                        source: "bank" | "ccpc";
+                        /** @enum {string} */
+                        category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                        productId: string;
+                        productName: string;
+                        amount?: number;
+                        monthlyAmount?: number;
+                        ratePct?: number;
+                        projected?: {
+                            horizonMonths: number;
+                            balance?: number;
+                            netInterest?: number;
+                            totalCost?: number;
+                            monthlyRepayment?: number;
+                            goalReachedOn?: string;
+                        };
+                        why?: string;
+                        /** @default [] */
+                        unknowns: string[];
+                        /** @default [] */
+                        checks: string[];
+                        /** Format: date-time */
+                        checkedAt: string;
+                        attribution?: string;
+                        /** Format: uri */
+                        url?: string;
+                    }[];
+                    totals?: {
+                        monthly?: number;
+                        lumpSum?: number;
+                        netInterest?: number;
+                    };
+                };
+                /** @default [] */
+                debts: {
+                    debtId: string;
+                    /** @enum {string} */
+                    action: "pay_off_first" | "overpay" | "keep_paying" | "refinance";
+                    why: string;
+                    costIfKept?: number;
+                    costWithStep?: number;
+                }[];
+                ranking: {
+                    /** @enum {string} */
+                    objective: "highest_net_return" | "lowest_total_cost" | "fastest_to_goal" | "easiest_access";
+                    basis: string;
+                };
+                /** @default [] */
+                assumptions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                dataCheckedAt: string;
+            };
+            client?: string;
+        };
+        ClaimPlanResponse: {
+            /** Format: uuid */
+            caseId: string;
+            /** Format: uuid */
+            participantId: string;
+            /** @enum {string} */
+            role: "primary" | "partner";
+            /** @enum {string} */
+            authLevel: "anonymous" | "authenticated";
+            customerFirstName: string | null;
+            created: boolean;
+            /** @default false */
+            hasUpdates: boolean;
+            planTitle: string;
+            reopened: boolean;
+        };
+        ClaimPlan: {
+            token: string;
+        };
+        MarketSearchResult: {
+            /** @description How the results are ordered. Information, not advice: the caller can change the objective. */
+            ranking: {
+                /** @enum {string} */
+                objective: "highest_net_return" | "easiest_access" | "lowest_total_cost" | "lowest_monthly_repayment";
+                /** @description What the ranking measures, stated with the inputs. */
+                basis: string;
+            };
+            results: {
+                rank: number;
+                /** @description One product in one comparable shape, whichever source it was read from. */
+                product: {
+                    /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                    id: string;
+                    /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                    provider: string;
+                    providerName: string;
+                    /** @description The provider’s own name for the product. */
+                    name: string;
+                    /** @enum {string} */
+                    category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                    terms: {
+                        /** @enum {string} */
+                        kind: "deposit";
+                        /**
+                         * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                         * @enum {string}
+                         */
+                        access: "instant" | "notice" | "fixed_term";
+                        noticeDays: number | null;
+                        /** @description The headline AER, percent. Null for a term ladder. */
+                        aerPct: number | null;
+                        /** @enum {string|null} */
+                        basis: "fixed" | "variable" | null;
+                        /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                        bands: {
+                            fromEur: number;
+                            toEur: number | null;
+                            aerPct: number;
+                        }[];
+                        /** @description What a lump sum earns where it differs from the headline. */
+                        lumpSumAerPct: number | null;
+                        /** @description A rate guaranteed for a period, and what follows it. */
+                        introductory: {
+                            months: number;
+                            /** @description The rate after it. Null: not known. */
+                            thenAerPct: number | null;
+                        } | null;
+                        /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                        ladder: {
+                            months: number;
+                            aerPct: number;
+                            /** @description The source row for this term. */
+                            productId: string;
+                        }[];
+                        /** @description Takes regular monthly saving. Null: not known. */
+                        takesMonthly: boolean | null;
+                        /** @description Takes a lump sum. Null: not known. */
+                        takesLumpSum: boolean | null;
+                        minMonthlyEur: number | null;
+                        /** @description The most that can be paid in each month. */
+                        maxMonthlyEur: number | null;
+                        minLumpSumEur: number | null;
+                        maxLumpSumEur: number | null;
+                        /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                        dirtApplies: boolean;
+                        /** @description A conditional bonus, kept apart from interest. */
+                        bonus: {
+                            amountEur: number;
+                            conditions: string[];
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "mortgage";
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        fixedYears: number | null;
+                        initialRatePct: number;
+                        /** @description What the provider says the rate may become after the fixed period. */
+                        followOnRatePct: number | null;
+                        /** @description CCPC’s “rate for full term”. */
+                        fullTermRatePct: number | null;
+                        ltvMinPct: number | null;
+                        ltvMaxPct: number | null;
+                        /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                        ber: string | null;
+                        /** @description The BER was read from the product’s name. */
+                        berFromName: boolean;
+                        buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                        cashback: {
+                            offered: boolean | null;
+                            /** @description Cashback as a percent of the loan, where the source states one. */
+                            pct: number | null;
+                            /** @description The source’s own words. */
+                            stated: string | null;
+                        };
+                        /** @description Fees as the source states them, verbatim. */
+                        fees: {
+                            [key: string]: string;
+                        };
+                        /** @description A high-value-mortgage rate (larger loans only). */
+                        highValue: boolean;
+                    } | {
+                        /** @enum {string} */
+                        kind: "loan";
+                        aprPct: number;
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        maxAmountEur: number | null;
+                        /** @description Null where the source gives no unit for the maximum term. */
+                        maxTermMonths: number | null;
+                        /** @description The maximum term as the source states it. */
+                        maxTermStated: string | null;
+                        purposes: string[];
+                        setupFees: string | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "credit_card";
+                        aprPct: number | null;
+                        purchaseRatePct: number | null;
+                        cashRatePct: number | null;
+                        balanceTransfer: {
+                            introMonths: number;
+                            introPct: number;
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "current_account";
+                        quarterlyFeeEur: number | null;
+                        annualFeeEur: number | null;
+                        creditInterestPct: number | null;
+                        overdraft: boolean | null;
+                    };
+                    /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                    provenance: {
+                        /**
+                         * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                         * @enum {string}
+                         */
+                        source: "bank" | "ccpc";
+                        /** @description Where the figures were read. */
+                        sourceUrl: string;
+                        /** @description The provider’s own page, where known. */
+                        providerUrl: string | null;
+                        /** @description When Saoi last read the source and found these figures. */
+                        checkedAt: string;
+                        /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                        lastChangedAt: string | null;
+                        /** @description When Saoi first recorded this product. */
+                        firstRecordedAt: string;
+                        /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                        attribution: string | null;
+                        /** @description The source rows this product view is built from (several for a term ladder). */
+                        rows: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                        }[];
+                        /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                        preferredOver: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            providerProductName: string;
+                        }[];
+                    };
+                    /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                    platform: {
+                        /** @enum {string} */
+                        name: "Raisin";
+                        note: string;
+                    } | null;
+                    /** @description Which deposit guarantee scheme covers the money. */
+                    depositGuarantee: {
+                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        scheme: string | null;
+                        country: string | null;
+                        /** @description Cover per person per bank, where known. */
+                        coverEur: number | null;
+                        /**
+                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @enum {string}
+                         */
+                        basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                    } | null;
+                    unknowns: {
+                        /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                        field: string;
+                        /** @description What is not known, in words. */
+                        meaning: string;
+                    }[];
+                    /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                    checks: string[];
+                };
+                figures: {
+                    /** @enum {string} */
+                    kind: "savings";
+                    horizonMonths: number;
+                    /** @description Months the figures cover. Less than the horizon when a rate after that is not known. */
+                    knownMonths: number;
+                    /** @description The fixed term used, for a ladder. */
+                    termMonths: number | null;
+                    paidIn: number;
+                    grossInterest: number;
+                    dirt: number;
+                    /** @description Interest after DIRT over the months covered. */
+                    netInterest: number;
+                    endBalance: number;
+                    /** @description Interest after DIRT as an annual rate on the money held over the months covered. */
+                    netRatePct: number;
+                    /** @description Where a projection stops because the next rate is not known. */
+                    stop: {
+                        afterMonths: number;
+                        reason: string;
+                    } | null;
+                    /** @description Money the product cannot take: above its cap, or a kind it does not take. */
+                    notPlaced: {
+                        lumpSum: number;
+                        monthly: number;
+                    };
+                } | {
+                    /** @enum {string} */
+                    kind: "mortgage";
+                    loanAmount: number;
+                    ltvPct: number | null;
+                    termYears: number;
+                    monthlyRepayment: number;
+                    /** @description At the follow-on rate, where stated. */
+                    monthlyAfterFixed: number | null;
+                    paidDuringFixed: number | null;
+                    /** @description Over the whole term, assuming the follow-on rate holds after the fixed period. */
+                    totalRepaid: number | null;
+                    cashbackEur: number | null;
+                    /** @description Interest over the term less cashback. */
+                    totalCostAfterCashback: number | null;
+                } | {
+                    /** @enum {string} */
+                    kind: "loan";
+                    amount: number;
+                    termMonths: number;
+                    monthlyRepayment: number;
+                    totalRepaid: number;
+                    totalInterest: number;
+                } | {
+                    /** @enum {string} */
+                    kind: "credit_card";
+                    balance: number;
+                    /** @description On the balance held for 12 months with nothing repaid, at the stated rates. */
+                    interestOver12Months: number | null;
+                } | {
+                    /** @enum {string} */
+                    kind: "current_account";
+                    annualFeeEur: number | null;
+                };
+                /** @description What to know before relying on the figures: platform, eligibility, unknowns. */
+                flags: string[];
+            }[];
+            /** @description Products that met the filters, before the limit. */
+            matched: number;
+            /** @description Products left out, and why. */
+            excluded: {
+                reason: string;
+                count: number;
+            }[];
+            assumptions: string[];
+            /** @description When the oldest figure shown was last checked. */
+            dataCheckedAt: string | null;
+            attributions: string[];
+        };
+        /** @description What to compare and for which figures. */
+        MarketSearch: {
+            /**
+             * @description `savings`: regular monthly saving. `deposit`: a lump sum (instant access, notice, fixed term). `mortgage`, `loan`, `credit_card`, `current_account`.
+             * @enum {string}
+             */
+            category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+            /** @description Savings and deposits: the lump sum. Loans: the amount to borrow. Cards: the balance carried. */
+            amount?: number;
+            /** @description Savings: what is paid in each month. */
+            monthlyAmount?: number;
+            /** @description Savings and deposits: how long until the money is needed. Default 12. No fixed term longer than this is shown. */
+            horizonMonths?: number;
+            /**
+             * @description Savings and deposits: only this kind of access. Default any.
+             * @enum {string}
+             */
+            access?: "instant" | "notice" | "fixed_term" | "any";
+            maxNoticeDays?: number;
+            /** @description Include products opened through a deposit platform (Raisin). Default true; they are flagged. */
+            includePlatforms?: boolean;
+            providers?: string[];
+            /**
+             * @description Mortgages: whose list to search. Default first_time_buyer.
+             * @enum {string}
+             */
+            buyerType?: "first_time_buyer" | "mover" | "switcher";
+            /** @description Mortgages: the property’s value. */
+            propertyValue?: number;
+            /** @description Mortgages: the amount to borrow. */
+            loanAmount?: number;
+            /** @description Mortgages: the term. Default 30. */
+            termYears?: number;
+            /** @description Mortgages: the BER. Without it, BER-specific (green) rates are left out and counted. */
+            ber?: string;
+            /** @description Loans: the term to repay over. Default 60. */
+            termMonths?: number;
+            /**
+             * @description Loans: only loans for this purpose.
+             * @enum {string}
+             */
+            purpose?: "personal" | "car" | "home_improvement" | "energy_upgrade" | "holiday" | "student";
+            /**
+             * @description What to rank by. Default `highest_net_return` for savings and deposits, `lowest_total_cost` for the rest. `easiest_access` applies to savings and deposits; `lowest_monthly_repayment` to mortgages and loans.
+             * @enum {string}
+             */
+            objective?: "highest_net_return" | "easiest_access" | "lowest_total_cost" | "lowest_monthly_repayment";
+            /** @description How many results. Default 5. */
+            limit?: number;
+        };
+        MarketProductDetail: {
+            /** @description One product in one comparable shape, whichever source it was read from. */
+            product: {
+                /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                id: string;
+                /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                provider: string;
+                providerName: string;
+                /** @description The provider’s own name for the product. */
+                name: string;
+                /** @enum {string} */
+                category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                terms: {
+                    /** @enum {string} */
+                    kind: "deposit";
+                    /**
+                     * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                     * @enum {string}
+                     */
+                    access: "instant" | "notice" | "fixed_term";
+                    noticeDays: number | null;
+                    /** @description The headline AER, percent. Null for a term ladder. */
+                    aerPct: number | null;
+                    /** @enum {string|null} */
+                    basis: "fixed" | "variable" | null;
+                    /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                    bands: {
+                        fromEur: number;
+                        toEur: number | null;
+                        aerPct: number;
+                    }[];
+                    /** @description What a lump sum earns where it differs from the headline. */
+                    lumpSumAerPct: number | null;
+                    /** @description A rate guaranteed for a period, and what follows it. */
+                    introductory: {
+                        months: number;
+                        /** @description The rate after it. Null: not known. */
+                        thenAerPct: number | null;
+                    } | null;
+                    /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                    ladder: {
+                        months: number;
+                        aerPct: number;
+                        /** @description The source row for this term. */
+                        productId: string;
+                    }[];
+                    /** @description Takes regular monthly saving. Null: not known. */
+                    takesMonthly: boolean | null;
+                    /** @description Takes a lump sum. Null: not known. */
+                    takesLumpSum: boolean | null;
+                    minMonthlyEur: number | null;
+                    /** @description The most that can be paid in each month. */
+                    maxMonthlyEur: number | null;
+                    minLumpSumEur: number | null;
+                    maxLumpSumEur: number | null;
+                    /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                    dirtApplies: boolean;
+                    /** @description A conditional bonus, kept apart from interest. */
+                    bonus: {
+                        amountEur: number;
+                        conditions: string[];
+                    } | null;
+                } | {
+                    /** @enum {string} */
+                    kind: "mortgage";
+                    /** @enum {string|null} */
+                    rateType: "fixed" | "variable" | null;
+                    fixedYears: number | null;
+                    initialRatePct: number;
+                    /** @description What the provider says the rate may become after the fixed period. */
+                    followOnRatePct: number | null;
+                    /** @description CCPC’s “rate for full term”. */
+                    fullTermRatePct: number | null;
+                    ltvMinPct: number | null;
+                    ltvMaxPct: number | null;
+                    /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                    ber: string | null;
+                    /** @description The BER was read from the product’s name. */
+                    berFromName: boolean;
+                    buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                    cashback: {
+                        offered: boolean | null;
+                        /** @description Cashback as a percent of the loan, where the source states one. */
+                        pct: number | null;
+                        /** @description The source’s own words. */
+                        stated: string | null;
+                    };
+                    /** @description Fees as the source states them, verbatim. */
+                    fees: {
+                        [key: string]: string;
+                    };
+                    /** @description A high-value-mortgage rate (larger loans only). */
+                    highValue: boolean;
+                } | {
+                    /** @enum {string} */
+                    kind: "loan";
+                    aprPct: number;
+                    /** @enum {string|null} */
+                    rateType: "fixed" | "variable" | null;
+                    maxAmountEur: number | null;
+                    /** @description Null where the source gives no unit for the maximum term. */
+                    maxTermMonths: number | null;
+                    /** @description The maximum term as the source states it. */
+                    maxTermStated: string | null;
+                    purposes: string[];
+                    setupFees: string | null;
+                } | {
+                    /** @enum {string} */
+                    kind: "credit_card";
+                    aprPct: number | null;
+                    purchaseRatePct: number | null;
+                    cashRatePct: number | null;
+                    balanceTransfer: {
+                        introMonths: number;
+                        introPct: number;
+                    } | null;
+                } | {
+                    /** @enum {string} */
+                    kind: "current_account";
+                    quarterlyFeeEur: number | null;
+                    annualFeeEur: number | null;
+                    creditInterestPct: number | null;
+                    overdraft: boolean | null;
+                };
+                /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                provenance: {
+                    /**
+                     * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                     * @enum {string}
+                     */
+                    source: "bank" | "ccpc";
+                    /** @description Where the figures were read. */
+                    sourceUrl: string;
+                    /** @description The provider’s own page, where known. */
+                    providerUrl: string | null;
+                    /** @description When Saoi last read the source and found these figures. */
+                    checkedAt: string;
+                    /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                    lastChangedAt: string | null;
+                    /** @description When Saoi first recorded this product. */
+                    firstRecordedAt: string;
+                    /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                    attribution: string | null;
+                    /** @description The source rows this product view is built from (several for a term ladder). */
+                    rows: {
+                        /** @enum {string} */
+                        source: "bank" | "ccpc";
+                        productId: string;
+                    }[];
+                    /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                    preferredOver: {
+                        /** @enum {string} */
+                        source: "bank" | "ccpc";
+                        productId: string;
+                        providerProductName: string;
+                    }[];
+                };
+                /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                platform: {
+                    /** @enum {string} */
+                    name: "Raisin";
+                    note: string;
+                } | null;
+                /** @description Which deposit guarantee scheme covers the money. */
+                depositGuarantee: {
+                    /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                    scheme: string | null;
+                    country: string | null;
+                    /** @description Cover per person per bank, where known. */
+                    coverEur: number | null;
+                    /**
+                     * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                     * @enum {string}
+                     */
+                    basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                } | null;
+                unknowns: {
+                    /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                    field: string;
+                    /** @description What is not known, in words. */
+                    meaning: string;
+                }[];
+                /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                checks: string[];
+            };
+            /** @description Every version Saoi has recorded, newest first. */
+            history: {
+                /** @enum {string} */
+                source: "bank" | "ccpc";
+                productId: string;
+                /** @description When Saoi first saw this version. */
+                from: string;
+                /** @description When it was replaced. Null: current. */
+                to: string | null;
+                /** @description The headline figure of this version, e.g. "3.00% AER". */
+                headline: string;
+            }[];
+            /** @description The source’s own words for each row, unedited: offers, conditions, fees. */
+            verbatim: {
+                /** @enum {string} */
+                source: "bank" | "ccpc";
+                productId: string;
+                prose: {
+                    [key: string]: string;
+                };
+                details: {
+                    [key: string]: string;
+                };
+            }[];
+        };
+        MarketAbout: {
+            /** @enum {string} */
+            topic: "ranking" | "earnings";
+            title: string;
+            /** @description Markdown. */
+            text: string;
+            /** @description When the text was last revised: YYYY-MM-DD. */
+            updatedOn: string;
+        };
+        ReviewSituationResult: {
+            findings: {
+                /** @enum {string} */
+                kind: "idle_money" | "no_emergency_fund" | "debt_costs_more_than_savings_earn" | "fixed_term_ending" | "goal_short_at_current_pace" | "unknown_rate";
+                headline: string;
+                detail: string;
+                /** @description The euro figures behind the finding, by name. */
+                figures: {
+                    [key: string]: number;
+                };
+            }[];
+            candidateGoals: {
+                /** @enum {string} */
+                kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                label: string;
+                why: string;
+            }[];
+            assumptions: string[];
+            dataCheckedAt: string | null;
+            attributions: string[];
+        };
+        ReviewSituation: {
+            /** @description The customer’s circumstances. Sent with each call and never stored. Every figure is what they said. */
+            situation: {
+                /** @description Two or three sentences of what the customer said. */
+                summary?: string;
+                income?: {
+                    /** @description Gross income a year, before tax; joint for two applicants. */
+                    annualGross?: number;
+                    /** @description Take-home pay a month. */
+                    netMonthly?: number;
+                };
+                outgoings?: {
+                    rentMonthly?: number;
+                    otherMonthly?: number;
+                };
+                /** @description What they can put aside each month. */
+                monthlySaving?: number;
+                /** @default [] */
+                savings: {
+                    /** @description In the customer’s words: "current account", "credit union". */
+                    label: string;
+                    balance: number;
+                    provider?: string;
+                    /** @description What it earns now. Absent: not known (it is not treated as zero). */
+                    aerPct?: number;
+                    /** @enum {string} */
+                    access?: "instant" | "notice" | "fixed_term" | "current_account";
+                    fixedTermEndsOn?: string;
+                }[];
+                /** @default [] */
+                debts: {
+                    id: string;
+                    label: string;
+                    /** @enum {string} */
+                    kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                    balance: number;
+                    ratePct?: number;
+                    monthlyRepayment?: number;
+                    monthsRemaining?: number;
+                }[];
+                firstTimeBuyer?: boolean;
+            };
+            /** @default [] */
+            goals: {
+                id: string;
+                /** @enum {string} */
+                kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                label: string;
+                targetAmount?: number;
+                targetDate?: string;
+                priority?: number;
+            }[];
+        };
+        SavingsProjectionResult: {
+            lines: {
+                /** @description One product in one comparable shape, whichever source it was read from. */
+                product: {
+                    /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                    id: string;
+                    /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                    provider: string;
+                    providerName: string;
+                    /** @description The provider’s own name for the product. */
+                    name: string;
+                    /** @enum {string} */
+                    category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                    terms: {
+                        /** @enum {string} */
+                        kind: "deposit";
+                        /**
+                         * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                         * @enum {string}
+                         */
+                        access: "instant" | "notice" | "fixed_term";
+                        noticeDays: number | null;
+                        /** @description The headline AER, percent. Null for a term ladder. */
+                        aerPct: number | null;
+                        /** @enum {string|null} */
+                        basis: "fixed" | "variable" | null;
+                        /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                        bands: {
+                            fromEur: number;
+                            toEur: number | null;
+                            aerPct: number;
+                        }[];
+                        /** @description What a lump sum earns where it differs from the headline. */
+                        lumpSumAerPct: number | null;
+                        /** @description A rate guaranteed for a period, and what follows it. */
+                        introductory: {
+                            months: number;
+                            /** @description The rate after it. Null: not known. */
+                            thenAerPct: number | null;
+                        } | null;
+                        /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                        ladder: {
+                            months: number;
+                            aerPct: number;
+                            /** @description The source row for this term. */
+                            productId: string;
+                        }[];
+                        /** @description Takes regular monthly saving. Null: not known. */
+                        takesMonthly: boolean | null;
+                        /** @description Takes a lump sum. Null: not known. */
+                        takesLumpSum: boolean | null;
+                        minMonthlyEur: number | null;
+                        /** @description The most that can be paid in each month. */
+                        maxMonthlyEur: number | null;
+                        minLumpSumEur: number | null;
+                        maxLumpSumEur: number | null;
+                        /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                        dirtApplies: boolean;
+                        /** @description A conditional bonus, kept apart from interest. */
+                        bonus: {
+                            amountEur: number;
+                            conditions: string[];
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "mortgage";
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        fixedYears: number | null;
+                        initialRatePct: number;
+                        /** @description What the provider says the rate may become after the fixed period. */
+                        followOnRatePct: number | null;
+                        /** @description CCPC’s “rate for full term”. */
+                        fullTermRatePct: number | null;
+                        ltvMinPct: number | null;
+                        ltvMaxPct: number | null;
+                        /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                        ber: string | null;
+                        /** @description The BER was read from the product’s name. */
+                        berFromName: boolean;
+                        buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                        cashback: {
+                            offered: boolean | null;
+                            /** @description Cashback as a percent of the loan, where the source states one. */
+                            pct: number | null;
+                            /** @description The source’s own words. */
+                            stated: string | null;
+                        };
+                        /** @description Fees as the source states them, verbatim. */
+                        fees: {
+                            [key: string]: string;
+                        };
+                        /** @description A high-value-mortgage rate (larger loans only). */
+                        highValue: boolean;
+                    } | {
+                        /** @enum {string} */
+                        kind: "loan";
+                        aprPct: number;
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        maxAmountEur: number | null;
+                        /** @description Null where the source gives no unit for the maximum term. */
+                        maxTermMonths: number | null;
+                        /** @description The maximum term as the source states it. */
+                        maxTermStated: string | null;
+                        purposes: string[];
+                        setupFees: string | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "credit_card";
+                        aprPct: number | null;
+                        purchaseRatePct: number | null;
+                        cashRatePct: number | null;
+                        balanceTransfer: {
+                            introMonths: number;
+                            introPct: number;
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "current_account";
+                        quarterlyFeeEur: number | null;
+                        annualFeeEur: number | null;
+                        creditInterestPct: number | null;
+                        overdraft: boolean | null;
+                    };
+                    /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                    provenance: {
+                        /**
+                         * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                         * @enum {string}
+                         */
+                        source: "bank" | "ccpc";
+                        /** @description Where the figures were read. */
+                        sourceUrl: string;
+                        /** @description The provider’s own page, where known. */
+                        providerUrl: string | null;
+                        /** @description When Saoi last read the source and found these figures. */
+                        checkedAt: string;
+                        /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                        lastChangedAt: string | null;
+                        /** @description When Saoi first recorded this product. */
+                        firstRecordedAt: string;
+                        /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                        attribution: string | null;
+                        /** @description The source rows this product view is built from (several for a term ladder). */
+                        rows: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                        }[];
+                        /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                        preferredOver: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            providerProductName: string;
+                        }[];
+                    };
+                    /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                    platform: {
+                        /** @enum {string} */
+                        name: "Raisin";
+                        note: string;
+                    } | null;
+                    /** @description Which deposit guarantee scheme covers the money. */
+                    depositGuarantee: {
+                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        scheme: string | null;
+                        country: string | null;
+                        /** @description Cover per person per bank, where known. */
+                        coverEur: number | null;
+                        /**
+                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @enum {string}
+                         */
+                        basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                    } | null;
+                    unknowns: {
+                        /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                        field: string;
+                        /** @description What is not known, in words. */
+                        meaning: string;
+                    }[];
+                    /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                    checks: string[];
+                };
+                lumpSum: number;
+                monthly: number;
+                termMonths: number | null;
+                figures: {
+                    /** @enum {string} */
+                    kind: "savings";
+                    horizonMonths: number;
+                    /** @description Months the figures cover. Less than the horizon when a rate after that is not known. */
+                    knownMonths: number;
+                    /** @description The fixed term used, for a ladder. */
+                    termMonths: number | null;
+                    paidIn: number;
+                    grossInterest: number;
+                    dirt: number;
+                    /** @description Interest after DIRT over the months covered. */
+                    netInterest: number;
+                    endBalance: number;
+                    /** @description Interest after DIRT as an annual rate on the money held over the months covered. */
+                    netRatePct: number;
+                    /** @description Where a projection stops because the next rate is not known. */
+                    stop: {
+                        afterMonths: number;
+                        reason: string;
+                    } | null;
+                    /** @description Money the product cannot take: above its cap, or a kind it does not take. */
+                    notPlaced: {
+                        lumpSum: number;
+                        monthly: number;
+                    };
+                };
+                months: {
+                    month: number;
+                    /** @description YYYY-MM */
+                    date: string;
+                    paidIn: number;
+                    /** @description After DIRT. */
+                    balance: number;
+                    /** @description Cumulative interest after DIRT. */
+                    netInterest: number;
+                }[];
+                notes: string[];
+            }[];
+            totals: {
+                /** @description The totals run to here: the first month a line stops for want of a rate, or the horizon. */
+                knownThroughMonth: number;
+                months: {
+                    month: number;
+                    /** @description YYYY-MM */
+                    date: string;
+                    paidIn: number;
+                    /** @description After DIRT. */
+                    balance: number;
+                    /** @description Cumulative interest after DIRT. */
+                    netInterest: number;
+                }[];
+                paidIn: number;
+                netInterest: number;
+                balance: number;
+            };
+            goal: {
+                targetAmount: number;
+                reachedMonth: number | null;
+                /** @description YYYY-MM. Null: not within the months the totals cover. */
+                reachedOn: string | null;
+            } | null;
+            basis: string;
+            assumptions: string[];
+            dataCheckedAt: string | null;
+            attributions: string[];
+        };
+        /** @description Amounts, a horizon, and either named products or "best available". */
+        SavingsProjection: {
+            horizonMonths: number;
+            /** @description The products and amounts to project. Omit to use the best available for the amounts below. */
+            lines?: {
+                /** @description A product view id from search, e.g. `aib:savings.c396`. */
+                productId: string;
+                lumpSum?: number;
+                monthly?: number;
+                /** @description For a term ladder: which term. Default the longest within the horizon. */
+                termMonths?: number;
+            }[];
+            /** @description With no `lines`: the lump sum to place in the best available home. */
+            lumpSum?: number;
+            /** @description With no `lines`: the monthly saving to place in the best available regular savers. */
+            monthly?: number;
+            /** @description A goal: the month it is reached is reported. */
+            targetAmount?: number;
+            includePlatforms?: boolean;
+        };
+        MortgageCalculationResult: {
+            /** @enum {string} */
+            mode: "affordability";
+            limits: {
+                loanToIncome: number;
+                maxLtvPct: number;
+                source: string;
+                allowance: string;
+            };
+            maxLoanByIncome: number;
+            /** @description The most the deposit supports at the LTV limit. */
+            maxPriceByDeposit: number;
+            /** @description The lower of the two limits: deposit plus the most that can be borrowed. */
+            maxPrice: number;
+            /** @enum {string} */
+            bindingLimit: "income" | "deposit";
+            forProperty: {
+                propertyValue: number;
+                depositNeeded: number;
+                depositShortfall: number;
+                loanNeeded: number;
+                withinIncomeLimit: boolean;
+                ltvPct: number;
+            } | null;
+            loanAmount: number;
+            ltvPct: number;
+            options: {
+                /** @description One product in one comparable shape, whichever source it was read from. */
+                product: {
+                    /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                    id: string;
+                    /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                    provider: string;
+                    providerName: string;
+                    /** @description The provider’s own name for the product. */
+                    name: string;
+                    /** @enum {string} */
+                    category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                    terms: {
+                        /** @enum {string} */
+                        kind: "deposit";
+                        /**
+                         * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                         * @enum {string}
+                         */
+                        access: "instant" | "notice" | "fixed_term";
+                        noticeDays: number | null;
+                        /** @description The headline AER, percent. Null for a term ladder. */
+                        aerPct: number | null;
+                        /** @enum {string|null} */
+                        basis: "fixed" | "variable" | null;
+                        /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                        bands: {
+                            fromEur: number;
+                            toEur: number | null;
+                            aerPct: number;
+                        }[];
+                        /** @description What a lump sum earns where it differs from the headline. */
+                        lumpSumAerPct: number | null;
+                        /** @description A rate guaranteed for a period, and what follows it. */
+                        introductory: {
+                            months: number;
+                            /** @description The rate after it. Null: not known. */
+                            thenAerPct: number | null;
+                        } | null;
+                        /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                        ladder: {
+                            months: number;
+                            aerPct: number;
+                            /** @description The source row for this term. */
+                            productId: string;
+                        }[];
+                        /** @description Takes regular monthly saving. Null: not known. */
+                        takesMonthly: boolean | null;
+                        /** @description Takes a lump sum. Null: not known. */
+                        takesLumpSum: boolean | null;
+                        minMonthlyEur: number | null;
+                        /** @description The most that can be paid in each month. */
+                        maxMonthlyEur: number | null;
+                        minLumpSumEur: number | null;
+                        maxLumpSumEur: number | null;
+                        /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                        dirtApplies: boolean;
+                        /** @description A conditional bonus, kept apart from interest. */
+                        bonus: {
+                            amountEur: number;
+                            conditions: string[];
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "mortgage";
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        fixedYears: number | null;
+                        initialRatePct: number;
+                        /** @description What the provider says the rate may become after the fixed period. */
+                        followOnRatePct: number | null;
+                        /** @description CCPC’s “rate for full term”. */
+                        fullTermRatePct: number | null;
+                        ltvMinPct: number | null;
+                        ltvMaxPct: number | null;
+                        /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                        ber: string | null;
+                        /** @description The BER was read from the product’s name. */
+                        berFromName: boolean;
+                        buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                        cashback: {
+                            offered: boolean | null;
+                            /** @description Cashback as a percent of the loan, where the source states one. */
+                            pct: number | null;
+                            /** @description The source’s own words. */
+                            stated: string | null;
+                        };
+                        /** @description Fees as the source states them, verbatim. */
+                        fees: {
+                            [key: string]: string;
+                        };
+                        /** @description A high-value-mortgage rate (larger loans only). */
+                        highValue: boolean;
+                    } | {
+                        /** @enum {string} */
+                        kind: "loan";
+                        aprPct: number;
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        maxAmountEur: number | null;
+                        /** @description Null where the source gives no unit for the maximum term. */
+                        maxTermMonths: number | null;
+                        /** @description The maximum term as the source states it. */
+                        maxTermStated: string | null;
+                        purposes: string[];
+                        setupFees: string | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "credit_card";
+                        aprPct: number | null;
+                        purchaseRatePct: number | null;
+                        cashRatePct: number | null;
+                        balanceTransfer: {
+                            introMonths: number;
+                            introPct: number;
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "current_account";
+                        quarterlyFeeEur: number | null;
+                        annualFeeEur: number | null;
+                        creditInterestPct: number | null;
+                        overdraft: boolean | null;
+                    };
+                    /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                    provenance: {
+                        /**
+                         * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                         * @enum {string}
+                         */
+                        source: "bank" | "ccpc";
+                        /** @description Where the figures were read. */
+                        sourceUrl: string;
+                        /** @description The provider’s own page, where known. */
+                        providerUrl: string | null;
+                        /** @description When Saoi last read the source and found these figures. */
+                        checkedAt: string;
+                        /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                        lastChangedAt: string | null;
+                        /** @description When Saoi first recorded this product. */
+                        firstRecordedAt: string;
+                        /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                        attribution: string | null;
+                        /** @description The source rows this product view is built from (several for a term ladder). */
+                        rows: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                        }[];
+                        /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                        preferredOver: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            providerProductName: string;
+                        }[];
+                    };
+                    /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                    platform: {
+                        /** @enum {string} */
+                        name: "Raisin";
+                        note: string;
+                    } | null;
+                    /** @description Which deposit guarantee scheme covers the money. */
+                    depositGuarantee: {
+                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        scheme: string | null;
+                        country: string | null;
+                        /** @description Cover per person per bank, where known. */
+                        coverEur: number | null;
+                        /**
+                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @enum {string}
+                         */
+                        basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                    } | null;
+                    unknowns: {
+                        /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                        field: string;
+                        /** @description What is not known, in words. */
+                        meaning: string;
+                    }[];
+                    /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                    checks: string[];
+                };
+                figures: {
+                    /** @enum {string} */
+                    kind: "mortgage";
+                    loanAmount: number;
+                    ltvPct: number | null;
+                    termYears: number;
+                    monthlyRepayment: number;
+                    /** @description At the follow-on rate, where stated. */
+                    monthlyAfterFixed: number | null;
+                    paidDuringFixed: number | null;
+                    /** @description Over the whole term, assuming the follow-on rate holds after the fixed period. */
+                    totalRepaid: number | null;
+                    cashbackEur: number | null;
+                    /** @description Interest over the term less cashback. */
+                    totalCostAfterCashback: number | null;
+                };
+                flags: string[];
+            }[];
+            /** @description How the results are ordered. Information, not advice: the caller can change the objective. */
+            ranking: {
+                /** @enum {string} */
+                objective: "highest_net_return" | "easiest_access" | "lowest_total_cost" | "lowest_monthly_repayment";
+                /** @description What the ranking measures, stated with the inputs. */
+                basis: string;
+            };
+            assumptions: string[];
+            dataCheckedAt: string | null;
+            attributions: string[];
+        } | {
+            /** @enum {string} */
+            mode: "switch";
+            current: {
+                ratePct: number;
+                monthlyRepayment: number;
+                totalRemaining: number;
+            };
+            ltvPct: number | null;
+            options: {
+                /** @description One product in one comparable shape, whichever source it was read from. */
+                product: {
+                    /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                    id: string;
+                    /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                    provider: string;
+                    providerName: string;
+                    /** @description The provider’s own name for the product. */
+                    name: string;
+                    /** @enum {string} */
+                    category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                    terms: {
+                        /** @enum {string} */
+                        kind: "deposit";
+                        /**
+                         * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                         * @enum {string}
+                         */
+                        access: "instant" | "notice" | "fixed_term";
+                        noticeDays: number | null;
+                        /** @description The headline AER, percent. Null for a term ladder. */
+                        aerPct: number | null;
+                        /** @enum {string|null} */
+                        basis: "fixed" | "variable" | null;
+                        /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                        bands: {
+                            fromEur: number;
+                            toEur: number | null;
+                            aerPct: number;
+                        }[];
+                        /** @description What a lump sum earns where it differs from the headline. */
+                        lumpSumAerPct: number | null;
+                        /** @description A rate guaranteed for a period, and what follows it. */
+                        introductory: {
+                            months: number;
+                            /** @description The rate after it. Null: not known. */
+                            thenAerPct: number | null;
+                        } | null;
+                        /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                        ladder: {
+                            months: number;
+                            aerPct: number;
+                            /** @description The source row for this term. */
+                            productId: string;
+                        }[];
+                        /** @description Takes regular monthly saving. Null: not known. */
+                        takesMonthly: boolean | null;
+                        /** @description Takes a lump sum. Null: not known. */
+                        takesLumpSum: boolean | null;
+                        minMonthlyEur: number | null;
+                        /** @description The most that can be paid in each month. */
+                        maxMonthlyEur: number | null;
+                        minLumpSumEur: number | null;
+                        maxLumpSumEur: number | null;
+                        /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                        dirtApplies: boolean;
+                        /** @description A conditional bonus, kept apart from interest. */
+                        bonus: {
+                            amountEur: number;
+                            conditions: string[];
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "mortgage";
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        fixedYears: number | null;
+                        initialRatePct: number;
+                        /** @description What the provider says the rate may become after the fixed period. */
+                        followOnRatePct: number | null;
+                        /** @description CCPC’s “rate for full term”. */
+                        fullTermRatePct: number | null;
+                        ltvMinPct: number | null;
+                        ltvMaxPct: number | null;
+                        /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                        ber: string | null;
+                        /** @description The BER was read from the product’s name. */
+                        berFromName: boolean;
+                        buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                        cashback: {
+                            offered: boolean | null;
+                            /** @description Cashback as a percent of the loan, where the source states one. */
+                            pct: number | null;
+                            /** @description The source’s own words. */
+                            stated: string | null;
+                        };
+                        /** @description Fees as the source states them, verbatim. */
+                        fees: {
+                            [key: string]: string;
+                        };
+                        /** @description A high-value-mortgage rate (larger loans only). */
+                        highValue: boolean;
+                    } | {
+                        /** @enum {string} */
+                        kind: "loan";
+                        aprPct: number;
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
+                        maxAmountEur: number | null;
+                        /** @description Null where the source gives no unit for the maximum term. */
+                        maxTermMonths: number | null;
+                        /** @description The maximum term as the source states it. */
+                        maxTermStated: string | null;
+                        purposes: string[];
+                        setupFees: string | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "credit_card";
+                        aprPct: number | null;
+                        purchaseRatePct: number | null;
+                        cashRatePct: number | null;
+                        balanceTransfer: {
+                            introMonths: number;
+                            introPct: number;
+                        } | null;
+                    } | {
+                        /** @enum {string} */
+                        kind: "current_account";
+                        quarterlyFeeEur: number | null;
+                        annualFeeEur: number | null;
+                        creditInterestPct: number | null;
+                        overdraft: boolean | null;
+                    };
+                    /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                    provenance: {
+                        /**
+                         * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                         * @enum {string}
+                         */
+                        source: "bank" | "ccpc";
+                        /** @description Where the figures were read. */
+                        sourceUrl: string;
+                        /** @description The provider’s own page, where known. */
+                        providerUrl: string | null;
+                        /** @description When Saoi last read the source and found these figures. */
+                        checkedAt: string;
+                        /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                        lastChangedAt: string | null;
+                        /** @description When Saoi first recorded this product. */
+                        firstRecordedAt: string;
+                        /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                        attribution: string | null;
+                        /** @description The source rows this product view is built from (several for a term ladder). */
+                        rows: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                        }[];
+                        /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                        preferredOver: {
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            providerProductName: string;
+                        }[];
+                    };
+                    /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                    platform: {
+                        /** @enum {string} */
+                        name: "Raisin";
+                        note: string;
+                    } | null;
+                    /** @description Which deposit guarantee scheme covers the money. */
+                    depositGuarantee: {
+                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        scheme: string | null;
+                        country: string | null;
+                        /** @description Cover per person per bank, where known. */
+                        coverEur: number | null;
+                        /**
+                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @enum {string}
+                         */
+                        basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                    } | null;
+                    unknowns: {
+                        /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                        field: string;
+                        /** @description What is not known, in words. */
+                        meaning: string;
+                    }[];
+                    /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                    checks: string[];
+                };
+                figures: {
+                    /** @enum {string} */
+                    kind: "mortgage";
+                    loanAmount: number;
+                    ltvPct: number | null;
+                    termYears: number;
+                    monthlyRepayment: number;
+                    /** @description At the follow-on rate, where stated. */
+                    monthlyAfterFixed: number | null;
+                    paidDuringFixed: number | null;
+                    /** @description Over the whole term, assuming the follow-on rate holds after the fixed period. */
+                    totalRepaid: number | null;
+                    cashbackEur: number | null;
+                    /** @description Interest over the term less cashback. */
+                    totalCostAfterCashback: number | null;
+                };
+                /** @description Positive: cheaper each month than now. */
+                monthlySaving: number;
+                savingOverFixedPeriod: number | null;
+                /** @description Over the remaining term, assuming the follow-on rate after the fixed period and the current rate held, after cashback and any switching costs given. Null where no follow-on rate is stated. */
+                lifetimeSaving: number | null;
+                /** @description Months for the monthly saving to repay switching costs less cashback. Null when it never does; 0 when cashback covers them. */
+                breakEvenMonths: number | null;
+                flags: string[];
+            }[];
+            /** @description How the results are ordered. Information, not advice: the caller can change the objective. */
+            ranking: {
+                /** @enum {string} */
+                objective: "highest_net_return" | "easiest_access" | "lowest_total_cost" | "lowest_monthly_repayment";
+                /** @description What the ranking measures, stated with the inputs. */
+                basis: string;
+            };
+            assumptions: string[];
+            dataCheckedAt: string | null;
+            attributions: string[];
+        };
+        MortgageCalculation: {
+            /** @enum {string} */
+            mode: "affordability";
+            /**
+             * @description Decides the Central Bank limits that apply.
+             * @enum {string}
+             */
+            buyer: "first_time_buyer" | "second_and_subsequent";
+            /** @description Gross income a year; joint for two applicants. */
+            annualGrossIncome: number;
+            /** @description Savings available for the deposit. */
+            deposit: number;
+            /** @description A price in mind. Without it, the most the limits allow. */
+            propertyValue?: number;
+            /** @description Default 30. */
+            termYears?: number;
+            ber?: string;
+            limit?: number;
+        } | {
+            /** @enum {string} */
+            mode: "switch";
+            /** @description What is owed now. */
+            balance: number;
+            currentRatePct: number;
+            remainingTermYears: number;
+            /** @description For the loan-to-value band. Without it, the LTV is not known and every band is shown. */
+            propertyValue?: number;
+            /** @description Months left on a current fixed rate, if any: breaking it early can cost a fee the data does not give. */
+            currentFixedMonthsLeft?: number;
+            /** @description Legal, valuation and other switching costs, if known. Not estimated when absent. */
+            switchingCostsEur?: number;
+            ber?: string;
+            limit?: number;
+        };
+        DebtCalculationResult: {
+            costs: {
+                debtId: string;
+                label: string;
+                ratePct: number | null;
+                monthlyRepayment: number | null;
+                monthsToClear: number | null;
+                /** @description Interest still to pay at the current repayment. */
+                interestRemaining: number | null;
+                /** @description Interest on the balance over the next year, roughly balance × rate. */
+                annualInterestNow: number | null;
+                notes: string[];
+            }[];
+            /** @description Highest rate first: each euro repaid there saves the most interest. */
+            payoffOrder: {
+                debtId: string;
+                why: string;
+            }[];
+            overpayVersusSave: {
+                debtId: string;
+                amount: number;
+                /** @enum {string} */
+                cadence: "monthly" | "once";
+                horizonMonths: number;
+                interestSavedByOverpaying: number;
+                netInterestBySaving: number;
+                savingProduct: string | null;
+                /** @description Overpaying less saving. Positive: overpaying is worth more over the horizon. */
+                difference: number;
+            }[];
+            refinance: {
+                debtId: string;
+                options: {
+                    /** @description One product in one comparable shape, whichever source it was read from. */
+                    product: {
+                        /** @description Saoi’s id for the product view: `<provider>:<productId>`. Pass it to the product route. */
+                        id: string;
+                        /** @description The provider id: `boi`, `aib`, `ptsb`. */
+                        provider: string;
+                        providerName: string;
+                        /** @description The provider’s own name for the product. */
+                        name: string;
+                        /** @enum {string} */
+                        category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                        terms: {
+                            /** @enum {string} */
+                            kind: "deposit";
+                            /**
+                             * @description `instant`: withdraw any time. `notice`: withdraw after `noticeDays`. `fixed_term`: locked for a term.
+                             * @enum {string}
+                             */
+                            access: "instant" | "notice" | "fixed_term";
+                            noticeDays: number | null;
+                            /** @description The headline AER, percent. Null for a term ladder. */
+                            aerPct: number | null;
+                            /** @enum {string|null} */
+                            basis: "fixed" | "variable" | null;
+                            /** @description Balance bands, lowest first. A balance in a band earns that band’s rate. */
+                            bands: {
+                                fromEur: number;
+                                toEur: number | null;
+                                aerPct: number;
+                            }[];
+                            /** @description What a lump sum earns where it differs from the headline. */
+                            lumpSumAerPct: number | null;
+                            /** @description A rate guaranteed for a period, and what follows it. */
+                            introductory: {
+                                months: number;
+                                /** @description The rate after it. Null: not known. */
+                                thenAerPct: number | null;
+                            } | null;
+                            /** @description Fixed terms on offer, shortest first. Empty when the product is not a ladder. */
+                            ladder: {
+                                months: number;
+                                aerPct: number;
+                                /** @description The source row for this term. */
+                                productId: string;
+                            }[];
+                            /** @description Takes regular monthly saving. Null: not known. */
+                            takesMonthly: boolean | null;
+                            /** @description Takes a lump sum. Null: not known. */
+                            takesLumpSum: boolean | null;
+                            minMonthlyEur: number | null;
+                            /** @description The most that can be paid in each month. */
+                            maxMonthlyEur: number | null;
+                            minLumpSumEur: number | null;
+                            maxLumpSumEur: number | null;
+                            /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
+                            dirtApplies: boolean;
+                            /** @description A conditional bonus, kept apart from interest. */
+                            bonus: {
+                                amountEur: number;
+                                conditions: string[];
+                            } | null;
+                        } | {
+                            /** @enum {string} */
+                            kind: "mortgage";
+                            /** @enum {string|null} */
+                            rateType: "fixed" | "variable" | null;
+                            fixedYears: number | null;
+                            initialRatePct: number;
+                            /** @description What the provider says the rate may become after the fixed period. */
+                            followOnRatePct: number | null;
+                            /** @description CCPC’s “rate for full term”. */
+                            fullTermRatePct: number | null;
+                            ltvMinPct: number | null;
+                            ltvMaxPct: number | null;
+                            /** @description The Building Energy Rating the rate is for. Null: any BER. */
+                            ber: string | null;
+                            /** @description The BER was read from the product’s name. */
+                            berFromName: boolean;
+                            buyerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                            cashback: {
+                                offered: boolean | null;
+                                /** @description Cashback as a percent of the loan, where the source states one. */
+                                pct: number | null;
+                                /** @description The source’s own words. */
+                                stated: string | null;
+                            };
+                            /** @description Fees as the source states them, verbatim. */
+                            fees: {
+                                [key: string]: string;
+                            };
+                            /** @description A high-value-mortgage rate (larger loans only). */
+                            highValue: boolean;
+                        } | {
+                            /** @enum {string} */
+                            kind: "loan";
+                            aprPct: number;
+                            /** @enum {string|null} */
+                            rateType: "fixed" | "variable" | null;
+                            maxAmountEur: number | null;
+                            /** @description Null where the source gives no unit for the maximum term. */
+                            maxTermMonths: number | null;
+                            /** @description The maximum term as the source states it. */
+                            maxTermStated: string | null;
+                            purposes: string[];
+                            setupFees: string | null;
+                        } | {
+                            /** @enum {string} */
+                            kind: "credit_card";
+                            aprPct: number | null;
+                            purchaseRatePct: number | null;
+                            cashRatePct: number | null;
+                            balanceTransfer: {
+                                introMonths: number;
+                                introPct: number;
+                            } | null;
+                        } | {
+                            /** @enum {string} */
+                            kind: "current_account";
+                            quarterlyFeeEur: number | null;
+                            annualFeeEur: number | null;
+                            creditInterestPct: number | null;
+                            overdraft: boolean | null;
+                        };
+                        /** @description Where the figures came from and how fresh they are. Nothing here is estimated. */
+                        provenance: {
+                            /**
+                             * @description `bank`: read from the provider’s own website. `ccpc`: read from the Competition and Consumer Protection Commission’s comparison tables.
+                             * @enum {string}
+                             */
+                            source: "bank" | "ccpc";
+                            /** @description Where the figures were read. */
+                            sourceUrl: string;
+                            /** @description The provider’s own page, where known. */
+                            providerUrl: string | null;
+                            /** @description When Saoi last read the source and found these figures. */
+                            checkedAt: string;
+                            /** @description When Saoi last saw the figures change. Null when they have not changed since Saoi first recorded them. */
+                            lastChangedAt: string | null;
+                            /** @description When Saoi first recorded this product. */
+                            firstRecordedAt: string;
+                            /** @description Required attribution under the source’s re-use terms. Show it with the figures. */
+                            attribution: string | null;
+                            /** @description The source rows this product view is built from (several for a term ladder). */
+                            rows: {
+                                /** @enum {string} */
+                                source: "bank" | "ccpc";
+                                productId: string;
+                            }[];
+                            /** @description Rows for the same product from another source, set aside because the provider’s own page is read directly. */
+                            preferredOver: {
+                                /** @enum {string} */
+                                source: "bank" | "ccpc";
+                                productId: string;
+                                providerProductName: string;
+                            }[];
+                        };
+                        /** @description Opened through a deposit platform rather than with the bank directly. The platform account comes first. */
+                        platform: {
+                            /** @enum {string} */
+                            name: "Raisin";
+                            note: string;
+                        } | null;
+                        /** @description Which deposit guarantee scheme covers the money. */
+                        depositGuarantee: {
+                            /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                            scheme: string | null;
+                            country: string | null;
+                            /** @description Cover per person per bank, where known. */
+                            coverEur: number | null;
+                            /**
+                             * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                             * @enum {string}
+                             */
+                            basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                        } | null;
+                        unknowns: {
+                            /** @description The path in the source record, e.g. `rates.thenAerPct`. */
+                            field: string;
+                            /** @description What is not known, in words. */
+                            meaning: string;
+                        }[];
+                        /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
+                        checks: string[];
+                    };
+                    figures: {
+                        /** @enum {string} */
+                        kind: "loan";
+                        amount: number;
+                        termMonths: number;
+                        monthlyRepayment: number;
+                        totalRepaid: number;
+                        totalInterest: number;
+                    } | {
+                        /** @enum {string} */
+                        kind: "credit_card";
+                        balance: number;
+                        /** @description On the balance held for 12 months with nothing repaid, at the stated rates. */
+                        interestOver12Months: number | null;
+                    };
+                    /** @description Against the debt’s remaining interest. Positive is cheaper. */
+                    interestSaving: number | null;
+                    flags: string[];
+                }[];
+                note: string;
+            }[];
+            assumptions: string[];
+            dataCheckedAt: string | null;
+            attributions: string[];
+        };
+        DebtCalculation: {
+            debts: {
+                id: string;
+                label: string;
+                /** @enum {string} */
+                kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                balance: number;
+                ratePct?: number;
+                monthlyRepayment?: number;
+                monthsRemaining?: number;
+            }[];
+            /** @description An amount that could go to overpaying or to saving, to compare the two. */
+            extraMonthly?: number;
+            /** @description Savings that could clear debt, to compare clearing against saving. */
+            lumpSum?: number;
+        };
+        BuildPlanResult: {
+            /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a one-time link into the Saoi app. */
+            plan: {
+                /** @enum {number} */
+                version: 1;
+                title: string;
+                situation: {
+                    summary: string;
+                    income?: {
+                        annualGross?: number;
+                        netMonthly?: number;
+                    };
+                    outgoings?: {
+                        rentMonthly?: number;
+                        otherMonthly?: number;
+                    };
+                    monthlySaving?: number;
+                    /** @default [] */
+                    savings: {
+                        label: string;
+                        balance: number;
+                        provider?: string;
+                        aerPct?: number;
+                    }[];
+                    /** @default [] */
+                    debts: {
+                        id: string;
+                        label: string;
+                        /** @enum {string} */
+                        kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                        balance: number;
+                        ratePct?: number;
+                        monthlyRepayment?: number;
+                        monthsRemaining?: number;
+                    }[];
+                };
+                goals: {
+                    id: string;
+                    /** @enum {string} */
+                    kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                    label: string;
+                    targetAmount?: number;
+                    targetDate?: string;
+                    priority?: number;
+                }[];
+                recommendation: {
+                    products: {
+                        /** @enum {string} */
+                        role: "regular_saver" | "lump_sum" | "emergency_fund" | "mortgage" | "refinance" | "current_account" | "other";
+                        /** @default [] */
+                        goalIds: string[];
+                        provider: string;
+                        providerName: string;
+                        /** @enum {string} */
+                        source: "bank" | "ccpc";
+                        /** @enum {string} */
+                        category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                        productId: string;
+                        productName: string;
+                        amount?: number;
+                        monthlyAmount?: number;
+                        ratePct?: number;
+                        projected?: {
+                            horizonMonths: number;
+                            balance?: number;
+                            netInterest?: number;
+                            totalCost?: number;
+                            monthlyRepayment?: number;
+                            goalReachedOn?: string;
+                        };
+                        why?: string;
+                        /** @default [] */
+                        unknowns: string[];
+                        /** @default [] */
+                        checks: string[];
+                        /** Format: date-time */
+                        checkedAt: string;
+                        attribution?: string;
+                        /** Format: uri */
+                        url?: string;
+                    }[];
+                    totals?: {
+                        monthly?: number;
+                        lumpSum?: number;
+                        netInterest?: number;
+                    };
+                };
+                /** @default [] */
+                debts: {
+                    debtId: string;
+                    /** @enum {string} */
+                    action: "pay_off_first" | "overpay" | "keep_paying" | "refinance";
+                    why: string;
+                    costIfKept?: number;
+                    costWithStep?: number;
+                }[];
+                ranking: {
+                    /** @enum {string} */
+                    objective: "highest_net_return" | "lowest_total_cost" | "fastest_to_goal" | "easiest_access";
+                    basis: string;
+                };
+                /** @default [] */
+                assumptions: string[];
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                dataCheckedAt: string;
+            };
+            /** @description Months to the main goal’s date, or 12 when there is no date. */
+            horizonMonths: number;
+            /** @description The figures run to here; less than the horizon where a rate after that is not known. */
+            knownThroughMonth: number;
+            /** @description YYYY-MM the main goal is reached, if within the figures. */
+            goalReachedOn: string | null;
+            /** @description Why the plan has the shape it has, step by step, with the figures. */
+            reasoning: string[];
+            /** @description Each debt that costs more than savings earn, with both outcomes worked out. */
+            debtScenarios: {
+                debtId: string;
+                /** @description What clearing or overpaying would take from the lump sum. */
+                amount: number;
+                kept: {
+                    /** @description Savings at the end of the months the figures cover, after DIRT. */
+                    savingsAtHorizon: number;
+                    /** @description What is still owed on the debt then. */
+                    debtAtHorizon: number;
+                    /** @description Savings less debt. */
+                    netPosition: number;
+                    /** @description YYYY-MM the main goal is reached, if within the figures. */
+                    goalReachedOn: string | null;
+                };
+                cleared: {
+                    /** @description Savings at the end of the months the figures cover, after DIRT. */
+                    savingsAtHorizon: number;
+                    /** @description What is still owed on the debt then. */
+                    debtAtHorizon: number;
+                    /** @description Savings less debt. */
+                    netPosition: number;
+                    /** @description YYYY-MM the main goal is reached, if within the figures. */
+                    goalReachedOn: string | null;
+                };
+                /**
+                 * @description The one with the larger net position.
+                 * @enum {string}
+                 */
+                chosen: "kept" | "cleared";
+            }[];
+            /** @description For a house deposit with an income given: what the projected deposit supports under the Central Bank limits. */
+            affordability: {
+                deposit: number;
+                maxPrice: number;
+                maxLoanByIncome: number;
+                /** @enum {string} */
+                bindingLimit: "income" | "deposit";
+                note: string;
+            } | null;
+            unplaced: {
+                lumpSum: number;
+                monthly: number;
+            };
+        };
+        BuildPlan: {
+            /** @description The customer’s circumstances. Sent with each call and never stored. Every figure is what they said. */
+            situation: {
+                /** @description Two or three sentences of what the customer said. */
+                summary?: string;
+                income?: {
+                    /** @description Gross income a year, before tax; joint for two applicants. */
+                    annualGross?: number;
+                    /** @description Take-home pay a month. */
+                    netMonthly?: number;
+                };
+                outgoings?: {
+                    rentMonthly?: number;
+                    otherMonthly?: number;
+                };
+                /** @description What they can put aside each month. */
+                monthlySaving?: number;
+                /** @default [] */
+                savings: {
+                    /** @description In the customer’s words: "current account", "credit union". */
+                    label: string;
+                    balance: number;
+                    provider?: string;
+                    /** @description What it earns now. Absent: not known (it is not treated as zero). */
+                    aerPct?: number;
+                    /** @enum {string} */
+                    access?: "instant" | "notice" | "fixed_term" | "current_account";
+                    fixedTermEndsOn?: string;
+                }[];
+                /** @default [] */
+                debts: {
+                    id: string;
+                    label: string;
+                    /** @enum {string} */
+                    kind: "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other";
+                    balance: number;
+                    ratePct?: number;
+                    monthlyRepayment?: number;
+                    monthsRemaining?: number;
+                }[];
+                firstTimeBuyer?: boolean;
+            };
+            goals: {
+                id: string;
+                /** @enum {string} */
+                kind: "house_deposit" | "emergency_fund" | "pay_off_debt" | "save_for_purchase" | "grow_savings" | "switch_mortgage" | "other";
+                label: string;
+                targetAmount?: number;
+                targetDate?: string;
+                priority?: number;
+            }[];
+            /** @description With an `emergency_fund` goal and no target: months of outgoings to hold. Default 3. */
+            emergencyFundMonths?: number;
+            /** @description Allow products opened through Raisin. Default true. */
+            includePlatforms?: boolean;
+            /** @description The most accounts the plan may open. Default 5. */
+            maxAccounts?: number;
         };
         AdminOverview: {
             killSwitch: boolean;
@@ -7289,6 +10165,114 @@ export interface components {
             status: "GENERATED_NOT_SENT";
             /** @enum {boolean} */
             externalRequestMade: false;
+        };
+        AdminMarketProductList: {
+            items: {
+                provider: string;
+                /** @enum {string} */
+                source: "bank" | "ccpc";
+                /** @enum {string} */
+                category: "savings" | "deposit" | "mortgage" | "loan" | "credit_card" | "current_account";
+                productId: string;
+                providerProductName: string;
+                rates: {
+                    /** @enum {string} */
+                    kind: "deposit";
+                    aerPct: number | null;
+                    /** @enum {string|null} */
+                    basis: "fixed" | "variable" | null;
+                    fixedMonths?: number;
+                    thenAerPct?: number;
+                    tierCapEur?: number;
+                    aboveTierAerPct?: number;
+                    lumpSumAerPct?: number;
+                    tiers?: {
+                        minEur: number;
+                        maxEur: number | null;
+                        aerPct: number;
+                    }[];
+                    terms?: {
+                        months: number;
+                        aerPct: number;
+                        termReturnPct?: number;
+                    }[];
+                    termMonths?: number;
+                    noticeDays?: number;
+                } | {
+                    /** @enum {string} */
+                    kind: "mortgage";
+                    /** @enum {string|null} */
+                    rateType: "fixed" | "variable" | null;
+                    fixedYears: number | null;
+                    initialRatePct: number;
+                    followOnRatePct: number | null;
+                    fullTermRatePct: number | null;
+                    ltvMinPct: number | null;
+                    ltvMaxPct: number | null;
+                    ber: string | null;
+                    cashback: boolean | null;
+                    customerTypes: ("first_time_buyer" | "mover" | "switcher")[];
+                } | {
+                    /** @enum {string} */
+                    kind: "loan";
+                    aprPct: number;
+                    /** @enum {string|null} */
+                    rateType: "fixed" | "variable" | null;
+                    maxAmountEur: number | null;
+                    maxTermMonths: number | null;
+                    purposes: string[];
+                } | {
+                    /** @enum {string} */
+                    kind: "credit_card";
+                    aprPct: number | null;
+                    purchaseRatePct: number | null;
+                    cashRatePct: number | null;
+                    balanceTransferIntroMonths: number | null;
+                    balanceTransferIntroPct: number | null;
+                } | {
+                    /** @enum {string} */
+                    kind: "current_account";
+                    quarterlyFeeEur: number | null;
+                    creditInterestPct: number | null;
+                    overdraft: boolean | null;
+                };
+                conditions: {
+                    takesMonthly?: boolean;
+                    takesLumpSum?: boolean;
+                    minMonthlyEur?: number;
+                    maxMonthlyEur?: number;
+                    minLumpSumEur?: number;
+                    maxLumpSumEur?: number;
+                    minAge?: number;
+                    bonus?: {
+                        amountEur: number;
+                        lessDirt: boolean;
+                        firstTimeBuyerOnly: boolean;
+                        requiresMortgageHere: boolean;
+                        minMonthlyEur: number;
+                        minMonths: number;
+                        minTotalEur: number;
+                        withinMonths: number;
+                    };
+                    prose?: {
+                        [key: string]: string;
+                    };
+                    details?: {
+                        [key: string]: string;
+                    };
+                };
+                sourceUrl: string;
+                providerUrl: string | null;
+                sourceProductId: string | null;
+                sourceUpdatedAt: string | null;
+                attribution: string | null;
+                unknown: string[];
+                effectiveFrom: string | null;
+                firstSeenAt: string;
+                checkedAt: string;
+                supersededAt: string | null;
+            }[];
+            skipped: number;
         };
     };
     responses: never;

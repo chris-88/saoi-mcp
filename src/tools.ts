@@ -77,7 +77,7 @@ const ok = (text: string, structuredContent: object): CallToolResult => ({
 const fail = (text: string): CallToolResult => ({ content: [{ type: 'text', text }], isError: true })
 
 /** Errors become results the model can act on; nothing internal is passed through. */
-async function guarded(work: () => Promise<CallToolResult>): Promise<CallToolResult> {
+async function attempt(work: () => Promise<CallToolResult>): Promise<CallToolResult> {
   try {
     return await work()
   } catch (error) {
@@ -96,6 +96,38 @@ async function guarded(work: () => Promise<CallToolResult>): Promise<CallToolRes
     console.error('tool error:', error instanceof Error ? error.name : 'unknown')
     return fail('Saoi is unavailable right now. Try again shortly.')
   }
+}
+
+/** Tools whose results the plan card renders in MCP Apps hosts (`_meta.ui`). */
+const CARD_TOOLS: ReadonlySet<string> = new Set(['saoi_money_check', 'saoi_build_plan'])
+
+/**
+ * One line per tool call, for diagnosing a test afterwards (`docker logs saoi-mcp`): the tool,
+ * how long it took, the outcome, and whether the plan card was attached. Never the inputs, the
+ * caller's address or any figure.
+ */
+export function toolCallLine(entry: {
+  tool: string
+  ms: number
+  outcome: 'ok' | 'error'
+  ui: boolean
+}): string {
+  return JSON.stringify({ event: 'tool_call', ...entry })
+}
+
+async function guarded(tool: string, work: () => Promise<CallToolResult>): Promise<CallToolResult> {
+  const started = performance.now()
+  const result = await attempt(work)
+  const outcome = result.isError === true ? 'error' : 'ok'
+  console.log(
+    toolCallLine({
+      tool,
+      ms: Math.round(performance.now() - started),
+      outcome,
+      ui: outcome === 'ok' && CARD_TOOLS.has(tool),
+    }),
+  )
+  return result
 }
 
 const input = (name: Name) => fromJsonSchema<Body>(OPERATIONS[name].inputSchema)
@@ -120,7 +152,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       _meta: PLAN_CARD_TOOL_META,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_money_check', async () => {
         const result = await saoi.moneyCheck(args, ip)
         return ok(renderMoneyCheck(result), result)
       }),
@@ -138,7 +170,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_review_situation', async () => {
         const result = await saoi.review(args, ip)
         return ok(renderReview(result), result)
       }),
@@ -156,7 +188,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_search_products', async () => {
         const result = await saoi.search(args, ip)
         return ok(renderSearch(result), result)
       }),
@@ -182,7 +214,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     ({ id }) =>
-      guarded(async () => {
+      guarded('saoi_product', async () => {
         const result = await saoi.product(id, ip)
         return ok(renderProduct(result), result)
       }),
@@ -200,7 +232,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_savings_projection', async () => {
         const result = await saoi.projection(args, ip)
         return ok(renderProjection(result), result)
       }),
@@ -218,7 +250,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_mortgage', async () => {
         const result = await saoi.mortgage(args, ip)
         return ok(renderMortgage(result), result)
       }),
@@ -236,7 +268,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_debt', async () => {
         const result = await saoi.debt(args, ip)
         return ok(renderDebt(result), result)
       }),
@@ -254,7 +286,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_first_home', async () => {
         const result = await saoi.firstHome(args, ip)
         return ok(renderFirstHome(result), result)
       }),
@@ -279,7 +311,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       _meta: PLAN_CARD_TOOL_META,
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_build_plan', async () => {
         const result = await saoi.buildPlan(args, ip)
         return ok(renderPlan(result), result)
       }),
@@ -303,7 +335,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       },
     },
     (args) =>
-      guarded(async () => {
+      guarded('saoi_save_plan', async () => {
         const result = await saoi.savePlan(args, ip)
         return ok(renderSaved(result), result)
       }),

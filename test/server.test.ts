@@ -143,7 +143,7 @@ describe('resources and prompts', () => {
   it('lists and reads how Saoi ranks and earns', async () => {
     const list = await asRpc(await modernPost(srv.url, 'resources/list'))
     const uris = (list.result?.['resources'] as { uri: string }[]).map((r) => r.uri).sort()
-    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v1.html'])
+    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v2.html'])
     const read = await asRpc(
       await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),
     )

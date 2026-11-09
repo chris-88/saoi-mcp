@@ -260,6 +260,14 @@ export function guaranteeLine(guarantee: PlanGuarantee): string {
   return `Deposit guarantee: ${guarantee.scheme}${guarantee.coverEur === null ? '' : `, up to ${eur(guarantee.coverEur)}`}${guarantee.note === null || guarantee.note === undefined ? '' : `. ${guarantee.note}`}${where}.`
 }
 
+/** A payoff step as an option with its figures, not an instruction: the customer decides. */
+const DEBT_ACTIONS: Record<BuildPlanResult['plan']['debts'][number]['action'], string> = {
+  pay_off_first: 'cleared from the lump sum in this plan',
+  overpay: 'part paid from the lump sum in this plan',
+  keep_paying: 'kept as it is in this plan',
+  refinance: 'refinancing compared in this plan',
+}
+
 export function renderPlan(result: BuildPlanResult): string {
   const { plan } = result
   return [
@@ -293,7 +301,10 @@ export function renderPlan(result: BuildPlanResult): string {
       : [
           '',
           'Debts:',
-          ...plan.debts.map((step) => `- ${step.debtId}: ${step.action.replaceAll('_', ' ')}. ${step.why}`),
+          ...plan.debts.map((step) => {
+            const debt = plan.situation.debts.find((candidate) => candidate.id === step.debtId)
+            return `- ${debt?.label ?? step.debtId}: ${DEBT_ACTIONS[step.action]}. ${step.why}`
+          }),
         ]),
     ...footer({
       assumptions: plan.assumptions,

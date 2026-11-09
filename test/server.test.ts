@@ -220,6 +220,8 @@ describe('tools/call', () => {
     expect(plan).toMatch(/Locked or accessible: /)
     expect(plan).toMatch(/What if:\n- /)
     expect(plan).toMatch(/Deposit guarantee: /)
+    expect(plan).toMatch(/Car loan: cleared from the lump sum in this plan\./)
+    expect(plan).not.toMatch(/pay off first/)
     expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(/Next: .*saoi_build_plan/)
   })
 

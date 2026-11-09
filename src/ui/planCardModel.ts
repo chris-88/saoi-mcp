@@ -11,7 +11,8 @@ import type { BuildPlanResult } from '../saoiClient.js'
  */
 export interface PlanCardView {
   title: string
-  moneyFound: { headline: string; notCounted: string[] }
+  /** `headline` is the figure; `note` the sentences after it (how money held is counted). */
+  moneyFound: { headline: string; note: string | null; notCounted: string[] }
   /** The goals the plan saves towards (the buffer shows in the position instead). */
   goals: { label: string; detail: string }[]
   /**
@@ -267,10 +268,14 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
                 : 'Nothing still owed on the debts given',
         }
 
+  // "Money found: about €X a year after DIRT (parts). How money held is counted." Bold the first.
+  const lead = /^(Money found: .*?\)\.)\s+(.+)$/.exec(result.moneyFound.headline)
+
   return {
     title: plan.title,
     moneyFound: {
-      headline: result.moneyFound.headline,
+      headline: lead?.[1] ?? result.moneyFound.headline,
+      note: lead?.[2] ?? null,
       notCounted: result.moneyFound.notCounted.map(
         (item) =>
           `Not counted: ${item.label}${item.annualEur === null ? '' : ` (${eur(item.annualEur)} a year)`}. ${item.why}`,

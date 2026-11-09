@@ -1,3 +1,13 @@
+```text
+███▄▄████▄▄                   ▄▄█████▄         ▄▄█████▄         ▄▄█████▄       ███
+██████▀▀████▄               ▄████▀▀▀███▄     ▄████▀▀▀████     ▄████▀▀▀████     ███
+████      ▀██▄              ███ ▄▄▄▄▄        ███      ▀███    ███      ▀███
+███  ▀  ▀  ███             ██████████████   ████       ███    ███       ███    ███
+▀███      ▄██▀                  ▀▀▀▀▀████    ███      ▄███    ███      ▄███    ███
+ ▀████▄▄████▀               ▀████▄▄▄███▀     ▀████▄▄▄█████    ▀████▄▄▄████     ███
+   ▀▀████▀▀                   ▀▀█████▀         ▀▀█████▀███      ▀▀█████▀       ███
+```
+
 # saoi-mcp
 
 An [MCP](https://modelcontextprotocol.io) server that exposes Saoirse, the conversational banking assistant inside Saoi, as four tools. The bank is a fictional "Demo Bank" and **all data is synthetic**; nothing real is opened and no money moves. Live at `https://mcp.saoi.ie/mcp` (also `https://mcp.chrisquinn.ie/mcp`).

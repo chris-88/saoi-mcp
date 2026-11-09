@@ -42,6 +42,9 @@ export const SERVER_INSTRUCTIONS = [
   "- Use the tools' figures; do not recompute, add up, extend or adjust them. Compare scenarios by their net",
   '  figures only. To change an assumption (a buffer, keeping the money accessible, a different monthly amount or',
   '  date, a home price), call the tool again with the new inputs.',
+  '- Keep every debt the customer mentioned in each call. To model keeping or clearing one, set its `plan`',
+  '  ("keep" or "clear"); never drop it from the call, or the plan has no debt to set against the savings.',
+  '- Money in a current account goes in with `access: "current_account"`: it counts as earning 0%, as CCPC shows.',
   '- Show the flags, unknowns and deposit guarantees, say "check eligibility" where a result does, and show the',
   '  CCPC attribution with CCPC figures.',
   '',
@@ -298,7 +301,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Build a plan for the customer’s goals',
       description: describe(
         'saoi_build_plan',
-        'Follow-up to saoi_money_check: rebuild the plan whenever an input changes (a buffer, keeping the money accessible, the monthly amount, the date) rather than adjusting figures by hand. Returns the plan with a link that holds it for 24 hours so the customer can open it in the Saoi app (the only thing stored), the reasoning, the liquidity decision, what-ifs and Help to Buy for a home. Relay its "Present to the customer" block first.',
+        'Follow-up to saoi_money_check, and as good a first call when goals are clear (it carries the same money found, questions and presentation): rebuild the plan whenever an input changes (a buffer, keeping the money accessible, the monthly amount, the date, keeping or clearing a debt) rather than adjusting figures by hand. To model keeping a debt, keep it in situation.debts with plan "keep"; never leave it out. Returns the plan with a link that holds it for 24 hours so the customer can open it in the Saoi app (the only thing stored), the reasoning, the liquidity decision, what-ifs and Help to Buy for a home. Relay its "Present to the customer" block first.',
       ),
       inputSchema: input('saoi_build_plan'),
       annotations: {

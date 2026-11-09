@@ -150,3 +150,55 @@ describe('plan card model', () => {
     expect(planCardModel(unheld).draftUrl).toBeNull()
   })
 })
+
+describe('plan card model: the position and the compact view (after the fourth Claude test)', () => {
+  const presented = recorded.planPresented
+
+  it('names what the position includes', () => {
+    const view = planCardModel(presented)
+    expect(view.position?.heading).toBe('In all at Nov 2028')
+    expect(view.position?.total).toBe('€42,850')
+    expect(view.position?.parts[0]).toEqual({ label: 'Towards house deposit', value: '€42,850' })
+    expect(view.position?.note).toBe('Nothing still owed on the debts given')
+  })
+
+  it('shows the buffer and what is still owed as parts, and says when no debts were given', () => {
+    const position = {
+      at: '2028-11',
+      total: 35_000,
+      towardsGoal: 33_000,
+      buffer: 5_142,
+      owed: 3_142,
+      owedIsCeiling: false,
+      debtsGiven: true,
+      line: 'x',
+    }
+    const kept = planCardModel({ ...presented, position })
+    expect(kept.position?.heading).toBe('Net position at Nov 2028')
+    expect(kept.position?.parts.map((part) => part.label)).toEqual([
+      'Towards house deposit',
+      'Emergency buffer',
+      'Still owed',
+    ])
+    expect(kept.position?.parts[2]?.value).toBe('−€3,142')
+    const none = planCardModel({
+      ...presented,
+      position: { ...position, owed: 0, debtsGiven: false },
+      plan: { ...presented.plan, situation: { ...presented.plan.situation, debts: [] } },
+      debtScenarios: [],
+    })
+    expect(none.position?.heading).toBe('In all at Nov 2028')
+    expect(none.position?.note).toBe('No debts given')
+    expect(JSON.stringify(none.scenarios)).not.toMatch(/net position/)
+  })
+
+  it('gives one short line per product: provider and amount', () => {
+    const view = planCardModel(presented)
+    expect(view.products[0]?.line).toBe('MoCo · €16,000')
+    expect(view.products[1]?.line).toMatch(/^AIB · €[\d,]+ a month$/)
+  })
+
+  it('has no position for a result from before saoi-api carried it', () => {
+    expect(planCardModel(recorded.plan).position).toBeNull()
+  })
+})

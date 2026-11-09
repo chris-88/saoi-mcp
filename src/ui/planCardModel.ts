@@ -12,12 +12,25 @@ import type { BuildPlanResult } from '../saoiClient.js'
 export interface PlanCardView {
   title: string
   moneyFound: { headline: string; notCounted: string[] }
+  /** The goals the plan saves towards (the buffer shows in the position instead). */
   goals: { label: string; detail: string }[]
+  /**
+   * Everything held at the end, less what is still owed, with its parts named. Null for a result
+   * from before saoi-api carried it.
+   */
+  position: {
+    heading: string
+    total: string
+    parts: { label: string; value: string }[]
+    note: string | null
+  } | null
   products: {
     name: string
     provider: string
     role: string
     rate: string | null
+    /** "MoCo · €11,000": the provider and the amounts, for the one-line view. */
+    line: string
     amounts: string
     projected: string | null
     guarantee: string
@@ -87,31 +100,42 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
           .slice(0, 7),
       ) ?? `month ${String(result.horizonMonths)}`)
 
-  const goals = plan.goals.map((goal) => {
-    const target = [
-      goal.targetAmount === undefined ? '' : eur(goal.targetAmount),
-      goal.targetDate === undefined ? '' : `by ${month(goal.targetDate) ?? goal.targetDate}`,
-    ]
-      .filter((part) => part !== '')
-      .join(' ')
-    const reached = month(result.goalReachedOn)
-    return {
-      label: goal.label,
-      detail: [target, reached === null ? '' : `reached ${reached} at this pace`]
+  const goals = plan.goals
+    .filter((goal) => goal.kind !== 'emergency_fund')
+    .map((goal) => {
+      const target = [
+        goal.targetAmount === undefined ? '' : eur(goal.targetAmount),
+        goal.targetDate === undefined ? '' : `by ${month(goal.targetDate) ?? goal.targetDate}`,
+      ]
         .filter((part) => part !== '')
-        .join(' · '),
-    }
-  })
+        .join(' ')
+      const reached = month(result.goalReachedOn)
+      return {
+        label: goal.label,
+        detail: [target, reached === null ? '' : `reached ${reached} at this pace`]
+          .filter((part) => part !== '')
+          .join(' · '),
+      }
+    })
 
   const products = plan.recommendation.products.map((product) => {
     const guarantee = product.depositGuarantee
     const known = guarantee !== undefined && guarantee.scheme !== null
     // The guarantee has its own line; a check that only repeats it is dropped.
     const checks = product.checks.filter((check) => !(known && /deposit guarantee/i.test(check)))
+    const short = [
+      product.amount === undefined ? '' : eur(product.amount),
+      product.monthlyAmount === undefined ? '' : `${eur(product.monthlyAmount)} a month`,
+    ]
+      .filter((part) => part !== '')
+      .join(' + ')
     return {
       name: product.productName,
       provider: product.providerName,
       role: ROLES[product.role] ?? product.role,
+      line: [product.providerName, product.role === 'emergency_fund' ? `${short} buffer` : short]
+        .filter((part) => part !== '')
+        .join(' · '),
       rate:
         product.ratePct === undefined
           ? null
@@ -163,7 +187,11 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
   const { liquidity } = result
   if (liquidity.lockedNetPosition !== null && liquidity.instantNetPosition !== null) {
     scenarios.push({
-      heading: `Locked or instant access: net position at ${horizon}`,
+      // With no debts given the figure is savings only: not a net position against debts.
+      heading:
+        plan.situation.debts.length === 0
+          ? `Locked or instant access: in all at ${horizon}, no debts given`
+          : `Locked or instant access: net position at ${horizon}`,
       rows: [
         {
           label: 'Instant access',
@@ -201,6 +229,44 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
       : undefined
   const draftUrl = typeof linkUrl === 'string' && /^https:\/\/app\.saoi\.ie\//.test(linkUrl) ? linkUrl : null
 
+  // The position: towards the goal, the buffer, less what is still owed (saoi-api, build-plan).
+  // Optional at runtime: results from before saoi-api carried it have none.
+  const held = (result as { position?: BuildPlanResult['position'] }).position
+  const goalLabel = plan.goals.find((goal) => goal.kind !== 'emergency_fund')?.label ?? null
+  const at = held === undefined ? null : (month(held.at) ?? held.at)
+  const position: PlanCardView['position'] =
+    held === undefined
+      ? null
+      : {
+          heading: held.owed > 0 ? `Net position at ${at ?? horizon}` : `In all at ${at ?? horizon}`,
+          total: eur(Math.round(held.total)),
+          parts: [
+            {
+              label:
+                goalLabel === null
+                  ? 'Savings'
+                  : `Towards ${goalLabel.charAt(0).toLowerCase()}${goalLabel.slice(1)}`,
+              value: eur(Math.round(held.towardsGoal)),
+            },
+            ...(held.buffer > 0 ? [{ label: 'Emergency buffer', value: eur(Math.round(held.buffer)) }] : []),
+            ...(held.owed > 0
+              ? [
+                  {
+                    label: held.owedIsCeiling ? 'Still owed (at most)' : 'Still owed',
+                    value: `−${eur(Math.round(held.owed))}`,
+                  },
+                ]
+              : []),
+          ],
+          note: !held.debtsGiven
+            ? 'No debts given'
+            : held.owedIsCeiling
+              ? 'A repayment was not given, so today’s balance is counted as owed: the net figure is the least it can be.'
+              : held.owed > 0
+                ? null
+                : 'Nothing still owed on the debts given',
+        }
+
   return {
     title: plan.title,
     moneyFound: {
@@ -211,6 +277,7 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
       ),
     },
     goals,
+    position,
     products,
     scenarios,
     basis: `Ranked by ${plan.ranking.objective.replaceAll('_', ' ')}: ${plan.ranking.basis}`,

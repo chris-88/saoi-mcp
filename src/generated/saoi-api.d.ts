@@ -3365,7 +3365,7 @@ export interface paths {
         put?: never;
         /**
          * The fastest combination of products for the customer’s goals, as a plan
-         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt costing more than savings earn worked out cleared and kept, with both figures, and a cleared debt’s repayment saved; the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. To change an assumption, call again with the new inputs rather than adjusting the figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, and takes the one leaving more; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. To change an assumption, call again with the new inputs rather than adjusting the figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -7625,6 +7625,14 @@ export interface components {
                 };
                 /** @default [] */
                 assumptions: string[];
+                position?: {
+                    at: string;
+                    total: number;
+                    towardsGoal: number;
+                    buffer: number;
+                    owed: number;
+                    line: string;
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -8338,9 +8346,12 @@ export interface components {
                     label: string;
                     balance: number;
                     provider?: string;
-                    /** @description What it earns now. Absent: not known (it is not treated as zero). */
+                    /** @description What it earns now, if the customer said. Absent on a savings account: not known (never treated as zero). Absent on a current account: counted at the credit interest CCPC states for current accounts (0% in practice), with that basis stated. */
                     aerPct?: number;
-                    /** @enum {string} */
+                    /**
+                     * @description Where the money is. `current_account` for money in a current account ("sitting in my current account"): it is counted as earning what CCPC states current accounts pay (0% in practice), so moving it counts as money found. `instant`, `notice`, `fixed_term` for a savings or deposit account. Absent: read from the label ("current account" counts as one).
+                     * @enum {string}
+                     */
                     access?: "instant" | "notice" | "fixed_term" | "current_account";
                     fixedTermEndsOn?: string;
                 }[];
@@ -8354,6 +8365,11 @@ export interface components {
                     ratePct?: number;
                     monthlyRepayment?: number;
                     monthsRemaining?: number;
+                    /**
+                     * @description For saoi_build_plan, what the customer wants modelled for this debt. `compare` (default): worked out both ways, cleared from savings and kept, and the plan takes the one leaving more. `keep`: kept and repaid as it is, still owed in the net position. `clear`: cleared from the savings held. To model keeping a debt, send it with `plan: "keep"`; never leave it out, or the plan has no debt to set against the savings.
+                     * @enum {string}
+                     */
+                    plan?: "clear" | "keep" | "compare";
                 }[];
                 firstTimeBuyer?: boolean;
             };
@@ -9550,6 +9566,11 @@ export interface components {
                 ratePct?: number;
                 monthlyRepayment?: number;
                 monthsRemaining?: number;
+                /**
+                 * @description For saoi_build_plan, what the customer wants modelled for this debt. `compare` (default): worked out both ways, cleared from savings and kept, and the plan takes the one leaving more. `keep`: kept and repaid as it is, still owed in the net position. `clear`: cleared from the savings held. To model keeping a debt, send it with `plan: "keep"`; never leave it out, or the plan has no debt to set against the savings.
+                 * @enum {string}
+                 */
+                plan?: "clear" | "keep" | "compare";
             }[];
             /** @description An amount that could go to overpaying or to saving, to compare the two. */
             extraMonthly?: number;
@@ -9920,6 +9941,27 @@ export interface components {
         BuildPlanResult: {
             /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
             presentation: string[];
+            /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again with the answers. */
+            questions: string[];
+            /** @description What the plan holds at its end, everything included and each part named: towards the goal, the buffer, less what is still owed. */
+            position: {
+                /** @description YYYY-MM: the end of the months the plan covers. */
+                at: string;
+                /** @description Everything held then, after DIRT (towards the goal plus the buffer), less what is still owed on the debts given. */
+                total: number;
+                /** @description Savings towards the main goal then, after DIRT. */
+                towardsGoal: number;
+                /** @description The emergency buffer then, with its interest. 0 when none is held. */
+                buffer: number;
+                /** @description Still owed then on the debts given. 0 when none is owed or none given. */
+                owed: number;
+                /** @description True when a debt’s repayment was not given, so today’s balance is counted as owed: the most it can be, and `total` the least. */
+                owedIsCeiling: boolean;
+                /** @description False when the call had no debts: `total` is then savings only, not a net position against debts. */
+                debtsGiven: boolean;
+                /** @description The position in one sentence, with its parts named. */
+                line: string;
+            };
             /** @description The plan held as a draft for 24 hours behind a single-use link, then deleted unless opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
             saveLink: {
                 /** @description Opens the plan in the Saoi app, once. */
@@ -10074,6 +10116,14 @@ export interface components {
                 };
                 /** @default [] */
                 assumptions: string[];
+                position?: {
+                    at: string;
+                    total: number;
+                    towardsGoal: number;
+                    buffer: number;
+                    owed: number;
+                    line: string;
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -10097,7 +10147,7 @@ export interface components {
                     savingsAtHorizon: number;
                     /** @description What is still owed on the debt then. */
                     debtAtHorizon: number;
-                    /** @description Savings less debt. */
+                    /** @description Everything held (towards the goal and the buffer) less what is still owed. */
                     netPosition: number;
                     /** @description YYYY-MM the main goal is reached, if within the figures. */
                     goalReachedOn: string | null;
@@ -10107,13 +10157,13 @@ export interface components {
                     savingsAtHorizon: number;
                     /** @description What is still owed on the debt then. */
                     debtAtHorizon: number;
-                    /** @description Savings less debt. */
+                    /** @description Everything held (towards the goal and the buffer) less what is still owed. */
                     netPosition: number;
                     /** @description YYYY-MM the main goal is reached, if within the figures. */
                     goalReachedOn: string | null;
                 };
                 /**
-                 * @description The one with the larger net position.
+                 * @description The one in this plan: the customer’s choice when the debt’s `plan` is `keep` or `clear`, otherwise the larger net position.
                  * @enum {string}
                  */
                 chosen: "kept" | "cleared";
@@ -10201,9 +10251,12 @@ export interface components {
                     label: string;
                     balance: number;
                     provider?: string;
-                    /** @description What it earns now. Absent: not known (it is not treated as zero). */
+                    /** @description What it earns now, if the customer said. Absent on a savings account: not known (never treated as zero). Absent on a current account: counted at the credit interest CCPC states for current accounts (0% in practice), with that basis stated. */
                     aerPct?: number;
-                    /** @enum {string} */
+                    /**
+                     * @description Where the money is. `current_account` for money in a current account ("sitting in my current account"): it is counted as earning what CCPC states current accounts pay (0% in practice), so moving it counts as money found. `instant`, `notice`, `fixed_term` for a savings or deposit account. Absent: read from the label ("current account" counts as one).
+                     * @enum {string}
+                     */
                     access?: "instant" | "notice" | "fixed_term" | "current_account";
                     fixedTermEndsOn?: string;
                 }[];
@@ -10217,6 +10270,11 @@ export interface components {
                     ratePct?: number;
                     monthlyRepayment?: number;
                     monthsRemaining?: number;
+                    /**
+                     * @description For saoi_build_plan, what the customer wants modelled for this debt. `compare` (default): worked out both ways, cleared from savings and kept, and the plan takes the one leaving more. `keep`: kept and repaid as it is, still owed in the net position. `clear`: cleared from the savings held. To model keeping a debt, send it with `plan: "keep"`; never leave it out, or the plan has no debt to set against the savings.
+                     * @enum {string}
+                     */
+                    plan?: "clear" | "keep" | "compare";
                 }[];
                 firstTimeBuyer?: boolean;
             };
@@ -10316,6 +10374,27 @@ export interface components {
             plan: {
                 /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
                 presentation: string[];
+                /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again with the answers. */
+                questions: string[];
+                /** @description What the plan holds at its end, everything included and each part named: towards the goal, the buffer, less what is still owed. */
+                position: {
+                    /** @description YYYY-MM: the end of the months the plan covers. */
+                    at: string;
+                    /** @description Everything held then, after DIRT (towards the goal plus the buffer), less what is still owed on the debts given. */
+                    total: number;
+                    /** @description Savings towards the main goal then, after DIRT. */
+                    towardsGoal: number;
+                    /** @description The emergency buffer then, with its interest. 0 when none is held. */
+                    buffer: number;
+                    /** @description Still owed then on the debts given. 0 when none is owed or none given. */
+                    owed: number;
+                    /** @description True when a debt’s repayment was not given, so today’s balance is counted as owed: the most it can be, and `total` the least. */
+                    owedIsCeiling: boolean;
+                    /** @description False when the call had no debts: `total` is then savings only, not a net position against debts. */
+                    debtsGiven: boolean;
+                    /** @description The position in one sentence, with its parts named. */
+                    line: string;
+                };
                 /** @description The plan held as a draft for 24 hours behind a single-use link, then deleted unless opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
                 saveLink: {
                     /** @description Opens the plan in the Saoi app, once. */
@@ -10470,6 +10549,14 @@ export interface components {
                     };
                     /** @default [] */
                     assumptions: string[];
+                    position?: {
+                        at: string;
+                        total: number;
+                        towardsGoal: number;
+                        buffer: number;
+                        owed: number;
+                        line: string;
+                    };
                     /** Format: date-time */
                     createdAt: string;
                     /** Format: date-time */
@@ -10493,7 +10580,7 @@ export interface components {
                         savingsAtHorizon: number;
                         /** @description What is still owed on the debt then. */
                         debtAtHorizon: number;
-                        /** @description Savings less debt. */
+                        /** @description Everything held (towards the goal and the buffer) less what is still owed. */
                         netPosition: number;
                         /** @description YYYY-MM the main goal is reached, if within the figures. */
                         goalReachedOn: string | null;
@@ -10503,13 +10590,13 @@ export interface components {
                         savingsAtHorizon: number;
                         /** @description What is still owed on the debt then. */
                         debtAtHorizon: number;
-                        /** @description Savings less debt. */
+                        /** @description Everything held (towards the goal and the buffer) less what is still owed. */
                         netPosition: number;
                         /** @description YYYY-MM the main goal is reached, if within the figures. */
                         goalReachedOn: string | null;
                     };
                     /**
-                     * @description The one with the larger net position.
+                     * @description The one in this plan: the customer’s choice when the debt’s `plan` is `keep` or `clear`, otherwise the larger net position.
                      * @enum {string}
                      */
                     chosen: "kept" | "cleared";
@@ -10631,9 +10718,12 @@ export interface components {
                     label: string;
                     balance: number;
                     provider?: string;
-                    /** @description What it earns now. Absent: not known (it is not treated as zero). */
+                    /** @description What it earns now, if the customer said. Absent on a savings account: not known (never treated as zero). Absent on a current account: counted at the credit interest CCPC states for current accounts (0% in practice), with that basis stated. */
                     aerPct?: number;
-                    /** @enum {string} */
+                    /**
+                     * @description Where the money is. `current_account` for money in a current account ("sitting in my current account"): it is counted as earning what CCPC states current accounts pay (0% in practice), so moving it counts as money found. `instant`, `notice`, `fixed_term` for a savings or deposit account. Absent: read from the label ("current account" counts as one).
+                     * @enum {string}
+                     */
                     access?: "instant" | "notice" | "fixed_term" | "current_account";
                     fixedTermEndsOn?: string;
                 }[];
@@ -10647,6 +10737,11 @@ export interface components {
                     ratePct?: number;
                     monthlyRepayment?: number;
                     monthsRemaining?: number;
+                    /**
+                     * @description For saoi_build_plan, what the customer wants modelled for this debt. `compare` (default): worked out both ways, cleared from savings and kept, and the plan takes the one leaving more. `keep`: kept and repaid as it is, still owed in the net position. `clear`: cleared from the savings held. To model keeping a debt, send it with `plan: "keep"`; never leave it out, or the plan has no debt to set against the savings.
+                     * @enum {string}
+                     */
+                    plan?: "clear" | "keep" | "compare";
                 }[];
                 firstTimeBuyer?: boolean;
             };
@@ -11558,6 +11653,7 @@ export interface components {
                     /** @enum {string} */
                     interestPaid?: "daily" | "weekly" | "monthly" | "quarterly" | "yearly" | "account_anniversary" | "maturity";
                     rateForNewAccounts?: boolean;
+                    dirtAtSource?: boolean;
                     bonus?: {
                         amountEur: number;
                         lessDirt: boolean;

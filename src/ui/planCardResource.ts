@@ -10,7 +10,7 @@ import { planCardModel } from './planCardModel.js'
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong:
  * hosts may treat the URI as a cache key.
  */
-export const PLAN_CARD_URI = 'ui://saoi/plan-card-v2.html'
+export const PLAN_CARD_URI = 'ui://saoi/plan-card-v3.html'
 export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 
 /** On a tool: the card that renders its result. The flat key is the spec's legacy spelling. */
@@ -76,9 +76,25 @@ p, h2, h3, ul, ol { margin: 0; }
 .product { padding: 8px 0; display: grid; gap: 3px; }
 .product + .product { border-top: 1px solid var(--line); }
 .flags { padding-left: 18px; display: grid; gap: 2px; color: var(--fg2); }
-.more summary { cursor: pointer; color: var(--fg2); min-height: 24px; }
+.position { display: grid; gap: 4px; padding-top: 6px; }
+.total { font-size: var(--font-heading-md-size, 16px); font-weight: 600; }
+.product-name { min-width: 0; }
+.products.section { margin: 0; gap: 0; }
+.products.section > li { padding: 6px 0; }
+.products.section > li + li { border-top: 1px solid var(--line); }
+.folds { border-top: 1px solid var(--line); }
+.more { padding: 0 16px; }
+.more + .more { border-top: 1px solid var(--line); }
+.more summary {
+  cursor: pointer; color: var(--fg2); min-height: 44px;
+  display: flex; align-items: center; gap: 8px; list-style: none;
+}
+.more summary::-webkit-details-marker { display: none; }
+.more summary::before { content: '▸'; color: var(--fg3); width: 10px; }
+.more[open] > summary::before { content: '▾'; }
 .more summary:focus-visible { outline: 2px solid var(--saoi); outline-offset: 2px; border-radius: 4px; }
-.more .flags { margin-top: 4px; }
+.fold { display: grid; gap: 8px; padding-bottom: 12px; }
+.fold .flags { margin-top: 2px; }
 .guarantee { color: var(--fg2); }
 .flag { color: var(--warn-fg); background: var(--warn-bg); border-radius: 6px; padding: 2px 6px; justify-self: start; }
 .scenarios { width: 100%; border-collapse: collapse; }
@@ -90,7 +106,7 @@ p, h2, h3, ul, ol { margin: 0; }
   font-size: 11px; font-weight: 600; color: var(--saoi); border: 1px solid var(--saoi); vertical-align: 1px;
 }
 .footer { border-top: 1px solid var(--line); padding: 10px 16px; display: grid; gap: 4px; color: var(--fg2); }
-.actions { border-top: 1px solid var(--line); padding: 12px 16px 14px; display: grid; gap: 8px; }
+.actions { border-top: 1px solid var(--line); padding: 12px 16px; display: grid; gap: 6px; }
 .save {
   min-height: 44px; padding: 0 18px; justify-self: start;
   border: 0; border-radius: var(--border-radius-md, 8px);

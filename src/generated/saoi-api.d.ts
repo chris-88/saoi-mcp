@@ -3295,7 +3295,7 @@ export interface paths {
         put?: never;
         /**
          * The fastest combination of products for the customer’s goals, as a plan
-         * @description Given a situation and chosen goals: an emergency fund (if a goal) in the best instant access; each debt costing more than savings earn worked out cleared and kept, with both figures; the rest split across the market (regular savers to their monthly caps, the lump sum to the longest fixed term or notice account that ends by the goal’s date, at most €100,000 per provider); projected to the date the main goal is reached; for a house deposit, what it supports under the Central Bank limits. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link) with the reasoning and every figure. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt costing more than savings earn worked out cleared and kept, with both figures, and a cleared debt’s repayment saved; the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. To change an assumption, call again with the new inputs rather than adjusting the figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
          */
         post: {
             parameters: {
@@ -7448,6 +7448,15 @@ export interface components {
                         unknowns: string[];
                         /** @default [] */
                         checks: string[];
+                        depositGuarantee?: {
+                            scheme: string | null;
+                            country: string | null;
+                            coverEur: number | null;
+                            note?: string | null;
+                            /** Format: uri */
+                            sourceUrl?: string | null;
+                            checkedOn?: string | null;
+                        };
                         /** Format: date-time */
                         checkedAt: string;
                         attribution?: string;
@@ -7685,18 +7694,24 @@ export interface components {
                         name: "Raisin";
                         note: string;
                     } | null;
-                    /** @description Which deposit guarantee scheme covers the money. */
+                    /** @description Which deposit guarantee scheme covers the money, and where that was read. */
                     depositGuarantee: {
-                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
                         scheme: string | null;
                         country: string | null;
-                        /** @description Cover per person per bank, where known. */
+                        /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
                         coverEur: number | null;
+                        /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                        note: string | null;
                         /**
-                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
                          * @enum {string}
                          */
                         basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                        /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                        sourceUrl: string | null;
+                        /** @description When that page was read: YYYY-MM-DD. */
+                        checkedOn: string | null;
                     } | null;
                     unknowns: {
                         /** @description The path in the source record, e.g. `rates.thenAerPct`. */
@@ -8006,18 +8021,24 @@ export interface components {
                     name: "Raisin";
                     note: string;
                 } | null;
-                /** @description Which deposit guarantee scheme covers the money. */
+                /** @description Which deposit guarantee scheme covers the money, and where that was read. */
                 depositGuarantee: {
-                    /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                    /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
                     scheme: string | null;
                     country: string | null;
-                    /** @description Cover per person per bank, where known. */
+                    /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
                     coverEur: number | null;
+                    /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                    note: string | null;
                     /**
-                     * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                     * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
                      * @enum {string}
                      */
                     basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                    /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                    sourceUrl: string | null;
+                    /** @description When that page was read: YYYY-MM-DD. */
+                    checkedOn: string | null;
                 } | null;
                 unknowns: {
                     /** @description The path in the source record, e.g. `rates.thenAerPct`. */
@@ -8084,6 +8105,8 @@ export interface components {
             assumptions: string[];
             dataCheckedAt: string | null;
             attributions: string[];
+            /** @description For the host to relay: what can be done next, including a plan saved into the Saoi app. */
+            next: string;
         };
         ReviewSituation: {
             /** @description The customer’s circumstances. Sent with each call and never stored. Every figure is what they said. */
@@ -8313,18 +8336,24 @@ export interface components {
                         name: "Raisin";
                         note: string;
                     } | null;
-                    /** @description Which deposit guarantee scheme covers the money. */
+                    /** @description Which deposit guarantee scheme covers the money, and where that was read. */
                     depositGuarantee: {
-                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
                         scheme: string | null;
                         country: string | null;
-                        /** @description Cover per person per bank, where known. */
+                        /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
                         coverEur: number | null;
+                        /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                        note: string | null;
                         /**
-                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
                          * @enum {string}
                          */
                         basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                        /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                        sourceUrl: string | null;
+                        /** @description When that page was read: YYYY-MM-DD. */
+                        checkedOn: string | null;
                     } | null;
                     unknowns: {
                         /** @description The path in the source record, e.g. `rates.thenAerPct`. */
@@ -8626,18 +8655,24 @@ export interface components {
                         name: "Raisin";
                         note: string;
                     } | null;
-                    /** @description Which deposit guarantee scheme covers the money. */
+                    /** @description Which deposit guarantee scheme covers the money, and where that was read. */
                     depositGuarantee: {
-                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
                         scheme: string | null;
                         country: string | null;
-                        /** @description Cover per person per bank, where known. */
+                        /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
                         coverEur: number | null;
+                        /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                        note: string | null;
                         /**
-                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
                          * @enum {string}
                          */
                         basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                        /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                        sourceUrl: string | null;
+                        /** @description When that page was read: YYYY-MM-DD. */
+                        checkedOn: string | null;
                     } | null;
                     unknowns: {
                         /** @description The path in the source record, e.g. `rates.thenAerPct`. */
@@ -8861,18 +8896,24 @@ export interface components {
                         name: "Raisin";
                         note: string;
                     } | null;
-                    /** @description Which deposit guarantee scheme covers the money. */
+                    /** @description Which deposit guarantee scheme covers the money, and where that was read. */
                     depositGuarantee: {
-                        /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                        /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
                         scheme: string | null;
                         country: string | null;
-                        /** @description Cover per person per bank, where known. */
+                        /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
                         coverEur: number | null;
+                        /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                        note: string | null;
                         /**
-                         * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                         * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
                          * @enum {string}
                          */
                         basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                        /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                        sourceUrl: string | null;
+                        /** @description When that page was read: YYYY-MM-DD. */
+                        checkedOn: string | null;
                     } | null;
                     unknowns: {
                         /** @description The path in the source record, e.g. `rates.thenAerPct`. */
@@ -9161,18 +9202,24 @@ export interface components {
                             name: "Raisin";
                             note: string;
                         } | null;
-                        /** @description Which deposit guarantee scheme covers the money. */
+                        /** @description Which deposit guarantee scheme covers the money, and where that was read. */
                         depositGuarantee: {
-                            /** @description The scheme that protects the deposit, e.g. "German Deposit Guarantee Scheme". */
+                            /** @description The scheme that protects the deposit, e.g. "Deposit Guarantee Scheme (Central Bank of Ireland)", "Dutch Deposit Guarantee Scheme (De Nederlandsche Bank)". Null: not recorded. */
                             scheme: string | null;
                             country: string | null;
-                            /** @description Cover per person per bank, where known. */
+                            /** @description Cover per person per institution, where a limit is known. Null: no limit recorded (see `note`). */
                             coverEur: number | null;
+                            /** @description Anything that changes how the cover reads, e.g. a shared licence or a State guarantee with no limit. */
+                            note: string | null;
                             /**
-                             * @description `stated_by_source`: the source names the scheme. `recorded_by_saoi`: Saoi’s own record of where the provider is licensed. `unknown`: neither.
+                             * @description `recorded_by_saoi`: Saoi’s record, read from a primary page (`sourceUrl`, `checkedOn`). `stated_by_source`: the comparison source’s own text names the scheme. `unknown`: neither; confirm with the provider.
                              * @enum {string}
                              */
                             basis: "stated_by_source" | "recorded_by_saoi" | "unknown";
+                            /** @description The primary page the record was read from: the provider’s site, the Central Bank of Ireland, depositguarantee.ie. */
+                            sourceUrl: string | null;
+                            /** @description When that page was read: YYYY-MM-DD. */
+                            checkedOn: string | null;
                         } | null;
                         unknowns: {
                             /** @description The path in the source record, e.g. `rates.thenAerPct`. */
@@ -9301,6 +9348,15 @@ export interface components {
                         unknowns: string[];
                         /** @default [] */
                         checks: string[];
+                        depositGuarantee?: {
+                            scheme: string | null;
+                            country: string | null;
+                            coverEur: number | null;
+                            note?: string | null;
+                            /** Format: uri */
+                            sourceUrl?: string | null;
+                            checkedOn?: string | null;
+                        };
                         /** Format: date-time */
                         checkedAt: string;
                         attribution?: string;
@@ -9386,6 +9442,42 @@ export interface components {
                 lumpSum: number;
                 monthly: number;
             };
+            /** @description Whether money is locked away, and why: the liquidity rule, stated. */
+            liquidity: {
+                /**
+                 * @description `locked`: a fixed term or notice account beat instant access by the thresholds. `instant_access`: it did not, or the customer asked to keep the money accessible, or the goal date is not certain. `not_compared`: no lump sum, or no term ends by the goal date.
+                 * @enum {string}
+                 */
+                decision: "locked" | "instant_access" | "not_compared";
+                /** @description The reason, with both figures where they were worked out. */
+                why: string;
+                /** @description Savings less debt at the horizon with terms allowed, after DIRT. */
+                lockedNetPosition: number | null;
+                /** @description The same with every euro in instant access. */
+                instantNetPosition: number | null;
+                /** @description Locked less instant. */
+                gainEur: number | null;
+                /** @description The gain a year as a percentage of the lump sum placed. */
+                gainPctPerYear: number | null;
+                thresholdEur: number;
+                thresholdPctPerYear: number;
+            };
+            /** @description How the result moves when one input changes. */
+            whatIf: {
+                extraMonthly: {
+                    /** @description The extra a month tried: €100. */
+                    extra: number;
+                    /** @description What it adds to savings at the horizon, after DIRT. */
+                    addsAtHorizon: number;
+                    goalReachedOn: string | null;
+                } | null;
+                /** @description YYYY-MM the main goal’s target is reached at this plan’s pace, looking up to ten years ahead in instant access where the horizon is not enough. Null without a target, or when it is not reached within the figures. */
+                goalReachedAtCurrentPace: string | null;
+                /** @description The what-ifs in words, with their figures, for the host to relay. To try one, call saoi_build_plan again with the changed input; do not adjust the figures by hand. */
+                lines: string[];
+            };
+            /** @description For the host to relay: what can be done next with this plan, including saving it into the Saoi app. */
+            next: string;
         };
         BuildPlan: {
             /** @description The customer’s circumstances. Sent with each call and never stored. Every figure is what they said. */
@@ -9438,8 +9530,20 @@ export interface components {
                 targetDate?: string;
                 priority?: number;
             }[];
-            /** @description With an `emergency_fund` goal and no target: months of outgoings to hold. Default 3. */
+            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To try a different buffer, call again with a new figure. */
+            emergencyBufferEur?: number;
+            /** @description An emergency buffer sized as months of outgoings (`situation.outgoings`, rent plus other). Used when `emergencyBufferEur` is absent. Without either field the buffer comes from an `emergency_fund` goal (its `targetAmount`, else 3 months of outgoings); with neither, none is held. */
+            emergencyBufferMonths?: number;
+            /** @description Older name for `emergencyBufferMonths`; that field wins when both are sent. */
             emergencyFundMonths?: number;
+            /** @description True: every euro stays in instant access, nothing in a fixed term or notice account (the customer wants to reach the money at any time). Default false: a term is used only where it beats instant access by the lock thresholds. */
+            keepAccessible?: boolean;
+            /** @description False: the main goal may come sooner than its date (a house sale agreed early, a purchase brought forward), so nothing is locked. Default true. */
+            goalDateCertain?: boolean;
+            /** @description A fixed term or notice account is used only if the plan with it leaves at least this much more, after DIRT, at the goal date than the best plan in instant access. Default 100. */
+            minLockGainEur?: number;
+            /** @description ...and at least this much more a year, as a percentage of the lump sum placed. Default 0.25. Below either threshold the plan keeps the money in instant access and says why, with both figures. */
+            minLockGainPctPerYear?: number;
             /** @description The most accounts the plan may open. Default 5. */
             maxAccounts?: number;
         };

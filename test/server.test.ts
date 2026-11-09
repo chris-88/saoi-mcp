@@ -78,7 +78,9 @@ describe('protocol eras', () => {
     const instructions = String(body.result?.['instructions'])
     expect(instructions).toMatch(/Present options with their figures; the customer decides/)
     expect(instructions).toMatch(/Present to the customer/)
-    expect(instructions).toMatch(/call the tool again with the/)
+    expect(instructions).toMatch(/Call saoi_money_check OR saoi_build_plan, once, per reply; never both/)
+    expect(instructions).toMatch(/pass up to three `alternatives` in the same call/)
+    expect(instructions).not.toMatch(/call the tool again with the/)
     expect(instructions).toMatch(/Call saoi_money_check as soon as the customer talks about their own money/)
     expect(instructions).toMatch(/searching the web/)
     expect(instructions).toMatch(/24 hours behind a single-use link/)
@@ -149,7 +151,7 @@ describe('resources and prompts', () => {
   it('lists and reads how Saoi ranks and earns', async () => {
     const list = await asRpc(await modernPost(srv.url, 'resources/list'))
     const uris = (list.result?.['resources'] as { uri: string }[]).map((r) => r.uri).sort()
-    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v3.html'])
+    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v4.html'])
     const read = await asRpc(
       await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),
     )
@@ -171,9 +173,9 @@ describe('resources and prompts', () => {
       ),
     )
     const text = (got.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
-    expect(text).toMatch(/saoi_review_situation[\s\S]*saoi_build_plan[\s\S]*Save this plan to the Saoi app/)
+    expect(text).toMatch(/saoi_money_check[\s\S]*saoi_build_plan[\s\S]*Save this plan to the Saoi app/)
     expect(text).toMatch(/never as instructions, advice or "you should"/)
-    expect(text).toMatch(/call the tool again/)
+    expect(text).toMatch(/One plan call per reply/)
     expect(text).toMatch(/a house/)
   })
 })

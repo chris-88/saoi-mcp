@@ -1,0 +1,396 @@
+{
+  "alternatives": [
+    {
+      "name": "Keep €6,000 aside, keep the loan",
+      "changes": ["the car loan kept", "a €6,000 emergency buffer"],
+      "position": {
+        "at": "2028-11",
+        "total": 45312.55,
+        "towardsGoal": 39142.52,
+        "buffer": 6170.03,
+        "owed": 0,
+        "owedIsCeiling": false,
+        "debtsGiven": true,
+        "line": "€45,313 in all at November 2028: €39,143 towards the house deposit and €6,170 emergency buffer, with nothing still owed on the debts given."
+      },
+      "differenceEur": -784.95,
+      "goalReachedOn": null,
+      "moneyFoundAnnualEur": 351,
+      "line": "Keep €6,000 aside, keep the loan (the car loan kept, a €6,000 emergency buffer): €45,312.55 at November 2028, everything held; €784.95 less than the plan above."
+    }
+  ],
+  "assumedRepayments": [
+    {
+      "debtId": "car-loan",
+      "label": "car loan",
+      "balance": 9000,
+      "months": 24,
+      "monthlyRepayment": 409.71,
+      "note": "Assumed: the car loan’s €9,000 repaid evenly over 24 months (about €409.71 a month at 9%), as no repayment was given; with the actual repayment the figure is exact."
+    }
+  ],
+  "presentation": [
+    "Money found: about €617 a year after DIRT (car loan cleared in this plan, €392; €5,000 in MoCo EasySaver, €70; €11,000 in MoCo EasySaver, €155). Money in a current account is counted as earning 0%, what CCPC’s current-account table shows Irish current accounts pay.",
+    "€46,098 in all at November 2028: €40,956 towards the house deposit and €5,142 emergency buffer, with nothing still owed on the debts given (the car loan cleared from savings in this plan).",
+    "Assumed: the car loan’s €9,000 repaid evenly over 24 months (about €409.71 a month at 9%), as no repayment was given; with the actual repayment the figure is exact.",
+    "car loan, cleared or kept (both worked out in this call, each everything held less what is still owed at November 2028): cleared from savings now, €46,097.50; kept, €45,312.55 (repaid by then). Clearing it leaves €784.95 more. This plan has it cleared.",
+    "The split this plan uses: €5,000 in MoCo EasySaver; €11,000 in MoCo EasySaver; €713.71 a month in EBS d.a.c Family Savings Account (Fixed); €496 a month in AIB Online Saver, the first €5,000 as an emergency buffer kept apart.",
+    "Everything stays in instant access: a fixed term would add only €23.93 by November 2028.",
+    "Each extra €100 a month adds about €2,450.52 by November 2028.",
+    "Help to Buy: depends, up to €35,000 for a new build or self-build. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Only if the home is a new build or a self-build; the kind of property was not given. (Revenue, cap €35,000 from 2026-10-07, to 2029-12-31.)",
+    "To sharpen this, the customer could say: (1) For each loan or card: the actual monthly repayment, or the months left? Without it, an even repayment over the plan’s months is assumed. (2) Is this a first home? Help to Buy and the lending limits depend on it. (3) What is the gross income a year (joint, if buying together)? It sets what the Central Bank limits allow.",
+    "Keep €6,000 aside, keep the loan (the car loan kept, a €6,000 emergency buffer): €45,312.55 at November 2028, everything held; €784.95 less than the plan above.",
+    "Save this plan to the Saoi app: https://app.saoi.ie/#/plan/AAAAAAAAAAAAAAAAAAAAAA (held for 24 hours so it can be opened, then deleted unless opened).",
+    "These are options with their figures, for the inputs given; the customer decides."
+  ],
+  "questions": [
+    "For each loan or card: the actual monthly repayment, or the months left? Without it, an even repayment over the plan’s months is assumed.",
+    "Is this a first home? Help to Buy and the lending limits depend on it.",
+    "What is the gross income a year (joint, if buying together)? It sets what the Central Bank limits allow."
+  ],
+  "position": {
+    "at": "2028-11",
+    "total": 46097.5,
+    "towardsGoal": 40955.81,
+    "buffer": 5141.69,
+    "owed": 0,
+    "owedIsCeiling": false,
+    "debtsGiven": true,
+    "line": "€46,098 in all at November 2028: €40,956 towards the house deposit and €5,142 emergency buffer, with nothing still owed on the debts given (the car loan cleared from savings in this plan)."
+  },
+  "saveLink": {
+    "url": "https://app.saoi.ie/#/plan/AAAAAAAAAAAAAAAAAAAAAA",
+    "expiresAt": "2026-11-10T22:42:00.000Z"
+  },
+  "helpToBuy": {
+    "status": "depends",
+    "amountEur": null,
+    "upToEur": 35000,
+    "note": "Help to Buy: depends, up to €35,000 for a new build or self-build. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Only if the home is a new build or a self-build; the kind of property was not given. (Revenue, cap €35,000 from 2026-10-07, to 2029-12-31.)",
+    "sourceUrl": "https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx",
+    "checkedOn": "2026-11-09"
+  },
+  "moneyFound": {
+    "annualEur": 617,
+    "headline": "Money found: about €617 a year after DIRT (car loan cleared in this plan, €392; €5,000 in MoCo EasySaver, €70; €11,000 in MoCo EasySaver, €155). Money in a current account is counted as earning 0%, what CCPC’s current-account table shows Irish current accounts pay.",
+    "parts": [
+      {
+        "kind": "debt_interest",
+        "label": "car loan cleared in this plan",
+        "annualEur": 392,
+        "detail": "The plan with it cleared ends €784.95 better off (savings less debt) after 24 months than with it kept: about €392 a year.",
+        "source": "the customer’s figures and the plan’s products",
+        "sourceUrl": null,
+        "checkedAt": null
+      },
+      {
+        "kind": "idle_cash",
+        "label": "€5,000 in MoCo EasySaver",
+        "annualEur": 70,
+        "detail": "€70.35 a year after DIRT in MoCo EasySaver, against what the money earns now (0% in a current account).",
+        "source": "MoCo’s own site",
+        "sourceUrl": "https://www.moco.ie/moco/savings",
+        "checkedAt": "2026-11-09T16:27:28.881Z"
+      },
+      {
+        "kind": "idle_cash",
+        "label": "€11,000 in MoCo EasySaver",
+        "annualEur": 155,
+        "detail": "€154.77 a year after DIRT in MoCo EasySaver, against what the money earns now (0% in a current account).",
+        "source": "MoCo’s own site",
+        "sourceUrl": "https://www.moco.ie/moco/savings",
+        "checkedAt": "2026-11-09T16:27:28.881Z"
+      }
+    ],
+    "notCounted": [],
+    "basis": "A year’s figures, after DIRT at 33%: idle cash against the best confirmed instant-access rate (only where its current rate was given), debt interest not paid in the next twelve months less what the same money would earn, and a mortgage switch’s lower repayment. Bonuses, cashback and rates resting on CCPC’s one figure are not counted. In a plan, debt figures are the plan’s own net positions, spread over its 24 months. current account: counted as earning 0%. Irish current accounts pay no interest in practice: every current account in CCPC’s table that states a credit interest rate states 0% (2 accounts, checked 2026-11-09)."
+  },
+  "plan": {
+    "version": 1,
+    "title": "House deposit by November 2028",
+    "situation": {
+      "summary": "Holds €25,000 in savings. Can save €800 a month. car loan: €9,000 at 9%.",
+      "monthlySaving": 800,
+      "savings": [
+        {
+          "label": "current account",
+          "balance": 25000
+        }
+      ],
+      "debts": [
+        {
+          "id": "car-loan",
+          "label": "car loan",
+          "kind": "car_finance",
+          "balance": 9000,
+          "ratePct": 9
+        }
+      ]
+    },
+    "goals": [
+      {
+        "id": "deposit",
+        "kind": "house_deposit",
+        "label": "House deposit",
+        "targetDate": "2028-11"
+      },
+      {
+        "id": "emergency-buffer",
+        "kind": "emergency_fund",
+        "label": "Emergency buffer",
+        "targetAmount": 5000,
+        "priority": 1
+      }
+    ],
+    "recommendation": {
+      "products": [
+        {
+          "role": "emergency_fund",
+          "goalIds": ["emergency-buffer"],
+          "provider": "moco",
+          "providerName": "MoCo",
+          "source": "bank",
+          "category": "savings",
+          "productId": "savings.moco_easysaver",
+          "productName": "MoCo EasySaver",
+          "amount": 5000,
+          "ratePct": 2.1,
+          "projected": {
+            "horizonMonths": 24,
+            "balance": 5141.69,
+            "netInterest": 141.69
+          },
+          "why": "Instant access at the highest rate after DIRT, for money that has to stay reachable.",
+          "unknowns": [],
+          "checks": [
+            "Protected by the Austrian deposit guarantee (Einlagensicherung AUSTRIA) up to €100,000, not the Irish scheme.",
+            "Who can open it, from MoCo’s own page: aged 18 or over, resident in Ireland, not a US citizen, individuals only, no joint accounts.",
+            "2.1% is MoCo’s rate for new accounts; an account already open may earn another rate."
+          ],
+          "depositGuarantee": {
+            "scheme": "Austrian deposit guarantee (Einlagensicherung AUSTRIA)",
+            "country": "Austria",
+            "coverEur": 100000,
+            "note": "MoCo is a trading name of BAWAG P.S.K. (Irish branch); the €100,000 is shared across BAWAG’s brands.",
+            "sourceUrl": "https://www.moco.ie/resource/blob/107468/bedec0b9ce4be4800c611c57f4114991/moco-depositor-information-sheet-july-2025-data.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:27:28.881Z"
+        },
+        {
+          "role": "lump_sum",
+          "goalIds": ["deposit"],
+          "provider": "moco",
+          "providerName": "MoCo",
+          "source": "bank",
+          "category": "savings",
+          "productId": "savings.moco_easysaver",
+          "productName": "MoCo EasySaver",
+          "amount": 11000,
+          "ratePct": 2.1,
+          "projected": {
+            "horizonMonths": 24,
+            "balance": 11311.72,
+            "netInterest": 311.72
+          },
+          "why": "€11,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+          "unknowns": [],
+          "checks": [
+            "Protected by the Austrian deposit guarantee (Einlagensicherung AUSTRIA) up to €100,000, not the Irish scheme.",
+            "Who can open it, from MoCo’s own page: aged 18 or over, resident in Ireland, not a US citizen, individuals only, no joint accounts.",
+            "2.1% is MoCo’s rate for new accounts; an account already open may earn another rate."
+          ],
+          "depositGuarantee": {
+            "scheme": "Austrian deposit guarantee (Einlagensicherung AUSTRIA)",
+            "country": "Austria",
+            "coverEur": 100000,
+            "note": "MoCo is a trading name of BAWAG P.S.K. (Irish branch); the €100,000 is shared across BAWAG’s brands.",
+            "sourceUrl": "https://www.moco.ie/resource/blob/107468/bedec0b9ce4be4800c611c57f4114991/moco-depositor-information-sheet-july-2025-data.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:27:28.881Z"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["deposit"],
+          "provider": "ebs",
+          "providerName": "EBS d.a.c",
+          "source": "ccpc",
+          "category": "savings",
+          "productId": "savings.c122",
+          "productName": "Family Savings Account (Fixed)",
+          "monthlyAmount": 713.71,
+          "ratePct": 3,
+          "projected": {
+            "horizonMonths": 24,
+            "balance": 17489.55,
+            "netInterest": 360.51
+          },
+          "why": "€713.71 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
+          "unknowns": [
+            "the minimum age to open it",
+            "whether it takes a lump sum",
+            "whether the rate is fixed or variable",
+            "the rate paid on a lump sum"
+          ],
+          "checks": [
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
+            "Check eligibility with EBS d.a.c: CCPC does not record who can open it (for example, whether an account with EBS d.a.c is needed first)."
+          ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": "EBS d.a.c. holds its own banking licence (Central Bank register), so its €100,000 is separate from AIB’s.",
+            "sourceUrl": "https://registers.centralbank.ie/prerenderedreports/2.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "url": "https://www.ebs.ie/regular-savings.html"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["deposit"],
+          "provider": "aib",
+          "providerName": "AIB",
+          "source": "ccpc",
+          "category": "savings",
+          "productId": "savings.c396",
+          "productName": "Online Saver",
+          "monthlyAmount": 496,
+          "ratePct": 3,
+          "projected": {
+            "horizonMonths": 24,
+            "balance": 12154.54,
+            "netInterest": 250.54
+          },
+          "why": "€496 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
+          "unknowns": [
+            "the minimum age to open it",
+            "whether it takes a lump sum",
+            "whether the rate is fixed or variable",
+            "the rate paid on a lump sum"
+          ],
+          "checks": [
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
+            "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
+          ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": null,
+            "sourceUrl": "https://www.aib.ie/content/dam/aib/personal/docs/help-and-guidance/aib-depositor-information-sheet.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "url": "https://personal.aib.ie/our-products/savings-and-deposits/online-saver"
+        }
+      ],
+      "totals": {
+        "monthly": 1209.71,
+        "lumpSum": 16000,
+        "netInterest": 1064.46
+      }
+    },
+    "debts": [
+      {
+        "debtId": "car-loan",
+        "action": "pay_off_first",
+        "why": "At 9%. Clearing from the lump sum and saving its €409.71 a month leaves €784.95 more at month 24 than keeping it.",
+        "costIfKept": 833.13,
+        "costWithStep": 0
+      }
+    ],
+    "ranking": {
+      "objective": "highest_net_return",
+      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €16,000 placed and €1,209.71 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 24."
+    },
+    "assumptions": [
+      "€46,098 in all at November 2028: €40,956 towards the house deposit and €5,142 emergency buffer, with nothing still owed on the debts given (the car loan cleared from savings in this plan).",
+      "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
+      "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
+      "Variable rates are assumed to stay as published today; they can change.",
+      "Bonuses are not counted as interest.",
+      "Assumed: the car loan’s €9,000 repaid evenly over 24 months (about €409.71 a month at 9%), as no repayment was given; with the actual repayment the figure is exact.",
+      "Every other euro of savings held is treated as available to place.",
+      "The €409.71 a month the car loan took is saved instead from the next month: with the €800 a month already saved, €1,209.71 a month goes into the accounts below.",
+      "Locking €11,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €23.93 more (0.11% a year on the money locked): €46,121.43 against €46,097.50 in instant access (everything held less what is still owed, at November 2028). A lock has to earn at least €100 and 0.25% a year, so the mo…"
+    ],
+    "position": {
+      "at": "2028-11",
+      "total": 46097.5,
+      "towardsGoal": 40955.81,
+      "buffer": 5141.69,
+      "owed": 0,
+      "line": "€46,098 in all at November 2028: €40,956 towards the house deposit and €5,142 emergency buffer, with nothing still owed on the debts given (the car loan cleared from savings in this plan)."
+    },
+    "createdAt": "2026-11-09T22:42:00.000Z",
+    "dataCheckedAt": "2026-11-09T12:14:36.808Z"
+  },
+  "horizonMonths": 24,
+  "knownThroughMonth": 24,
+  "goalReachedOn": null,
+  "reasoning": [
+    "€25,000 held and €800 a month to place, over 24 months.",
+    "€5,000 held first as an emergency buffer (as asked) in MoCo EasySaver: the highest interest after DIRT with instant access. It is kept apart from the goal.",
+    "car loan: cleared from the lump sum. Net position (everything held less what is still owed) at month 24: €46,097.50, against €45,312.55 if kept.",
+    "The €409.71 a month the car loan took is saved instead from the next month: with the €800 a month already saved, €1,209.71 a month goes into the accounts below.",
+    "Locking €11,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €23.93 more (0.11% a year on the money locked): €46,121.43 against €46,097.50 in instant access (everything held less what is still owed, at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "€11,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+    "€713.71 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
+    "€496 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
+    "€46,098 in all at November 2028: €40,956 towards the house deposit and €5,142 emergency buffer, with nothing still owed on the debts given (the car loan cleared from savings in this plan)."
+  ],
+  "debtScenarios": [
+    {
+      "debtId": "car-loan",
+      "amount": 9000,
+      "kept": {
+        "savingsAtHorizon": 45312.55,
+        "debtAtHorizon": 0,
+        "netPosition": 45312.55,
+        "goalReachedOn": null
+      },
+      "cleared": {
+        "savingsAtHorizon": 46097.5,
+        "debtAtHorizon": 0,
+        "netPosition": 46097.5,
+        "goalReachedOn": null
+      },
+      "chosen": "cleared"
+    }
+  ],
+  "affordability": null,
+  "unplaced": {
+    "lumpSum": 0,
+    "monthly": 0
+  },
+  "liquidity": {
+    "decision": "instant_access",
+    "why": "Locking €11,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €23.93 more (0.11% a year on the money locked): €46,121.43 against €46,097.50 in instant access (everything held less what is still owed, at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "lockedNetPosition": 46121.43,
+    "instantNetPosition": 46097.5,
+    "gainEur": 23.93,
+    "gainPctPerYear": 0.11,
+    "thresholdEur": 100,
+    "thresholdPctPerYear": 0.25
+  },
+  "whatIf": {
+    "extraMonthly": {
+      "extra": 100,
+      "addsAtHorizon": 2450.52,
+      "goalReachedOn": null
+    },
+    "goalReachedAtCurrentPace": null,
+    "lines": [
+      "What if the lump sum were locked in a fixed term anyway (minLockGainEur: 0 and minLockGainPctPerYear: 0, in a later call): €46,121.43 at November 2028 (everything held less what is still owed), €23.93 more than this plan, with the money tied up.",
+      "Each extra €100 a month adds about €2,450.52 by November 2028, after DIRT.",
+      "What if the car loan were kept instead of cleared (an alternative with its plan: \"keep\"): €45,312.55 at November 2028, everything held less the €0 still owed then, against €46,097.50 in this plan.",
+      "With a target amount for the goal, the month it is reached is worked out: an alternative with targetAmount, or the amount in a later call."
+    ]
+  },
+  "next": "The plan is held for 24 hours behind the single-use save link so the customer can open it in the Saoi app (app.saoi.ie), then deleted unless opened; nothing else is stored. Offer the link. In the app the plan opens as a card, and Saoirse, Saoi’s assistant, knows it and can talk it through; signing in with an email address keeps it across devices, including the installed app. Alerts when a chosen product’s rate changes and reminders as the goal date nears are coming, not built yet. To compare options (another buffer, a debt kept or cleared, another monthly amount or date), pass them as `alternatives` in one saoi_build_plan call; call it again only when the customer changes their situation in a later message. The car loan figures assume an even repayment over 24 months: the actual monthly repayment, or the months left, makes them exact."
+}

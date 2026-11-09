@@ -202,3 +202,27 @@ describe('plan card model: the position and the compact view (after the fourth C
     expect(planCardModel(recorded.plan).position).toBeNull()
   })
 })
+
+describe('plan card model: assumed repayments and alternatives (after test 5)', () => {
+  const view = planCardModel(recorded.planAlternatives)
+
+  it('shows the "Assumed:" repayment line', () => {
+    expect(view.assumed).toEqual([recorded.planAlternatives.assumedRepayments[0]?.note])
+    expect(view.assumed[0]).toMatch(/^Assumed: the car loan’s €9,000 repaid evenly over 24 months/)
+  })
+
+  it('gives one compact row per alternative, with its total and the difference', () => {
+    expect(view.alternatives).toHaveLength(1)
+    const row = view.alternatives[0]
+    expect(row?.name).toBe('Keep €6,000 aside, keep the loan')
+    expect(row?.changes).toBe('the car loan kept, a €6,000 emergency buffer')
+    expect(row?.total).toMatch(/^€[\d,]+ at Nov 2028$/)
+    expect(row?.difference).toMatch(/^€[\d,]+ (more|less)$/)
+  })
+
+  it('has neither for a result from before saoi-api carried them', () => {
+    const older = planCardModel(recorded.plan)
+    expect(older.assumed).toEqual([])
+    expect(older.alternatives).toEqual([])
+  })
+})

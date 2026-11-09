@@ -4,7 +4,7 @@ Guidance for the development agent working on this project. Read this fully befo
 
 ## What this is
 
-`saoi-mcp`: a small Node 24 + TypeScript MCP server at `https://mcp.saoi.ie/mcp` for Saoi's comparison of Irish money products: eight `saoi_*` tools, two resources (how Saoi ranks, how Saoi earns) and the `money-check-up` prompt, over saoi-api's public routes (`SAOI_API_URL`, default `http://saoi-api:3000`; `/api/market/*`, `/api/calc/*`, `POST /api/plans`). Tool input schemas, descriptions and response types are generated from saoi-api's OpenAPI document: `npm run gen`. The engine lives in `chris-88/saoi` (`_shared/domain/market/`); this repo adds nothing to the arithmetic. Design: vault `+/fleeting/baz/2026-11-09-saoi-mcp-tools-design.md`.
+`saoi-mcp`: a small Node 24 + TypeScript MCP server at `https://mcp.saoi.ie/mcp` for Saoi's comparison of Irish money products: eight `saoi_*` tools, two resources (how Saoi ranks, how Saoi earns), the plan card (an MCP Apps UI resource, `src/ui/`) and the `money-check-up` prompt, over saoi-api's public routes (`SAOI_API_URL`, default `http://saoi-api:3000`; `/api/market/*`, `/api/calc/*`, `POST /api/plans`). Tool input schemas, descriptions and response types are generated from saoi-api's OpenAPI document: `npm run gen`. The engine lives in `chris-88/saoi` (`_shared/domain/market/`); this repo adds nothing to the arithmetic. Design: vault `+/fleeting/baz/2026-11-09-saoi-mcp-tools-design.md`.
 
 **Stack:** `@modelcontextprotocol/server` + `@modelcontextprotocol/node` (SDK v2, `createMcpHandler`) · Zod 4 · plain `node:http` · Vitest · ESLint (typescript-eslint strict) + Prettier · Docker (Node 24 alpine) · hosted by `~/code/infra/stacks/mcp` behind the Cloudflare Tunnel.
 

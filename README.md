@@ -10,59 +10,66 @@
 
 # saoi-mcp
 
-An [MCP](https://modelcontextprotocol.io) server that exposes Saoirse, the conversational banking assistant inside Saoi, as four tools. The bank is a fictional "Demo Bank" and **all data is synthetic**; nothing real is opened and no money moves. Live at `https://mcp.saoi.ie/mcp` (also `https://mcp.chrisquinn.ie/mcp`).
+An [MCP](https://modelcontextprotocol.io) server for Saoi: it compares Irish savings, deposit, mortgage, loan, credit card and current account products against the customer's own figures, inside whichever AI the customer already uses. The customer's AI talks; Saoi supplies the facts and the arithmetic (interest after DIRT, repayments, total cost, the month a goal is reached). Live at `https://mcp.saoi.ie/mcp`.
 
-It is a thin adapter: each tool calls the `saoi-api` service's `/api` routes over HTTP (sessions, SSE turns, one route per case action, the case snapshot). Supabase is used only to mint and sign in the synthetic customer. Rules, scoring and eligibility stay in `saoi-api`. Types are generated from its OpenAPI document with `npm run gen` (the output, `src/generated/saoi-api.d.ts`, is committed).
+**Information, not advice.** Every result is ranked by a stated objective the customer can change, and carries its source (the provider's own site, or the CCPC comparison tables, with CCPC's attribution), when it was checked and last changed, what the data does not say (never treated as zero), and eligibility to check. **Stateless until saved:** the customer's circumstances travel in each call and nothing is stored until `saoi_save_plan`.
 
-| Tool             | Use it to                                                            |
-| ---------------- | -------------------------------------------------------------------- |
-| `saoirse_start`  | Begin a conversation; returns a handle and the opening question      |
-| `saoirse_say`    | Say something as the customer; returns Saoirse's reply and any cards |
-| `saoirse_act`    | Tap a card for the user once they have decided (read-write)          |
-| `saoirse_status` | Read the state of the applications on the case (read-only)           |
+It is a thin adapter over `saoi-api`'s public routes (`/api/market/*`, `/api/calc/*`, `POST /api/plans`); all the logic lives in `saoi` (`supabase/functions/_shared/domain/market/`). Tool input schemas and descriptions are generated from `saoi-api`'s OpenAPI document (`npm run gen` writes `src/generated/operations.ts` and the response types in `src/generated/saoi-api.d.ts`; both are committed).
 
-Routes: `saoirse_start` is `POST /api/sessions`; `saoirse_say` is `POST /api/cases/:id/turns` (SSE); `saoirse_status` is `GET /api/cases/:id/snapshot`; `saoirse_act` is one route per action under `/api/cases/:id/` (`products/select`, `products/:product/decline`, `plans/:id/decisions`, `applications/:id/{submit,pause,resume}`, `linked-accounts`, `transfers`), followed by an action turn.
+## Tools
+
+| Tool                      | Route                               | Use it to                                                                                       |
+| ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `saoi_review_situation`   | `POST /api/calc/review-situation`   | Findings with euro figures (idle money, no emergency fund, debt costing more than savings earn) |
+| `saoi_search_products`    | `POST /api/market/search`           | Rank one category for the customer's amounts; top 5 by default                                  |
+| `saoi_product`            | `GET /api/market/products/{id}`     | One product in full: rate history, unknowns, the source's own words                             |
+| `saoi_savings_projection` | `POST /api/calc/savings-projection` | Month by month, net of DIRT, within caps and tiers; the month a target is reached               |
+| `saoi_mortgage`           | `POST /api/calc/mortgage`           | `mode: affordability` (Central Bank limits) or `mode: switch` (saving, cashback, break-even)    |
+| `saoi_debt`               | `POST /api/calc/debt`               | What debts cost, payoff order, overpay versus save, refinance rates                             |
+| `saoi_build_plan`         | `POST /api/calc/build-plan`         | The fastest combination for the chosen goals, as a plan                                         |
+| `saoi_save_plan`          | `POST /api/plans`                   | Store the plan behind a one-time link into app.saoi.ie (the only tool that writes)              |
+
+All but `saoi_save_plan` are annotated read-only. Each result is structured content (saoi-api's response as is) plus a short text rendering with the figures, flags, unknowns, the data date and the CCPC attribution, for hosts that do not read structured content.
+
+**Resources:** `saoi://about/ranking` (how Saoi ranks) and `saoi://about/earnings` (how Saoi earns: referral fees, disclosed, never used in ranking), Markdown from `GET /api/market/about/*`.
+
+**Prompt:** `money-check-up` (optional `focus`): situation, then `saoi_review_situation`, goals, `saoi_build_plan`, then an offer to save. It asks only for what the tools need and never phrases results as advice.
 
 ## Protocol
 
 Built on the official TypeScript SDK v2 (`@modelcontextprotocol/server` 2.4.0, `@modelcontextprotocol/node` 2.1.2) using `createMcpHandler`. Stateless Streamable HTTP, `POST /mcp` only. It serves both the 2026-07-28 per-request path (`server/discover`, `_meta` envelope, `Mcp-Method`/`Mcp-Name` headers) and the legacy `initialize` path; `GET /mcp` is 405. `Origin` (when present) and `Host` are validated, `X-Accel-Buffering: no` is set, and SSE keep-alive comments go out every 25 seconds. `GET /health` returns `{ ok, version }`.
 
-There is no authentication yet (public, authless tools). The conversation handle is a documented prototype shortcut: an opaque string encoding a synthetic user minted at `saoirse_start`. It is never logged. OAuth comes later.
+No authentication and no secrets: the routes it calls are public. saoi-api rate-limits per address, so the end user's address (`CF-Connecting-IP`, set by the Cloudflare Tunnel) is forwarded as `X-Forwarded-For`; otherwise every user of this server would share one bucket.
 
 ## Environment
 
-| Variable                | Required | Meaning                                                                               |
-| ----------------------- | -------- | ------------------------------------------------------------------------------------- |
-| `SAOI_BASE_URL`         | yes      | Supabase gateway of the Saoi stack (auth only), e.g. `https://api.chrisquinn.ie/saoi` |
-| `SAOI_API_URL`          | no       | The `saoi-api` service, default `http://saoi-api:3000`                                |
-| `SAOI_ANON_KEY`         | yes      | Anon key, used for auth and as the customer `apikey`                                  |
-| `SAOI_SERVICE_ROLE_KEY` | yes      | Service role key, used only by `saoirse_start` to mint a synthetic user               |
-| `PORT`                  | no       | Default `3000`                                                                        |
-| `SAOI_TIMEOUT_MS`       | no       | Per-call timeout to the Saoirse stack, default `60000`                                |
-| `ALLOWED_HOSTS`         | no       | Comma-separated Host names, default `mcp.chrisquinn.ie,localhost,127.0.0.1,[::1]`     |
-| `ALLOWED_ORIGINS`       | no       | Comma-separated Origin host names, default includes `claude.ai`, `claude.com`         |
-| `KEEPALIVE_MS`          | no       | SSE keep-alive interval, default `25000`                                              |
+| Variable          | Required | Meaning                                                                                       |
+| ----------------- | -------- | --------------------------------------------------------------------------------------------- |
+| `SAOI_API_URL`    | no       | The `saoi-api` service, default `http://saoi-api:3000`                                        |
+| `PORT`            | no       | Default `3000`                                                                                |
+| `SAOI_TIMEOUT_MS` | no       | Per-call timeout to saoi-api, default `30000`                                                 |
+| `ALLOWED_HOSTS`   | no       | Comma-separated Host names, default `mcp.saoi.ie,mcp.chrisquinn.ie,localhost,127.0.0.1,[::1]` |
+| `ALLOWED_ORIGINS` | no       | Comma-separated Origin host names, default includes `claude.ai`, `claude.com`                 |
+| `KEEPALIVE_MS`    | no       | SSE keep-alive interval, default `25000`                                                      |
 
 ## Run
 
 ```bash
 nvm use            # Node 24
 npm ci
-npm test           # vitest
-npm run gen        # regenerate API types from the OpenAPI document
+npm test           # vitest; saoi-api is mocked with recorded responses (test/recordings)
+npm run gen        # regenerate tool schemas and API types from the OpenAPI document
 npm run check      # typecheck, lint, format, test, build
-SAOI_BASE_URL=... SAOI_ANON_KEY=$(pass show infra/saoi/ANON_KEY) \
-SAOI_SERVICE_ROLE_KEY=$(pass show infra/saoi/SERVICE_ROLE_KEY) npm run dev
+SAOI_API_URL=https://api.saoi.ie npm run dev
 curl -s localhost:3000/health
-docker build -t saoi-mcp . && docker run --rm -p 3000:3000 --env-file .env saoi-mcp
 ```
 
 Production runs from `~/code/infra/stacks/mcp` behind the Cloudflare Tunnel.
 
-## Add it as a connector
+## Add it to Claude
 
-- **claude.ai**: Settings, Connectors, Add custom connector, URL `https://mcp.saoi.ie/mcp`, no authentication.
-- **Claude Code**: `claude mcp add --transport http saoirse https://mcp.saoi.ie/mcp`
+- **claude.ai (web, desktop, mobile):** Settings, then Connectors, then Add custom connector. Name `Saoi`, URL `https://mcp.saoi.ie/mcp`, no authentication. In a chat, enable it from the tools menu; the `money-check-up` prompt is under the same menu.
+- **Claude Code:** `claude mcp add --transport http saoi https://mcp.saoi.ie/mcp`
 
 ## Licence
 

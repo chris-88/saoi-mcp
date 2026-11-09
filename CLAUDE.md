@@ -4,7 +4,7 @@ Guidance for the development agent working on this project. Read this fully befo
 
 ## What this is
 
-`saoi-mcp`: a small Node 24 + TypeScript MCP server at `https://mcp.chrisquinn.ie/mcp` exposing Saoirse (the assistant inside Saoi, the product) as four tools (`saoirse_start`, `saoirse_say`, `saoirse_act`, `saoirse_status`) over the `saoi-api` Node service (`SAOI_API_URL`, default `http://saoi-api:3000`, routes under `/api`); Supabase auth only mints the synthetic customer. API types are generated: `npm run gen`. All data is synthetic Demo Bank data. It replaces the POC's Deno `mcp` edge function (`digital-hack`, branch `next`).
+`saoi-mcp`: a small Node 24 + TypeScript MCP server at `https://mcp.saoi.ie/mcp` for Saoi's comparison of Irish money products: eight `saoi_*` tools, two resources (how Saoi ranks, how Saoi earns) and the `money-check-up` prompt, over saoi-api's public routes (`SAOI_API_URL`, default `http://saoi-api:3000`; `/api/market/*`, `/api/calc/*`, `POST /api/plans`). Tool input schemas, descriptions and response types are generated from saoi-api's OpenAPI document: `npm run gen`. The engine lives in `chris-88/saoi` (`_shared/domain/market/`); this repo adds nothing to the arithmetic. Design: vault `+/fleeting/baz/2026-11-09-saoi-mcp-tools-design.md`.
 
 **Stack:** `@modelcontextprotocol/server` + `@modelcontextprotocol/node` (SDK v2, `createMcpHandler`) · Zod 4 · plain `node:http` · Vitest · ESLint (typescript-eslint strict) + Prettier · Docker (Node 24 alpine) · hosted by `~/code/infra/stacks/mcp` behind the Cloudflare Tunnel.
 
@@ -15,21 +15,23 @@ Keep the surface lean (no speculative features or dependencies); keep the floor 
 ## Definition of Done
 
 - [ ] `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test` and `npm run build` pass.
-- [ ] New or changed behaviour has tests; the Saoirse client is mocked, never the real stack.
-- [ ] Every tool input field has a Zod schema with `.describe()`; tool descriptions say when to use the tool and that data is synthetic.
+- [ ] New or changed behaviour has tests; the saoi-api client is mocked (recorded responses in `test/recordings`), never the real stack.
+- [ ] Tool input schemas come from the OpenAPI document (`npm run gen`), never hand-written; a missing field description is fixed in saoi's contracts. Tool descriptions say when to use the tool.
+- [ ] Nothing returned reads as advice: results state their ranking basis; no "you should".
 - [ ] External input is validated at the boundary; failures become `isError` results, not thrown errors.
-- [ ] Handles, keys and credentials are never logged or returned in errors.
+- [ ] Customer figures and addresses are never logged.
 - [ ] Env changes are reflected in `.env.example`, the README table, and `~/code/infra/stacks/mcp`.
 - [ ] Conventional commits, focused diff.
 
 ## Rules
 
 - TypeScript `strict`, `noUncheckedIndexedAccess`, no `any`, no `@ts-ignore` without a reason.
-- Stateless: no sessions, no in-memory conversation state. State lives in Saoirse; the handle carries identity.
+- Stateless: no sessions, no in-memory state. Nothing about a customer is stored until `saoi_save_plan`.
+- Forward the end user's address (`CF-Connecting-IP`) to saoi-api as `X-Forwarded-For`: its rate limits are per address.
 - Serve both protocol eras (2026-07-28 and legacy `initialize`) via `createMcpHandler`; do not hand-roll JSON-RPC.
 - Keep Origin and Host validation on every request. `X-Accel-Buffering: no` on `/mcp`.
-- Keys come from env (`pass show infra/saoi/<KEY>` rendered by infra), never from files in this repo.
-- Auth is deliberately absent for now (public synthetic tools). Adding OAuth means protected resource metadata at `/.well-known/oauth-protected-resource` and bearer validation; discuss first.
+- No secrets: the routes are public. If one is ever needed, it comes from env rendered by infra, never from files in this repo.
+- Auth is deliberately absent for now (public tools). Adding OAuth means protected resource metadata at `/.well-known/oauth-protected-resource` and bearer validation; discuss first.
 
 ## Deploy
 

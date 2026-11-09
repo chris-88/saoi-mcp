@@ -1,5 +1,5 @@
 import { request } from 'node:http'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SaoiError } from '../src/saoiClient.js'
 import { legacyPost, mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
@@ -205,6 +205,37 @@ describe('tools/call', () => {
     expect(text(body)).toMatch(/Check eligibility/)
     expect(text(body)).toMatch(/Competition and Consumer Protection Commission/)
     expect(body.result?.['structuredContent']).toMatchObject({ ranking: { objective: 'highest_net_return' } })
+  })
+
+  it('logs one line per tool call: tool, duration, outcome, card; nothing about the customer', async () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined)
+    try {
+      await call(
+        'saoi_money_check',
+        { situation: { monthlySaving: 800 } },
+        { 'CF-Connecting-IP': '203.0.113.9' },
+      )
+      saoi.search.mockRejectedValueOnce(new SaoiError('The request is not valid.', 400, []))
+      await call('saoi_search_products', { category: 'deposit', amount: 25000 })
+      const lines = log.mock.calls
+        .map(([line]) => String(line))
+        .filter((line) => line.includes('tool_call'))
+        .map((line) => JSON.parse(line) as Record<string, unknown>)
+      expect(lines).toHaveLength(2)
+      expect(lines[0]).toMatchObject({
+        event: 'tool_call',
+        tool: 'saoi_money_check',
+        outcome: 'ok',
+        ui: true,
+      })
+      expect(lines[1]).toMatchObject({ tool: 'saoi_search_products', outcome: 'error', ui: false })
+      expect(typeof lines[0]?.['ms']).toBe('number')
+      expect(Object.keys(lines[0] ?? {}).sort()).toEqual(['event', 'ms', 'outcome', 'tool', 'ui'])
+      const text = log.mock.calls.flat().join(' ')
+      expect(text).not.toMatch(/203\.0\.113\.9|25000|800|€/)
+    } finally {
+      log.mockRestore()
+    }
   })
 
   it('forwards the caller’s address from CF-Connecting-IP', async () => {

@@ -41,6 +41,8 @@ Every result's text opens with **Present to the customer**: the headline sentenc
 
 **Prompt:** `money-check-up` (optional `focus`), optional: situation, then `saoi_review_situation`, goals, `saoi_build_plan`, then the save link. Nothing depends on it. It asks only for what the tools need and never phrases results as advice.
 
+**Logs:** one JSON line per tool call (`{"event":"tool_call","tool","ms","outcome","ui"}`: the tool, its duration, `ok` or `error`, and whether the plan card was attached), for diagnosing a test with `docker logs saoi-mcp`. Never the inputs, the caller's address or any figure.
+
 ## Protocol
 
 Built on the official TypeScript SDK v2 (`@modelcontextprotocol/server` 2.4.0, `@modelcontextprotocol/node` 2.1.2) using `createMcpHandler`. Stateless Streamable HTTP, `POST /mcp` only. It serves both the 2026-07-28 per-request path (`server/discover`, `_meta` envelope, `Mcp-Method`/`Mcp-Name` headers) and the legacy `initialize` path; `GET /mcp` is 405. `Origin` (when present) and `Host` are validated, `X-Accel-Buffering: no` is set, and SSE keep-alive comments go out every 25 seconds. `GET /health` returns `{ ok, version }`.

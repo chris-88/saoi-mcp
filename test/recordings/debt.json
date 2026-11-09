@@ -1,0 +1,218 @@
+{
+  "costs": [
+    {
+      "debtId": "car-loan",
+      "label": "Car loan",
+      "ratePct": 9,
+      "monthlyRepayment": 280,
+      "monthsToClear": 37,
+      "interestRemaining": 1274.96,
+      "annualInterestNow": 810,
+      "notes": []
+    }
+  ],
+  "payoffOrder": [
+    { "debtId": "car-loan", "why": "9% a year: each euro repaid early here saves 9 cent a year in interest." }
+  ],
+  "overpayVersusSave": [
+    {
+      "debtId": "car-loan",
+      "amount": 200,
+      "cadence": "monthly",
+      "horizonMonths": 37,
+      "interestSavedByOverpaying": 570.73,
+      "netInterestBySaving": 247.29,
+      "savingProduct": "bunq Free",
+      "difference": 323.44
+    },
+    {
+      "debtId": "car-loan",
+      "amount": 9000,
+      "cadence": "once",
+      "horizonMonths": 37,
+      "interestSavedByOverpaying": 1274.96,
+      "netInterestBySaving": 591.03,
+      "savingProduct": "bunq Free",
+      "difference": 683.93
+    }
+  ],
+  "refinance": [
+    {
+      "debtId": "car-loan",
+      "options": [
+        {
+          "product": {
+            "id": "aib:loan.c2145",
+            "provider": "aib",
+            "providerName": "AIB",
+            "name": "Green Personal Loan",
+            "category": "loan",
+            "terms": {
+              "kind": "loan",
+              "aprPct": 6.4,
+              "rateType": "variable",
+              "maxAmountEur": 60000,
+              "maxTermMonths": 120,
+              "maxTermStated": "10 Years",
+              "purposes": ["Car loans", "Home improvements"],
+              "setupFees": "None"
+            },
+            "provenance": {
+              "source": "ccpc",
+              "sourceUrl": "https://www.ccpc.ie/manage-your-money/borrowing-money/loan-calculator",
+              "providerUrl": "https://aib.ie/our-products/loans/green-personal-loan",
+              "checkedAt": "2026-11-09T12:14:36.808Z",
+              "lastChangedAt": null,
+              "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+              "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+              "rows": [{ "source": "ccpc", "productId": "loan.c2145" }],
+              "preferredOver": []
+            },
+            "platform": null,
+            "depositGuarantee": null,
+            "unknowns": [
+              { "field": "rates.minAmountEur", "meaning": "the smallest amount that can be borrowed" }
+            ],
+            "checks": [
+              "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
+            ]
+          },
+          "figures": {
+            "kind": "loan",
+            "amount": 9000,
+            "termMonths": 36,
+            "monthlyRepayment": 274.69,
+            "totalRepaid": 9888.98,
+            "totalInterest": 888.98
+          },
+          "interestSaving": 385.98,
+          "flags": [
+            "Set-up fees: None.",
+            "Variable rate: it can change.",
+            "Not stated by the source: the smallest amount that can be borrowed.",
+            "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
+          ]
+        },
+        {
+          "product": {
+            "id": "credit_union:loan.c8508",
+            "provider": "credit_union",
+            "providerName": "Credit Union",
+            "name": "Car Loan (Rate varies by CU)",
+            "category": "loan",
+            "terms": {
+              "kind": "loan",
+              "aprPct": 7.77,
+              "rateType": "variable",
+              "maxAmountEur": 75000,
+              "maxTermMonths": 120,
+              "maxTermStated": "10 years",
+              "purposes": ["Car loans"],
+              "setupFees": "No set up fees"
+            },
+            "provenance": {
+              "source": "ccpc",
+              "sourceUrl": "https://www.ccpc.ie/manage-your-money/borrowing-money/loan-calculator",
+              "providerUrl": "https://www.creditunion.ie/",
+              "checkedAt": "2026-11-09T12:14:36.808Z",
+              "lastChangedAt": null,
+              "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+              "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+              "rows": [{ "source": "ccpc", "productId": "loan.c8508" }],
+              "preferredOver": []
+            },
+            "platform": null,
+            "depositGuarantee": null,
+            "unknowns": [
+              { "field": "rates.minAmountEur", "meaning": "the smallest amount that can be borrowed" }
+            ],
+            "checks": [
+              "Credit union rates and terms vary by credit union; membership is needed.",
+              "Check eligibility with Credit Union: CCPC does not record who can open it (for example, whether an account with Credit Union is needed first)."
+            ]
+          },
+          "figures": {
+            "kind": "loan",
+            "amount": 9000,
+            "termMonths": 36,
+            "monthlyRepayment": 279.98,
+            "totalRepaid": 10079.35,
+            "totalInterest": 1079.35
+          },
+          "interestSaving": 195.61,
+          "flags": [
+            "Set-up fees: No set up fees.",
+            "Variable rate: it can change.",
+            "Not stated by the source: the smallest amount that can be borrowed.",
+            "Credit union rates and terms vary by credit union; membership is needed.",
+            "Check eligibility with Credit Union: CCPC does not record who can open it (for example, whether an account with Credit Union is needed first)."
+          ]
+        },
+        {
+          "product": {
+            "id": "an_post_money:loan.c1520",
+            "provider": "an_post_money",
+            "providerName": "An Post Money",
+            "name": "An Post Money Electric Car Loan",
+            "category": "loan",
+            "terms": {
+              "kind": "loan",
+              "aprPct": 8.2,
+              "rateType": "fixed",
+              "maxAmountEur": 19000,
+              "maxTermMonths": null,
+              "maxTermStated": "7",
+              "purposes": ["Car loans"],
+              "setupFees": "None"
+            },
+            "provenance": {
+              "source": "ccpc",
+              "sourceUrl": "https://www.ccpc.ie/manage-your-money/borrowing-money/loan-calculator",
+              "providerUrl": "https://www.anpost.com/Money/Low-Fixed-Rate-Loans/Green-Loans/Electric-Car-Loans",
+              "checkedAt": "2026-11-09T12:14:36.808Z",
+              "lastChangedAt": null,
+              "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+              "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+              "rows": [{ "source": "ccpc", "productId": "loan.c1520" }],
+              "preferredOver": []
+            },
+            "platform": null,
+            "depositGuarantee": null,
+            "unknowns": [
+              { "field": "rates.minAmountEur", "meaning": "the smallest amount that can be borrowed" },
+              { "field": "rates.maxTermMonths", "meaning": "the longest term: CCPC gives “7” with no unit" }
+            ],
+            "checks": [
+              "Check eligibility with An Post Money: CCPC does not record who can open it (for example, whether an account with An Post Money is needed first)."
+            ]
+          },
+          "figures": {
+            "kind": "loan",
+            "amount": 9000,
+            "termMonths": 36,
+            "monthlyRepayment": 281.64,
+            "totalRepaid": 10139.1,
+            "totalInterest": 1139.1
+          },
+          "interestSaving": 135.86,
+          "flags": [
+            "The longest term is not known (CCPC: “7”); check 36 months is allowed.",
+            "Set-up fees: None.",
+            "Not stated by the source: the smallest amount that can be borrowed.",
+            "Not stated by the source: the longest term: CCPC gives “7” with no unit.",
+            "Check eligibility with An Post Money: CCPC does not record who can open it (for example, whether an account with An Post Money is needed first)."
+          ]
+        }
+      ],
+      "note": "Loans for €9,000 over 36 months, lowest total interest first. Lenders decide the rate offered; check eligibility."
+    }
+  ],
+  "assumptions": [
+    "A debt’s rate is read as an APR (an effective annual rate); a mortgage rate as a nominal annual rate.",
+    "Repayments are level; where only the months remaining are given, the repayment is worked out from the balance and rate.",
+    "Fees and charges are not added.",
+    "Overpaying is compared with saving the same money over 37 months (the time the debt takes to clear now), in the savings product that earns the most after DIRT. The repayment freed when a debt clears early is not counted."
+  ],
+  "dataCheckedAt": "2026-11-09T12:14:36.808Z",
+  "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"]
+}

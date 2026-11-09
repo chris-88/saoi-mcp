@@ -1,10 +1,10 @@
 import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { legacyPost, mockSaoi, modernPost, rpc, run, type Running } from './helpers.js'
+import { SaoiError } from '../src/saoiClient.js'
+import { legacyPost, mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
 type Rpc = { result?: Record<string, unknown>; error?: { code: number } }
 const asRpc = async (res: Response): Promise<Rpc> => await rpc(res)
-const HANDLE = 'h'.repeat(40)
 
 let saoi: ReturnType<typeof mockSaoi>
 let srv: Running
@@ -20,7 +20,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.1.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.2.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -74,7 +74,7 @@ describe('protocol eras', () => {
       params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
     })
     const body = await asRpc(res)
-    expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoirse' })
+    expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoi' })
   })
 
   it('serves server/discover on the 2026-07-28 path', async () => {
@@ -89,91 +89,156 @@ describe('protocol eras', () => {
 })
 
 describe('tools/list', () => {
-  const expectedNames = ['saoirse_act', 'saoirse_say', 'saoirse_start', 'saoirse_status']
+  const expectedNames = [
+    'saoi_build_plan',
+    'saoi_debt',
+    'saoi_mortgage',
+    'saoi_product',
+    'saoi_review_situation',
+    'saoi_save_plan',
+    'saoi_savings_projection',
+    'saoi_search_products',
+  ]
 
   it.each([
     ['modern', () => modernPost(srv.url, 'tools/list')],
     ['legacy', () => legacyPost(srv.url, { jsonrpc: '2.0', id: 1, method: 'tools/list' })],
-  ])('lists four tools with object schemas and descriptions (%s)', async (_era, call) => {
+  ])('lists the eight saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
     const body = await asRpc(await call())
     const tools = body.result?.['tools'] as {
       name: string
       description: string
-      inputSchema: { type: string; properties: Record<string, { description?: string }> }
+      inputSchema: { type: string; properties: Record<string, { description?: string }>; oneOf?: unknown }
       annotations?: { readOnlyHint?: boolean }
     }[]
     expect(tools.map((t) => t.name).sort()).toEqual(expectedNames)
     for (const tool of tools) {
-      expect(tool.description).toMatch(/synthetic/i)
       expect(tool.inputSchema.type).toBe('object')
-      for (const [field, schema] of Object.entries(tool.inputSchema.properties)) {
-        expect(schema.description, `${tool.name}.${field} needs a description`).toBeTruthy()
-      }
+      expect(tool.inputSchema.oneOf, `${tool.name} has no top-level oneOf`).toBeUndefined()
+      expect(tool.description.toLowerCase()).not.toMatch(/you should/)
+      expect(tool.annotations?.readOnlyHint, tool.name).toBe(tool.name !== 'saoi_save_plan')
     }
-    expect(tools.find((t) => t.name === 'saoirse_status')?.annotations?.readOnlyHint).toBe(true)
+    const mortgage = tools.find((t) => t.name === 'saoi_mortgage')
+    expect(Object.keys(mortgage?.inputSchema.properties ?? {})).toEqual(
+      expect.arrayContaining(['mode', 'annualGrossIncome', 'balance']),
+    )
+    expect(tools.find((t) => t.name === 'saoi_search_products')?.description).toMatch(
+      /Information, not advice/,
+    )
+    expect(tools.find((t) => t.name === 'saoi_save_plan')?.inputSchema.properties).not.toHaveProperty(
+      'client',
+    )
   })
 })
 
-describe('tools/call', () => {
-  const call = async (name: string, args: Record<string, unknown>): Promise<Rpc> =>
-    asRpc(await modernPost(srv.url, 'tools/call', { name, arguments: args }, name))
-
-  it('saoirse_start calls the client and returns a handle', async () => {
-    const body = await call('saoirse_start', { source: 'test' })
-    expect(saoi.start).toHaveBeenCalledWith('test')
-    expect(body.result?.['structuredContent']).toMatchObject({
-      caseId: 'case-1',
-      opening: 'What are you trying to do?',
-    })
-  })
-
-  it('saoirse_say relays the message and lists card actions', async () => {
-    const body = await call('saoirse_say', { handle: HANDLE, message: 'I want to save' })
-    expect(saoi.say).toHaveBeenCalledWith(HANDLE, 'I want to save')
-    const text = (body.result?.['content'] as { text: string }[])[0]?.text ?? ''
-    expect(text).toContain('Hello from Saoirse')
-    expect(text).toContain('decide_plan')
-  })
-
-  it('saoirse_act validates per-action fields then calls the client', async () => {
-    const planId = '123e4567-e89b-42d3-a456-426614174000'
-    const body = await call('saoirse_act', {
-      handle: HANDLE,
-      action: 'decide_plan',
-      planId,
-      decision: 'keep',
-    })
-    expect(saoi.act).toHaveBeenCalledWith(HANDLE, { action: 'decide_plan', planId, decision: 'keep' })
-    expect(body.result?.['isError']).toBeUndefined()
-  })
-
-  it('saoirse_act returns isError when an action is missing its fields', async () => {
-    const body = await call('saoirse_act', { handle: HANDLE, action: 'decide_plan' })
-    expect(body.result?.['isError']).toBe(true)
-    expect(saoi.act).not.toHaveBeenCalled()
-  })
-
-  it('saoirse_status summarises applications', async () => {
-    const body = await call('saoirse_status', { handle: HANDLE })
-    expect((body.result?.['content'] as { text: string }[])[0]?.text).toBe('Rainy day: in progress')
-  })
-
-  it('maps a client failure to an isError result without leaking the handle', async () => {
-    saoi.say.mockRejectedValueOnce(new Error(`boom ${HANDLE}`))
-    const body = await call('saoirse_say', { handle: HANDLE, message: 'hi' })
-    expect(body.result?.['isError']).toBe(true)
-    expect(JSON.stringify(body)).not.toContain(HANDLE)
-  })
-
-  it('rejects input that fails the schema', async () => {
-    const res = await modernPost(
-      srv.url,
-      'tools/call',
-      { name: 'saoirse_say', arguments: { handle: 'short', message: 'x' } },
-      'saoirse_say',
+describe('resources and prompts', () => {
+  it('lists and reads how Saoi ranks and earns', async () => {
+    const list = await asRpc(await modernPost(srv.url, 'resources/list'))
+    const uris = (list.result?.['resources'] as { uri: string }[]).map((r) => r.uri).sort()
+    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking'])
+    const read = await asRpc(
+      await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),
     )
-    const body = await asRpc(res)
-    expect(saoi.say).not.toHaveBeenCalled()
+    const contents = read.result?.['contents'] as { text: string; mimeType: string }[]
+    expect(contents[0]?.mimeType).toBe('text/markdown')
+    expect(contents[0]?.text).toMatch(/How Saoi ranks/)
+    expect(saoi.about).toHaveBeenCalledWith('ranking', undefined)
+  })
+
+  it('offers the money check-up prompt, which never asks for advice language', async () => {
+    const list = await asRpc(await modernPost(srv.url, 'prompts/list'))
+    expect((list.result?.['prompts'] as { name: string }[]).map((p) => p.name)).toEqual(['money-check-up'])
+    const got = await asRpc(
+      await modernPost(
+        srv.url,
+        'prompts/get',
+        { name: 'money-check-up', arguments: { focus: 'a house' } },
+        'money-check-up',
+      ),
+    )
+    const text = (got.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
+    expect(text).toMatch(/saoi_review_situation[\s\S]*saoi_build_plan[\s\S]*saoi_save_plan/)
+    expect(text).toMatch(/never as advice/)
+    expect(text).toMatch(/a house/)
+  })
+})
+
+const DEBT = { id: 'car-loan', label: 'Car loan', kind: 'car_finance', balance: 9000, ratePct: 9 }
+const GOAL = {
+  id: 'deposit',
+  kind: 'house_deposit',
+  label: 'House deposit',
+  targetAmount: 35000,
+  targetDate: '2028-11',
+}
+
+describe('tools/call', () => {
+  const call = async (
+    name: string,
+    args: Record<string, unknown>,
+    headers: Record<string, string> = {},
+  ): Promise<Rpc> => asRpc(await modernPost(srv.url, 'tools/call', { name, arguments: args }, name, headers))
+  const text = (body: Rpc): string => (body.result?.['content'] as { text: string }[])[0]?.text ?? ''
+
+  it('saoi_search_products passes the body through and renders the ranking, flags and attribution', async () => {
+    const body = await call('saoi_search_products', { category: 'deposit', amount: 25000, horizonMonths: 24 })
+    expect(saoi.search).toHaveBeenCalledWith(
+      { category: 'deposit', amount: 25000, horizonMonths: 24 },
+      undefined,
+    )
+    expect(text(body)).toMatch(/Ranked by highest net return/)
+    expect(text(body)).toMatch(/Raisin/)
+    expect(text(body)).toMatch(/Competition and Consumer Protection Commission/)
+    expect(body.result?.['structuredContent']).toMatchObject({ ranking: { objective: 'highest_net_return' } })
+  })
+
+  it('forwards the caller’s address from CF-Connecting-IP', async () => {
+    await call('saoi_review_situation', { situation: {} }, { 'CF-Connecting-IP': '203.0.113.9' })
+    expect(saoi.review).toHaveBeenCalledWith({ situation: {} }, '203.0.113.9')
+  })
+
+  it('renders every calculation', async () => {
+    expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(/€25,000 in Current account/)
+    expect(text(await call('saoi_product', { id: 'boi:savings.supersaver' }))).toMatch(/Rate history/)
+    expect(text(await call('saoi_savings_projection', { horizonMonths: 24, lumpSum: 16000 }))).toMatch(
+      /is reached in/,
+    )
+    expect(text(await call('saoi_mortgage', { mode: 'affordability' }))).toMatch(/Central Bank limits/)
+    saoi.mortgage.mockResolvedValueOnce(recorded.switch)
+    expect(text(await call('saoi_mortgage', { mode: 'switch' }))).toMatch(/break-even/)
+    expect(text(await call('saoi_debt', { debts: [DEBT] }))).toMatch(/Payoff order/)
+    const plan = text(await call('saoi_build_plan', { situation: {}, goals: [GOAL] }))
+    expect(plan).toMatch(/House deposit by November 2028/)
+    expect(plan).toMatch(/Nothing has been stored/)
+  })
+
+  it('saoi_save_plan returns the link and says nothing was kept before', async () => {
+    const body = await call('saoi_save_plan', { plan: recorded.plan.plan })
+    expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined)
+    expect(text(body)).toMatch(/app\.saoi\.ie\/#\/plan\//)
+    expect(text(body)).toMatch(/Nothing about the customer was kept before this call/)
+    expect(body.result?.['structuredContent']).toMatchObject({ storedBeforeThisCall: false })
+  })
+
+  it('turns a saoi-api refusal into an isError result with its details', async () => {
+    saoi.search.mockRejectedValueOnce(
+      new SaoiError('The request is not valid.', 400, ['category: Invalid option']),
+    )
+    const body = await call('saoi_search_products', { category: 'deposit' })
+    expect(body.result?.['isError']).toBe(true)
+    expect(text(body)).toMatch(/category: Invalid option/)
+  })
+
+  it('says when the address is being limited', async () => {
+    saoi.search.mockRejectedValueOnce(new SaoiError('Too many', 429, [], '30'))
+    expect(text(await call('saoi_search_products', { category: 'deposit' }))).toMatch(
+      /Try again in 30 seconds/,
+    )
+  })
+
+  it('rejects input that fails the generated schema without calling saoi-api', async () => {
+    const body = await call('saoi_search_products', { category: 'pension' })
+    expect(saoi.search).not.toHaveBeenCalled()
     expect(body.error !== undefined || body.result?.['isError'] === true).toBe(true)
   })
 })

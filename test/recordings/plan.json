@@ -1,0 +1,161 @@
+{
+  "plan": {
+    "version": 1,
+    "title": "House deposit by November 2028",
+    "situation": {
+      "summary": "Holds €25,000 in savings. Can save €800 a month. Gross income €62,000 a year. Car loan: €9,000 at 9%.",
+      "income": { "annualGross": 62000, "netMonthly": 3900 },
+      "outgoings": { "rentMonthly": 1650, "otherMonthly": 900 },
+      "monthlySaving": 800,
+      "savings": [{ "label": "Current account", "balance": 25000, "aerPct": 0 }],
+      "debts": [
+        {
+          "id": "car-loan",
+          "label": "Car loan",
+          "kind": "car_finance",
+          "balance": 9000,
+          "ratePct": 9,
+          "monthlyRepayment": 280,
+          "monthsRemaining": 36
+        }
+      ]
+    },
+    "goals": [
+      {
+        "id": "deposit",
+        "kind": "house_deposit",
+        "label": "House deposit",
+        "targetAmount": 35000,
+        "targetDate": "2028-11",
+        "priority": 1
+      }
+    ],
+    "recommendation": {
+      "products": [
+        {
+          "role": "lump_sum",
+          "goalIds": ["deposit"],
+          "provider": "nordax",
+          "providerName": "Nordax Bank",
+          "source": "ccpc",
+          "category": "deposit",
+          "productId": "deposit.c7830",
+          "productName": "Fixed Term Deposit (24 months)",
+          "amount": 16000,
+          "ratePct": 3.45,
+          "projected": {
+            "horizonMonths": 24,
+            "balance": 16748.23,
+            "netInterest": 748.23,
+            "goalReachedOn": "2028-04"
+          },
+          "why": "€16,000 in Nordax Bank Fixed Term Deposit for 24 months: the most known interest after DIRT for this part of the money.",
+          "unknowns": ["the minimum age to open it", "whether it takes regular monthly saving"],
+          "checks": [
+            "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank.",
+            "Covered by the Swedish Deposit Guarantee Scheme, not the Irish scheme.",
+            "Needs a Raisin account, opened online at raisin.ie.",
+            "Check eligibility with Nordax Bank: CCPC does not record who can open it (for example, whether an account with Nordax Bank is needed first)."
+          ],
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "url": "https://www.raisin.com/en-ie/bank/nordax-bank-ab-publ/"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["deposit"],
+          "provider": "bunq",
+          "providerName": "bunq",
+          "source": "ccpc",
+          "category": "savings",
+          "productId": "savings.c5529",
+          "productName": "bunq Free",
+          "monthlyAmount": 1080,
+          "ratePct": 3.11,
+          "projected": {
+            "horizonMonths": 24,
+            "balance": 26485.65,
+            "netInterest": 565.65,
+            "goalReachedOn": "2028-04"
+          },
+          "why": "€1,080 a month in bunq Free: the most known interest after DIRT for this part of the money.",
+          "unknowns": [
+            "the minimum age to open it",
+            "whether it takes a lump sum",
+            "whether the rate is fixed or variable",
+            "the rate paid on a lump sum",
+            "which deposit guarantee scheme covers it"
+          ],
+          "checks": [
+            "Check eligibility with bunq: CCPC does not record who can open it (for example, whether an account with bunq is needed first)."
+          ],
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "url": "https://www.bunq.com/en-ie/plans/free"
+        }
+      ],
+      "totals": { "monthly": 1080, "lumpSum": 16000, "netInterest": 1313.88 }
+    },
+    "debts": [
+      {
+        "debtId": "car-loan",
+        "action": "pay_off_first",
+        "why": "At 9% it costs more than the savings earn. Clearing from the lump sum and saving its €280 a month leaves €831.10 more at month 24 than keeping it. Keeping it reaches €35,000 sooner, in November 2027 rather than April 2028, with €3,385.33 still owed at the end.",
+        "costIfKept": 1274.96,
+        "costWithStep": 0
+      }
+    ],
+    "ranking": {
+      "objective": "highest_net_return",
+      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €16,000 placed and €1,080 a month, for the inputs given; debts set against savings by net position at month 24."
+    },
+    "assumptions": [
+      "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
+      "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
+      "Variable rates are assumed to stay as published today; they can change.",
+      "Bonuses are not counted as interest.",
+      "Every other euro of savings held is treated as available to place.",
+      "A €43,233.88 deposit and €62,000 gross income support a price up to €291,233.88 under the Central Bank limits (the income limit binds)."
+    ],
+    "createdAt": "2026-11-09T13:12:57.697Z",
+    "dataCheckedAt": "2026-11-09T12:14:36.808Z"
+  },
+  "horizonMonths": 24,
+  "knownThroughMonth": 24,
+  "goalReachedOn": "2028-04",
+  "reasoning": [
+    "€25,000 held and €800 a month to place, over 24 months.",
+    "Car loan: cleared from the lump sum. Net position (savings less debt) at month 24: €43,233.88, against €42,402.78 if kept. Keeping it reaches €35,000 sooner, in November 2027 rather than April 2028, with €3,385.33 still owed at the end.",
+    "€16,000 in Nordax Bank Fixed Term Deposit for 24 months: the most known interest after DIRT for this part of the money.",
+    "€1,080 a month in bunq Free: the most known interest after DIRT for this part of the money.",
+    "House deposit: €35,000 is reached in April 2028.",
+    "A €43,233.88 deposit and €62,000 gross income support a price up to €291,233.88 under the Central Bank limits (the income limit binds)."
+  ],
+  "debtScenarios": [
+    {
+      "debtId": "car-loan",
+      "amount": 9000,
+      "kept": {
+        "savingsAtHorizon": 45788.11,
+        "debtAtHorizon": 3385.33,
+        "netPosition": 42402.78,
+        "goalReachedOn": "2027-11"
+      },
+      "cleared": {
+        "savingsAtHorizon": 43233.88,
+        "debtAtHorizon": 0,
+        "netPosition": 43233.88,
+        "goalReachedOn": "2028-04"
+      },
+      "chosen": "cleared"
+    }
+  ],
+  "affordability": {
+    "deposit": 43233.88,
+    "maxPrice": 291233.88,
+    "maxLoanByIncome": 248000,
+    "bindingLimit": "income",
+    "note": "A €43,233.88 deposit and €62,000 gross income support a price up to €291,233.88 under the Central Bank limits (the income limit binds)."
+  },
+  "unplaced": { "lumpSum": 0, "monthly": 0 }
+}

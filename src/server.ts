@@ -3,17 +3,31 @@ import { createMcpHandler, McpServer } from '@modelcontextprotocol/server'
 import { hostHeaderValidation, originValidation, toNodeHandler } from '@modelcontextprotocol/node'
 import type { SaoiApi } from './saoiClient.js'
 import type { Config } from './config.js'
-import { registerTools, SERVER_INSTRUCTIONS } from './tools.js'
+import { registerPrompts, registerResources, registerTools, SERVER_INSTRUCTIONS } from './tools.js'
 
-export const VERSION = '0.1.0'
+export const VERSION = '0.2.0'
 
-export function createSaoiServer(saoi: SaoiApi): McpServer {
+/** One server per request (stateless), bound to the end user's address for saoi-api's rate limit. */
+export function createSaoiServer(saoi: SaoiApi, ip?: string): McpServer {
   const server = new McpServer(
-    { name: 'saoirse', title: 'Saoirse (Saoi)', version: VERSION },
+    { name: 'saoi', title: 'Saoi: compare Irish money products', version: VERSION },
     { instructions: SERVER_INSTRUCTIONS },
   )
-  registerTools(server, saoi)
+  registerTools(server, saoi, ip)
+  registerResources(server, saoi, ip)
+  registerPrompts(server)
   return server
+}
+
+/**
+ * The end user's address: Cloudflare's header (the tunnel sets it; a client cannot), then the
+ * first forwarded hop. Undefined when neither is there (a local call).
+ */
+export function callerAddress(headers: Pick<Headers, 'get'> | undefined): string | undefined {
+  const cloudflare = headers?.get('cf-connecting-ip')?.trim()
+  if (cloudflare) return cloudflare
+  const forwarded = headers?.get('x-forwarded-for')?.split(',')[0]?.trim()
+  return forwarded ? forwarded : undefined
 }
 
 type Guard = (req: IncomingMessage, res: ServerResponse) => boolean
@@ -37,7 +51,7 @@ export function createHttpServer(
   config: Pick<Config, 'allowedHosts' | 'allowedOrigins' | 'keepAliveMs'>,
   saoi: SaoiApi,
 ): Server {
-  const handler = createMcpHandler(() => createSaoiServer(saoi), {
+  const handler = createMcpHandler((ctx) => createSaoiServer(saoi, callerAddress(ctx.requestInfo?.headers)), {
     legacy: 'stateless',
     responseMode: 'auto',
     keepAliveMs: config.keepAliveMs,

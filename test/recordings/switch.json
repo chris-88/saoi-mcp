@@ -1,0 +1,402 @@
+{
+  "mode": "switch",
+  "current": { "ratePct": 4.5, "monthlyRepayment": 1389.58, "totalRemaining": 416874.36 },
+  "ltvPct": 62.5,
+  "options": [
+    {
+      "product": {
+        "id": "avant_money:mortgage.c2161",
+        "provider": "avant_money",
+        "providerName": "Avant Money",
+        "name": "Up to 30 year fixed >60% <=70%",
+        "category": "mortgage",
+        "terms": {
+          "kind": "mortgage",
+          "rateType": "fixed",
+          "fixedYears": 30,
+          "initialRatePct": 3.4,
+          "followOnRatePct": 3.4,
+          "fullTermRatePct": 3.47,
+          "ltvMinPct": 60.01,
+          "ltvMaxPct": 70,
+          "ber": null,
+          "berFromName": false,
+          "buyerTypes": ["switcher"],
+          "cashback": { "offered": true, "pct": null, "stated": "1 percent at drawdown" },
+          "fees": {
+            "ATR fee:": "€40",
+            "Final fee:": "n/a",
+            "Set up fee:": "n/a",
+            "Vacate fee:": "€40",
+            "Valuation fee:": "€185",
+            "Legal transfer fee:": "n/a",
+            "Early repayment fee:": "Yes check terms and conditions directly with the provider.",
+            "Late payment charge:": "n/a",
+            "Mortgage top up fee:": "n/a",
+            "Partial release fee:": "n/a",
+            "Other fees and charges:": "n/a",
+            "Mortgage equity release fee:": "n/a",
+            "Transfer fee variable rate to fixed rate:": "n/a"
+          },
+          "highValue": false
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "providerUrl": "https://www.avantmoney.ie/",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "mortgage.c2161" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": null,
+        "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "checks": [
+          "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "mortgage",
+        "loanAmount": 250000,
+        "ltvPct": 62.5,
+        "termYears": 25,
+        "monthlyRepayment": 1238.19,
+        "monthlyAfterFixed": null,
+        "paidDuringFixed": 371457.36,
+        "totalRepaid": 371457.36,
+        "cashbackEur": null,
+        "totalCostAfterCashback": 121457.36
+      },
+      "monthlySaving": 151.39,
+      "savingOverFixedPeriod": 45417,
+      "lifetimeSaving": 43917,
+      "breakEvenMonths": 10,
+      "flags": [
+        "Cashback offered but no percentage stated: “1 percent at drawdown”.",
+        "Not stated by the source: the APRC.",
+        "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+      ]
+    },
+    {
+      "product": {
+        "id": "avant_money:mortgage.c8804",
+        "provider": "avant_money",
+        "providerName": "Avant Money",
+        "name": "4 year High Value fixed LTV >60% <=70%",
+        "category": "mortgage",
+        "terms": {
+          "kind": "mortgage",
+          "rateType": "fixed",
+          "fixedYears": 4,
+          "initialRatePct": 3.3,
+          "followOnRatePct": 3.75,
+          "fullTermRatePct": 3.66,
+          "ltvMinPct": 60.01,
+          "ltvMaxPct": 70,
+          "ber": null,
+          "berFromName": false,
+          "buyerTypes": ["switcher"],
+          "cashback": { "offered": false, "pct": null, "stated": "N/A" },
+          "fees": {
+            "ATR fee:": "€40",
+            "Final fee:": "n/a",
+            "Set up fee:": "n/a",
+            "Vacate fee:": "€40",
+            "Valuation fee:": "€185",
+            "Legal transfer fee:": "n/a",
+            "Early repayment fee:": "Yes, check terms and conditions directly with the provider",
+            "Late payment charge:": "n/a",
+            "Mortgage top up fee:": "n/a",
+            "Partial release fee:": "n/a",
+            "Other fees and charges:": "n/a",
+            "Mortgage equity release fee:": "n/a",
+            "Transfer fee variable rate to fixed rate:": "n/a"
+          },
+          "highValue": true
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "providerUrl": "https://www.avantmoney.ie/",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "mortgage.c8804" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": null,
+        "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "checks": [
+          "A high-value-mortgage rate: for larger loans only.",
+          "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "mortgage",
+        "loanAmount": 250000,
+        "ltvPct": 62.5,
+        "termYears": 25,
+        "monthlyRepayment": 1224.9,
+        "monthlyAfterFixed": 1276.87,
+        "paidDuringFixed": 58795.39,
+        "totalRepaid": 380565.93,
+        "cashbackEur": null,
+        "totalCostAfterCashback": 130565.93
+      },
+      "monthlySaving": 164.68,
+      "savingOverFixedPeriod": 7904.64,
+      "lifetimeSaving": 34808.43,
+      "breakEvenMonths": 10,
+      "flags": [
+        "Not stated by the source: the APRC.",
+        "A high-value-mortgage rate: for larger loans only.",
+        "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+      ]
+    },
+    {
+      "product": {
+        "id": "avant_money:mortgage.c1755",
+        "provider": "avant_money",
+        "providerName": "Avant Money",
+        "name": "5 year fixed LTV >60% <=70%",
+        "category": "mortgage",
+        "terms": {
+          "kind": "mortgage",
+          "rateType": "fixed",
+          "fixedYears": 5,
+          "initialRatePct": 3.45,
+          "followOnRatePct": 3.75,
+          "fullTermRatePct": 3.69,
+          "ltvMinPct": 60.01,
+          "ltvMaxPct": 70,
+          "ber": null,
+          "berFromName": false,
+          "buyerTypes": ["switcher"],
+          "cashback": { "offered": null, "pct": null, "stated": "2 percent at drawdown" },
+          "fees": {
+            "ATR fee:": "€40",
+            "Final fee:": "n/a",
+            "Set up fee:": "n/a",
+            "Vacate fee:": "€40",
+            "Valuation fee:": "€185",
+            "Legal transfer fee:": "n/a",
+            "Early repayment fee:": "Yes, check terms and conditions directly with the provider",
+            "Late payment charge:": "n/a",
+            "Mortgage top up fee:": "n/a",
+            "Partial release fee:": "n/a",
+            "Other fees and charges:": "n/a",
+            "Mortgage equity release fee:": "n/a",
+            "Transfer fee variable rate to fixed rate:": "n/a"
+          },
+          "highValue": false
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "providerUrl": "https://www.avantmoney.ie/",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "mortgage.c1755" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": null,
+        "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "checks": [
+          "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "mortgage",
+        "loanAmount": 250000,
+        "ltvPct": 62.5,
+        "termYears": 25,
+        "monthlyRepayment": 1244.87,
+        "monthlyAfterFixed": 1278.27,
+        "paidDuringFixed": 74691.9,
+        "totalRepaid": 381477.06,
+        "cashbackEur": null,
+        "totalCostAfterCashback": 131477.06
+      },
+      "monthlySaving": 144.71,
+      "savingOverFixedPeriod": 8682.6,
+      "lifetimeSaving": 33897.3,
+      "breakEvenMonths": 11,
+      "flags": [
+        "Not stated by the source: the APRC.",
+        "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+      ]
+    },
+    {
+      "product": {
+        "id": "avant_money:mortgage.c2009",
+        "provider": "avant_money",
+        "providerName": "Avant Money",
+        "name": "4 year fixed >60% <=70%",
+        "category": "mortgage",
+        "terms": {
+          "kind": "mortgage",
+          "rateType": "fixed",
+          "fixedYears": 4,
+          "initialRatePct": 3.4,
+          "followOnRatePct": 3.75,
+          "fullTermRatePct": 3.7,
+          "ltvMinPct": 60.01,
+          "ltvMaxPct": 70,
+          "ber": null,
+          "berFromName": false,
+          "buyerTypes": ["switcher"],
+          "cashback": { "offered": null, "pct": null, "stated": "2 percent at drawdown" },
+          "fees": {
+            "ATR fee:": "€40",
+            "Final fee:": "n/a",
+            "Set up fee:": "n/a",
+            "Vacate fee:": "€40",
+            "Valuation fee:": "€185",
+            "Legal transfer fee:": "n/a",
+            "Early repayment fee:": "Yes check terms and conditions directly with the provider.",
+            "Late payment charge:": "n/a",
+            "Mortgage top up fee:": "n/a",
+            "Partial release fee:": "n/a",
+            "Other fees and charges:": "n/a",
+            "Mortgage equity release fee:": "n/a",
+            "Transfer fee variable rate to fixed rate:": "n/a"
+          },
+          "highValue": false
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "providerUrl": "https://www.avantmoney.ie/",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "mortgage.c2009" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": null,
+        "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "checks": [
+          "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "mortgage",
+        "loanAmount": 250000,
+        "ltvPct": 62.5,
+        "termYears": 25,
+        "monthlyRepayment": 1238.19,
+        "monthlyAfterFixed": 1278.77,
+        "paidDuringFixed": 59433.18,
+        "totalRepaid": 381684.44,
+        "cashbackEur": null,
+        "totalCostAfterCashback": 131684.44
+      },
+      "monthlySaving": 151.39,
+      "savingOverFixedPeriod": 7266.72,
+      "lifetimeSaving": 33689.92,
+      "breakEvenMonths": 10,
+      "flags": [
+        "Not stated by the source: the APRC.",
+        "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+      ]
+    },
+    {
+      "product": {
+        "id": "avant_money:mortgage.c1740",
+        "provider": "avant_money",
+        "providerName": "Avant Money",
+        "name": "3 year fixed LTV >60% <=70%",
+        "category": "mortgage",
+        "terms": {
+          "kind": "mortgage",
+          "rateType": "fixed",
+          "fixedYears": 3,
+          "initialRatePct": 3.45,
+          "followOnRatePct": 3.75,
+          "fullTermRatePct": 3.74,
+          "ltvMinPct": 60.01,
+          "ltvMaxPct": 70,
+          "ber": null,
+          "berFromName": false,
+          "buyerTypes": ["switcher"],
+          "cashback": { "offered": null, "pct": null, "stated": "2 percent at drawdown" },
+          "fees": {
+            "ATR fee:": "€40",
+            "Final fee:": "n/a",
+            "Set up fee:": "n/a",
+            "Vacate fee:": "€40",
+            "Valuation fee:": "€185",
+            "Legal transfer fee:": "n/a",
+            "Early repayment fee:": "Yes, check terms and conditions directly with the provider",
+            "Late payment charge:": "n/a",
+            "Mortgage top up fee:": "n/a",
+            "Partial release fee:": "n/a",
+            "Other fees and charges:": "n/a",
+            "Mortgage equity release fee:": "n/a",
+            "Transfer fee variable rate to fixed rate:": "n/a"
+          },
+          "highValue": false
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "providerUrl": "https://www.avantmoney.ie/",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "mortgage.c1740" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": null,
+        "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "checks": [
+          "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "mortgage",
+        "loanAmount": 250000,
+        "ltvPct": 62.5,
+        "termYears": 25,
+        "monthlyRepayment": 1244.87,
+        "monthlyAfterFixed": 1281.15,
+        "paidDuringFixed": 44815.14,
+        "totalRepaid": 383039.8,
+        "cashbackEur": null,
+        "totalCostAfterCashback": 133039.8
+      },
+      "monthlySaving": 144.71,
+      "savingOverFixedPeriod": 5209.56,
+      "lifetimeSaving": 32334.56,
+      "breakEvenMonths": 11,
+      "flags": [
+        "Not stated by the source: the APRC.",
+        "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
+      ]
+    }
+  ],
+  "ranking": {
+    "objective": "lowest_total_cost",
+    "basis": "Largest saving over the remaining 25 years on €250,000 against 4.5% now, after cashback and €1,500 of switching costs, for the inputs given."
+  },
+  "assumptions": [
+    "The current rate is assumed to hold for the rest of the term.",
+    "Monthly saving: the current repayment less the new one at its initial rate, over the same remaining term.",
+    "Repayments at the initial rate for the fixed period, then the provider’s stated follow-on rate for the rest of the term (it is a “potential” rate and can change). Variable rates are assumed to stay as published.",
+    "Cashback is counted where CCPC states a percentage. Fees are listed as the source states them and not added."
+  ],
+  "dataCheckedAt": "2026-11-09T12:14:36.808Z",
+  "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"]
+}

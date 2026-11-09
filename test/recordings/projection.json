@@ -1,0 +1,252 @@
+{
+  "lines": [
+    {
+      "product": {
+        "id": "nordax:deposit.c7830",
+        "provider": "nordax",
+        "providerName": "Nordax Bank",
+        "name": "Fixed Term Deposit",
+        "category": "deposit",
+        "terms": {
+          "kind": "deposit",
+          "access": "fixed_term",
+          "noticeDays": 0,
+          "aerPct": 3.45,
+          "basis": "fixed",
+          "bands": [],
+          "lumpSumAerPct": null,
+          "introductory": null,
+          "ladder": [{ "months": 24, "aerPct": 3.45, "productId": "deposit.c7830" }],
+          "takesMonthly": null,
+          "takesLumpSum": true,
+          "minMonthlyEur": null,
+          "maxMonthlyEur": null,
+          "minLumpSumEur": 2000,
+          "maxLumpSumEur": 100000,
+          "dirtApplies": true,
+          "bonus": null
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
+          "providerUrl": "https://www.raisin.com/en-ie/bank/nordax-bank-ab-publ/",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "deposit.c7830" }],
+          "preferredOver": []
+        },
+        "platform": {
+          "name": "Raisin",
+          "note": "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank."
+        },
+        "depositGuarantee": {
+          "scheme": "Swedish Deposit Guarantee Scheme",
+          "country": "Sweden",
+          "coverEur": 100000,
+          "basis": "stated_by_source"
+        },
+        "unknowns": [
+          { "field": "conditions.minAge", "meaning": "the minimum age to open it" },
+          { "field": "conditions.takesMonthly", "meaning": "whether it takes regular monthly saving" }
+        ],
+        "checks": [
+          "Needs a Raisin account, opened online at raisin.ie.",
+          "Check eligibility with Nordax Bank: CCPC does not record who can open it (for example, whether an account with Nordax Bank is needed first)."
+        ]
+      },
+      "lumpSum": 16000,
+      "monthly": 0,
+      "termMonths": 24,
+      "figures": {
+        "kind": "savings",
+        "horizonMonths": 24,
+        "knownMonths": 24,
+        "termMonths": 24,
+        "paidIn": 16000,
+        "grossInterest": 1116.76,
+        "dirt": 368.53,
+        "netInterest": 748.23,
+        "endBalance": 16748.23,
+        "netRatePct": 2.31,
+        "stop": null,
+        "notPlaced": { "lumpSum": 0, "monthly": 0 }
+      },
+      "months": [
+        { "month": 1, "date": "2026-12", "paidIn": 16000, "balance": 16030.82, "netInterest": 30.82 },
+        { "month": 2, "date": "2027-01", "paidIn": 16000, "balance": 16061.64, "netInterest": 61.64 },
+        { "month": 3, "date": "2027-02", "paidIn": 16000, "balance": 16092.46, "netInterest": 92.46 },
+        { "month": 4, "date": "2027-03", "paidIn": 16000, "balance": 16123.28, "netInterest": 123.28 },
+        { "month": 5, "date": "2027-04", "paidIn": 16000, "balance": 16154.1, "netInterest": 154.1 },
+        { "month": 6, "date": "2027-05", "paidIn": 16000, "balance": 16184.92, "netInterest": 184.92 },
+        { "month": 7, "date": "2027-06", "paidIn": 16000, "balance": 16215.74, "netInterest": 215.74 },
+        { "month": 8, "date": "2027-07", "paidIn": 16000, "balance": 16246.56, "netInterest": 246.56 },
+        { "month": 9, "date": "2027-08", "paidIn": 16000, "balance": 16277.38, "netInterest": 277.38 },
+        { "month": 10, "date": "2027-09", "paidIn": 16000, "balance": 16308.2, "netInterest": 308.2 },
+        { "month": 11, "date": "2027-10", "paidIn": 16000, "balance": 16339.02, "netInterest": 339.02 },
+        { "month": 12, "date": "2027-11", "paidIn": 16000, "balance": 16369.84, "netInterest": 369.84 },
+        { "month": 13, "date": "2027-12", "paidIn": 16000, "balance": 16401.37, "netInterest": 401.37 },
+        { "month": 14, "date": "2028-01", "paidIn": 16000, "balance": 16432.9, "netInterest": 432.9 },
+        { "month": 15, "date": "2028-02", "paidIn": 16000, "balance": 16464.44, "netInterest": 464.44 },
+        { "month": 16, "date": "2028-03", "paidIn": 16000, "balance": 16495.97, "netInterest": 495.97 },
+        { "month": 17, "date": "2028-04", "paidIn": 16000, "balance": 16527.5, "netInterest": 527.5 },
+        { "month": 18, "date": "2028-05", "paidIn": 16000, "balance": 16559.03, "netInterest": 559.03 },
+        { "month": 19, "date": "2028-06", "paidIn": 16000, "balance": 16590.57, "netInterest": 590.57 },
+        { "month": 20, "date": "2028-07", "paidIn": 16000, "balance": 16622.1, "netInterest": 622.1 },
+        { "month": 21, "date": "2028-08", "paidIn": 16000, "balance": 16653.63, "netInterest": 653.63 },
+        { "month": 22, "date": "2028-09", "paidIn": 16000, "balance": 16685.16, "netInterest": 685.16 },
+        { "month": 23, "date": "2028-10", "paidIn": 16000, "balance": 16716.7, "netInterest": 716.7 },
+        { "month": 24, "date": "2028-11", "paidIn": 16000, "balance": 16748.23, "netInterest": 748.23 }
+      ],
+      "notes": [
+        "Not stated by the source: the minimum age to open it.",
+        "Not stated by the source: whether it takes regular monthly saving.",
+        "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank."
+      ]
+    },
+    {
+      "product": {
+        "id": "bunq:savings.c5529",
+        "provider": "bunq",
+        "providerName": "bunq",
+        "name": "bunq Free",
+        "category": "savings",
+        "terms": {
+          "kind": "deposit",
+          "access": "instant",
+          "noticeDays": null,
+          "aerPct": 3.11,
+          "basis": null,
+          "bands": [{ "fromEur": 0, "toEur": null, "aerPct": 3.11 }],
+          "lumpSumAerPct": null,
+          "introductory": null,
+          "ladder": [],
+          "takesMonthly": true,
+          "takesLumpSum": null,
+          "minMonthlyEur": null,
+          "maxMonthlyEur": null,
+          "minLumpSumEur": null,
+          "maxLumpSumEur": null,
+          "dirtApplies": true,
+          "bonus": null
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/regular-savings-comparison-tool",
+          "providerUrl": "https://www.bunq.com/en-ie/plans/free",
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "savings.c5529" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": { "scheme": null, "country": null, "coverEur": null, "basis": "unknown" },
+        "unknowns": [
+          { "field": "conditions.minAge", "meaning": "the minimum age to open it" },
+          { "field": "conditions.takesLumpSum", "meaning": "whether it takes a lump sum" },
+          { "field": "rates.basis", "meaning": "whether the rate is fixed or variable" },
+          { "field": "rates.lumpSumAerPct", "meaning": "the rate paid on a lump sum" },
+          { "field": "depositGuarantee", "meaning": "which deposit guarantee scheme covers it" }
+        ],
+        "checks": [
+          "Check eligibility with bunq: CCPC does not record who can open it (for example, whether an account with bunq is needed first)."
+        ]
+      },
+      "lumpSum": 0,
+      "monthly": 1080,
+      "termMonths": null,
+      "figures": {
+        "kind": "savings",
+        "horizonMonths": 24,
+        "knownMonths": 24,
+        "termMonths": null,
+        "paidIn": 25920,
+        "grossInterest": 844.25,
+        "dirt": 278.6,
+        "netInterest": 565.65,
+        "endBalance": 26485.65,
+        "netRatePct": 2.08,
+        "stop": null,
+        "notPlaced": { "lumpSum": 0, "monthly": 0 }
+      },
+      "months": [
+        { "month": 1, "date": "2026-12", "paidIn": 1080, "balance": 1081.88, "netInterest": 1.88 },
+        { "month": 2, "date": "2027-01", "paidIn": 2160, "balance": 2165.63, "netInterest": 5.63 },
+        { "month": 3, "date": "2027-02", "paidIn": 3240, "balance": 3251.25, "netInterest": 11.25 },
+        { "month": 4, "date": "2027-03", "paidIn": 4320, "balance": 4338.75, "netInterest": 18.75 },
+        { "month": 5, "date": "2027-04", "paidIn": 5400, "balance": 5428.13, "netInterest": 28.13 },
+        { "month": 6, "date": "2027-05", "paidIn": 6480, "balance": 6519.38, "netInterest": 39.38 },
+        { "month": 7, "date": "2027-06", "paidIn": 7560, "balance": 7612.51, "netInterest": 52.51 },
+        { "month": 8, "date": "2027-07", "paidIn": 8640, "balance": 8707.51, "netInterest": 67.51 },
+        { "month": 9, "date": "2027-08", "paidIn": 9720, "balance": 9804.39, "netInterest": 84.39 },
+        { "month": 10, "date": "2027-09", "paidIn": 10800, "balance": 10903.14, "netInterest": 103.14 },
+        { "month": 11, "date": "2027-10", "paidIn": 11880, "balance": 12003.77, "netInterest": 123.77 },
+        { "month": 12, "date": "2027-11", "paidIn": 12960, "balance": 13106.28, "netInterest": 146.28 },
+        { "month": 13, "date": "2027-12", "paidIn": 14040, "balance": 14210.91, "netInterest": 170.91 },
+        { "month": 14, "date": "2028-01", "paidIn": 15120, "balance": 15317.42, "netInterest": 197.42 },
+        { "month": 15, "date": "2028-02", "paidIn": 16200, "balance": 16425.8, "netInterest": 225.8 },
+        { "month": 16, "date": "2028-03", "paidIn": 17280, "balance": 17536.06, "netInterest": 256.06 },
+        { "month": 17, "date": "2028-04", "paidIn": 18360, "balance": 18648.2, "netInterest": 288.2 },
+        { "month": 18, "date": "2028-05", "paidIn": 19440, "balance": 19762.21, "netInterest": 322.21 },
+        { "month": 19, "date": "2028-06", "paidIn": 20520, "balance": 20878.09, "netInterest": 358.09 },
+        { "month": 20, "date": "2028-07", "paidIn": 21600, "balance": 21995.85, "netInterest": 395.85 },
+        { "month": 21, "date": "2028-08", "paidIn": 22680, "balance": 23115.49, "netInterest": 435.49 },
+        { "month": 22, "date": "2028-09", "paidIn": 23760, "balance": 24237, "netInterest": 477 },
+        { "month": 23, "date": "2028-10", "paidIn": 24840, "balance": 25360.39, "netInterest": 520.39 },
+        { "month": 24, "date": "2028-11", "paidIn": 25920, "balance": 26485.65, "netInterest": 565.65 }
+      ],
+      "notes": [
+        "Not stated by the source: the minimum age to open it.",
+        "Not stated by the source: whether it takes a lump sum.",
+        "Not stated by the source: whether the rate is fixed or variable.",
+        "Not stated by the source: the rate paid on a lump sum.",
+        "Not stated by the source: which deposit guarantee scheme covers it."
+      ]
+    }
+  ],
+  "totals": {
+    "knownThroughMonth": 24,
+    "months": [
+      { "month": 1, "date": "2026-12", "paidIn": 17080, "balance": 17112.7, "netInterest": 32.7 },
+      { "month": 2, "date": "2027-01", "paidIn": 18160, "balance": 18227.27, "netInterest": 67.27 },
+      { "month": 3, "date": "2027-02", "paidIn": 19240, "balance": 19343.71, "netInterest": 103.71 },
+      { "month": 4, "date": "2027-03", "paidIn": 20320, "balance": 20462.03, "netInterest": 142.03 },
+      { "month": 5, "date": "2027-04", "paidIn": 21400, "balance": 21582.23, "netInterest": 182.23 },
+      { "month": 6, "date": "2027-05", "paidIn": 22480, "balance": 22704.3, "netInterest": 224.3 },
+      { "month": 7, "date": "2027-06", "paidIn": 23560, "balance": 23828.25, "netInterest": 268.25 },
+      { "month": 8, "date": "2027-07", "paidIn": 24640, "balance": 24954.07, "netInterest": 314.07 },
+      { "month": 9, "date": "2027-08", "paidIn": 25720, "balance": 26081.77, "netInterest": 361.77 },
+      { "month": 10, "date": "2027-09", "paidIn": 26800, "balance": 27211.34, "netInterest": 411.34 },
+      { "month": 11, "date": "2027-10", "paidIn": 27880, "balance": 28342.79, "netInterest": 462.79 },
+      { "month": 12, "date": "2027-11", "paidIn": 28960, "balance": 29476.12, "netInterest": 516.12 },
+      { "month": 13, "date": "2027-12", "paidIn": 30040, "balance": 30612.28, "netInterest": 572.28 },
+      { "month": 14, "date": "2028-01", "paidIn": 31120, "balance": 31750.32, "netInterest": 630.32 },
+      { "month": 15, "date": "2028-02", "paidIn": 32200, "balance": 32890.24, "netInterest": 690.24 },
+      { "month": 16, "date": "2028-03", "paidIn": 33280, "balance": 34032.03, "netInterest": 752.03 },
+      { "month": 17, "date": "2028-04", "paidIn": 34360, "balance": 35175.7, "netInterest": 815.7 },
+      { "month": 18, "date": "2028-05", "paidIn": 35440, "balance": 36321.24, "netInterest": 881.24 },
+      { "month": 19, "date": "2028-06", "paidIn": 36520, "balance": 37468.66, "netInterest": 948.66 },
+      { "month": 20, "date": "2028-07", "paidIn": 37600, "balance": 38617.95, "netInterest": 1017.95 },
+      { "month": 21, "date": "2028-08", "paidIn": 38680, "balance": 39769.12, "netInterest": 1089.12 },
+      { "month": 22, "date": "2028-09", "paidIn": 39760, "balance": 40922.16, "netInterest": 1162.16 },
+      { "month": 23, "date": "2028-10", "paidIn": 40840, "balance": 42077.09, "netInterest": 1237.09 },
+      { "month": 24, "date": "2028-11", "paidIn": 41920, "balance": 43233.88, "netInterest": 1313.88 }
+    ],
+    "paidIn": 41920,
+    "netInterest": 1313.88,
+    "balance": 43233.88
+  },
+  "goal": { "targetAmount": 35000, "reachedMonth": 17, "reachedOn": "2028-04" },
+  "basis": "The best available split for the inputs given: the most interest after DIRT that can be known over 24 months, across at most 5 accounts.",
+  "assumptions": [
+    "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
+    "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
+    "Variable rates are assumed to stay as published today; they can change.",
+    "Bonuses are not counted as interest."
+  ],
+  "dataCheckedAt": "2026-11-09T12:14:36.808Z",
+  "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"]
+}

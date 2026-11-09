@@ -20,7 +20,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.5.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.6.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {

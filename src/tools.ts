@@ -15,6 +15,7 @@ import {
   renderSearch,
 } from './render.js'
 import { SaoiError, type Body, type SaoiApi } from './saoiClient.js'
+import { PLAN_CARD_TOOL_META, registerPlanCard } from './ui/planCardResource.js'
 
 export const SERVER_INSTRUCTIONS = [
   'Saoi compares Irish savings, deposit, mortgage, loan, credit card and current account products against',
@@ -235,6 +236,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       ),
       inputSchema: input('saoi_build_plan'),
       annotations: READ_ONLY,
+      // Hosts with MCP Apps show the plan card with the result; the text stays for the rest.
+      _meta: PLAN_CARD_TOOL_META,
     },
     (args) =>
       guarded(async () => {
@@ -274,6 +277,7 @@ export const ABOUT_RESOURCES = {
 } as const
 
 export function registerResources(server: McpServer, saoi: SaoiApi, ip?: string): void {
+  registerPlanCard(server)
   for (const [topic, resource] of Object.entries(ABOUT_RESOURCES) as [
     keyof typeof ABOUT_RESOURCES,
     (typeof ABOUT_RESOURCES)[keyof typeof ABOUT_RESOURCES],

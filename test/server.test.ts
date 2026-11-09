@@ -149,7 +149,7 @@ describe('resources and prompts', () => {
   it('lists and reads how Saoi ranks and earns', async () => {
     const list = await asRpc(await modernPost(srv.url, 'resources/list'))
     const uris = (list.result?.['resources'] as { uri: string }[]).map((r) => r.uri).sort()
-    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v2.html'])
+    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v3.html'])
     const read = await asRpc(
       await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),
     )
@@ -257,7 +257,7 @@ describe('tools/call', () => {
     expect(plan).toMatch(/House deposit by November 2028/)
     expect(plan).toMatch(/^Present to the customer:\n- Money found: /)
     expect(plan).toMatch(/Save this plan to the Saoi app: https:\/\/app\.saoi\.ie\/#\/plan\//)
-    expect(plan).toMatch(/net at November 2028/)
+    expect(plan).toMatch(/€[\d,]+ in all at November 2028: /)
     expect(plan).toMatch(/Locked or accessible: /)
     expect(plan).toMatch(/What if:\n- /)
     expect(plan).toMatch(/Deposit guarantee: /)

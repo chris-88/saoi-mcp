@@ -122,6 +122,21 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     }
   }
 
+  /** A folded section: the summary is the tap target (44px), the body is built on demand. */
+  const fold = (title: string, fill: (body: HTMLElement) => void): HTMLElement => {
+    const more = el('details', 'more')
+    more.append(el('summary', '', title))
+    const body = el('div', 'fold')
+    fill(body)
+    more.append(body)
+    return more
+  }
+
+  /**
+   * Compact by default (after the fourth Claude test, on a phone): the title, the money found,
+   * the goal and date, the position with its parts, one line per product and the save button.
+   * Product detail, scenarios, what is not counted and the ranking basis fold away below.
+   */
   const render = (view: PlanCardView): void => {
     root.replaceChildren()
     root.removeAttribute('aria-busy')
@@ -132,88 +147,46 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
 
     const found = el('div', 'found')
     found.append(el('p', 'found-headline', view.moneyFound.headline))
-    for (const line of view.moneyFound.notCounted) found.append(el('p', 'muted small', line))
     root.append(found)
 
-    if (view.goals.length > 0) {
-      const goals = section('Goals')
-      const list = el('ul', 'rows')
-      for (const goal of view.goals) {
-        const item = el('li', 'row')
-        item.append(el('span', 'strong', goal.label), el('span', 'muted small num', goal.detail))
-        list.append(item)
-      }
-      goals.append(list)
-      root.append(goals)
+    const summary = el('section', 'section')
+    for (const goal of view.goals) {
+      const row = el('p', 'row')
+      row.append(el('span', 'strong', goal.label), el('span', 'muted small num', goal.detail))
+      summary.append(row)
     }
+    if (view.position !== null) {
+      const position = el('div', 'position')
+      const top = el('p', 'row')
+      top.append(el('span', 'label', view.position.heading), el('span', 'total num', view.position.total))
+      position.append(top)
+      const parts = el('ul', 'rows')
+      for (const part of view.position.parts) {
+        const item = el('li', 'row small')
+        item.append(el('span', 'muted', part.label), el('span', 'num', part.value))
+        parts.append(item)
+      }
+      position.append(parts)
+      if (view.position.note !== null) position.append(el('p', 'muted small', view.position.note))
+      summary.append(position)
+    }
+    root.append(summary)
 
     if (view.products.length > 0) {
-      const products = section('Products')
-      const list = el('ol', 'products')
+      const products = el('ol', 'products section')
+      products.setAttribute('aria-label', 'Products in the plan')
       for (const product of view.products) {
-        const item = el('li', 'product')
-        const top = el('div', 'row')
-        const name = el('div')
+        const item = el('li', 'row')
+        const name = el('span', 'product-name')
         name.append(
-          el('p', 'strong', product.name),
-          el('p', 'muted small', `${product.provider} · ${product.role}`),
+          el('span', 'strong block', product.name),
+          el('span', 'muted small block num', product.line),
         )
-        top.append(name, el('span', 'strong num', product.rate))
-        item.append(top)
-        if (product.amounts !== '') item.append(el('p', 'num', product.amounts))
-        if (product.projected !== null) item.append(el('p', 'muted small num', product.projected))
-        item.append(el('p', product.guaranteeKnown ? 'small guarantee' : 'small flag', product.guarantee))
-        if (product.checks.length > 0 || product.unknowns !== null) {
-          // Checks and unknowns fold away so the card stays short; the summary says how many.
-          const more = el('details', 'more')
-          const count = product.checks.length
-          more.append(
-            el(
-              'summary',
-              'small',
-              [
-                count === 0 ? '' : `${String(count)} ${count === 1 ? 'check' : 'checks'}`,
-                product.unknowns === null ? '' : 'what is not published',
-              ]
-                .filter((part) => part !== '')
-                .join(' and '),
-            ),
-          )
-          const flags = el('ul', 'flags')
-          for (const check of product.checks) flags.append(el('li', 'small', check))
-          if (product.unknowns !== null) flags.append(el('li', 'small muted', product.unknowns))
-          more.append(flags)
-          item.append(more)
-        }
-        list.append(item)
+        item.append(name, el('span', 'strong num', product.rate))
+        products.append(item)
       }
-      products.append(list)
       root.append(products)
     }
-
-    for (const scenario of view.scenarios) {
-      const block = section(scenario.heading)
-      const table = el('table', 'scenarios')
-      const body = el('tbody')
-      for (const row of scenario.rows) {
-        const tr = el('tr', row.inPlan ? 'in-plan' : '')
-        const label = el('th', '', row.label)
-        label.scope = 'row'
-        if (row.inPlan) label.append(el('span', 'badge', 'in this plan'))
-        if (row.note !== null) label.append(el('span', 'muted small block', row.note))
-        tr.append(label, el('td', 'num strong', row.net))
-        body.append(tr)
-      }
-      table.append(body)
-      block.append(table)
-      root.append(block)
-    }
-
-    const foot = el('footer', 'footer')
-    foot.append(el('p', 'small', view.basis))
-    for (const line of view.footer) foot.append(el('p', 'small muted', line))
-    for (const line of view.attributions) foot.append(el('p', 'small muted', line))
-    root.append(foot)
 
     const actions = el('div', 'actions')
     const button = el('button', 'save', 'Save to Saoi app')
@@ -221,8 +194,80 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     button.onclick = () => {
       void save(view, button)
     }
-    actions.append(el('p', 'small', view.app), button, status)
+    actions.append(button, status, el('p', 'small muted', view.app))
     root.append(actions)
+
+    const folds = el('div', 'folds')
+    if (view.products.length > 0) {
+      folds.append(
+        fold('Product detail and checks', (body) => {
+          for (const product of view.products) {
+            const item = el('div', 'product')
+            item.append(
+              el('p', 'strong', product.name),
+              el(
+                'p',
+                'muted small',
+                `${product.provider} · ${product.role}${product.rate === null ? '' : ` · ${product.rate}`}`,
+              ),
+            )
+            if (product.amounts !== '') item.append(el('p', 'num small', product.amounts))
+            if (product.projected !== null) item.append(el('p', 'muted small num', product.projected))
+            item.append(el('p', product.guaranteeKnown ? 'small guarantee' : 'small flag', product.guarantee))
+            if (product.checks.length > 0 || product.unknowns !== null) {
+              const flags = el('ul', 'flags')
+              for (const check of product.checks) flags.append(el('li', 'small', check))
+              if (product.unknowns !== null) flags.append(el('li', 'small muted', product.unknowns))
+              item.append(flags)
+            }
+            body.append(item)
+          }
+        }),
+      )
+    }
+    if (view.scenarios.length > 0) {
+      folds.append(
+        fold('Scenarios', (body) => {
+          for (const scenario of view.scenarios) {
+            body.append(el('p', 'label', scenario.heading))
+            const table = el('table', 'scenarios')
+            const tbody = el('tbody')
+            for (const row of scenario.rows) {
+              const tr = el('tr', row.inPlan ? 'in-plan' : '')
+              const label = el('th', '', row.label)
+              label.scope = 'row'
+              if (row.inPlan) label.append(el('span', 'badge', 'in this plan'))
+              if (row.note !== null) label.append(el('span', 'muted small block', row.note))
+              tr.append(label, el('td', 'num strong', row.net))
+              tbody.append(tr)
+            }
+            table.append(tbody)
+            body.append(table)
+          }
+        }),
+      )
+    }
+    if (view.moneyFound.notCounted.length > 0) {
+      folds.append(
+        fold('What is not counted', (body) => {
+          for (const line of view.moneyFound.notCounted) body.append(el('p', 'small', line))
+        }),
+      )
+    }
+    folds.append(
+      fold('How it is ranked', (body) => {
+        body.append(el('p', 'small', view.basis))
+        for (const line of view.footer) body.append(el('p', 'small muted', line))
+      }),
+    )
+    root.append(folds)
+
+    const foot = el('footer', 'footer')
+    foot.append(
+      el('p', 'small muted', 'Information, not advice: options with their figures, for you to decide.'),
+    )
+    for (const line of view.attributions) foot.append(el('p', 'small muted', line))
+    root.append(foot)
   }
 
   const showText = (text: string): void => {

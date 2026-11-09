@@ -15,6 +15,7 @@
         { "fromEur": 0, "toEur": 30000, "aerPct": 3 },
         { "fromEur": 30000, "toEur": null, "aerPct": 0.5 }
       ],
+      "thresholdBonus": null,
       "lumpSumAerPct": null,
       "introductory": { "months": 12, "thenAerPct": 2 },
       "ladder": [],
@@ -48,6 +49,7 @@
       "basis": "recorded_by_saoi"
     },
     "unknowns": [],
+    "rateConfirmed": true,
     "checks": [
       "Minimum age 16.",
       "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."

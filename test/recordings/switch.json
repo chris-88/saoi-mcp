@@ -44,7 +44,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -54,6 +54,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
         ]
@@ -121,7 +122,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -131,6 +132,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "rateConfirmed": true,
         "checks": [
           "A high-value-mortgage rate: for larger loans only.",
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
@@ -199,7 +201,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -209,6 +211,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
         ]
@@ -275,7 +278,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -285,6 +288,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
         ]
@@ -351,7 +355,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "providerUrl": "https://www.avantmoney.ie/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -361,6 +365,7 @@
         "platform": null,
         "depositGuarantee": null,
         "unknowns": [{ "field": "rates.aprcPct", "meaning": "the APRC" }],
+        "rateConfirmed": true,
         "checks": [
           "Check eligibility with Avant Money: CCPC does not record who can open it (for example, whether an account with Avant Money is needed first)."
         ]
@@ -397,6 +402,6 @@
     "Repayments at the initial rate for the fixed period, then the provider’s stated follow-on rate for the rest of the term (it is a “potential” rate and can change). Variable rates are assumed to stay as published.",
     "Cashback is counted where CCPC states a percentage. Fees are listed as the source states them and not added."
   ],
-  "dataCheckedAt": "2026-11-09T12:14:36.808Z",
+  "dataCheckedAt": "2026-11-09T13:16:08.102Z",
   "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"]
 }

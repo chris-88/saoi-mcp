@@ -7,311 +7,6 @@
     {
       "rank": 1,
       "product": {
-        "id": "nordax:deposit.c7830",
-        "provider": "nordax",
-        "providerName": "Nordax Bank",
-        "name": "Fixed Term Deposit",
-        "category": "deposit",
-        "terms": {
-          "kind": "deposit",
-          "access": "fixed_term",
-          "noticeDays": 0,
-          "aerPct": 3.45,
-          "basis": "fixed",
-          "bands": [],
-          "lumpSumAerPct": null,
-          "introductory": null,
-          "ladder": [{ "months": 24, "aerPct": 3.45, "productId": "deposit.c7830" }],
-          "takesMonthly": null,
-          "takesLumpSum": true,
-          "minMonthlyEur": null,
-          "maxMonthlyEur": null,
-          "minLumpSumEur": 2000,
-          "maxLumpSumEur": 100000,
-          "dirtApplies": true,
-          "bonus": null
-        },
-        "provenance": {
-          "source": "ccpc",
-          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
-          "providerUrl": "https://www.raisin.com/en-ie/bank/nordax-bank-ab-publ/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
-          "lastChangedAt": null,
-          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
-          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
-          "rows": [{ "source": "ccpc", "productId": "deposit.c7830" }],
-          "preferredOver": []
-        },
-        "platform": {
-          "name": "Raisin",
-          "note": "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank."
-        },
-        "depositGuarantee": {
-          "scheme": "Swedish Deposit Guarantee Scheme",
-          "country": "Sweden",
-          "coverEur": 100000,
-          "basis": "stated_by_source"
-        },
-        "unknowns": [
-          { "field": "conditions.minAge", "meaning": "the minimum age to open it" },
-          { "field": "conditions.takesMonthly", "meaning": "whether it takes regular monthly saving" }
-        ],
-        "checks": [
-          "Needs a Raisin account, opened online at raisin.ie.",
-          "Check eligibility with Nordax Bank: CCPC does not record who can open it (for example, whether an account with Nordax Bank is needed first)."
-        ]
-      },
-      "figures": {
-        "kind": "savings",
-        "horizonMonths": 24,
-        "knownMonths": 24,
-        "termMonths": 24,
-        "paidIn": 25000,
-        "grossInterest": 1744.94,
-        "dirt": 575.83,
-        "netInterest": 1169.11,
-        "endBalance": 26169.11,
-        "netRatePct": 2.31,
-        "stop": null,
-        "notPlaced": { "lumpSum": 0, "monthly": 0 }
-      },
-      "flags": [
-        "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank.",
-        "Protected by the Swedish Deposit Guarantee Scheme up to €100,000, not the Irish scheme.",
-        "Not stated by the source: the minimum age to open it.",
-        "Not stated by the source: whether it takes regular monthly saving.",
-        "Needs a Raisin account, opened online at raisin.ie.",
-        "Check eligibility with Nordax Bank: CCPC does not record who can open it (for example, whether an account with Nordax Bank is needed first)."
-      ]
-    },
-    {
-      "rank": 2,
-      "product": {
-        "id": "bunq:deposit.c3147",
-        "provider": "bunq",
-        "providerName": "bunq",
-        "name": "bunq Free",
-        "category": "deposit",
-        "terms": {
-          "kind": "deposit",
-          "access": "instant",
-          "noticeDays": 0,
-          "aerPct": 3.11,
-          "basis": "variable",
-          "bands": [{ "fromEur": 0, "toEur": null, "aerPct": 3.11 }],
-          "lumpSumAerPct": null,
-          "introductory": null,
-          "ladder": [],
-          "takesMonthly": true,
-          "takesLumpSum": true,
-          "minMonthlyEur": null,
-          "maxMonthlyEur": null,
-          "minLumpSumEur": null,
-          "maxLumpSumEur": null,
-          "dirtApplies": true,
-          "bonus": null
-        },
-        "provenance": {
-          "source": "ccpc",
-          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
-          "providerUrl": "https://www.bunq.com/plans/free",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
-          "lastChangedAt": null,
-          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
-          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
-          "rows": [{ "source": "ccpc", "productId": "deposit.c3147" }],
-          "preferredOver": []
-        },
-        "platform": null,
-        "depositGuarantee": {
-          "scheme": "Dutch Deposit Guarantee Scheme",
-          "country": "Netherlands",
-          "coverEur": 100000,
-          "basis": "stated_by_source"
-        },
-        "unknowns": [{ "field": "conditions.minAge", "meaning": "the minimum age to open it" }],
-        "checks": [
-          "Check eligibility with bunq: CCPC does not record who can open it (for example, whether an account with bunq is needed first)."
-        ]
-      },
-      "figures": {
-        "kind": "savings",
-        "horizonMonths": 24,
-        "knownMonths": 24,
-        "termMonths": null,
-        "paidIn": 25000,
-        "grossInterest": 1571.2,
-        "dirt": 518.5,
-        "netInterest": 1052.7,
-        "endBalance": 26052.7,
-        "netRatePct": 2.08,
-        "stop": null,
-        "notPlaced": { "lumpSum": 0, "monthly": 0 }
-      },
-      "flags": [
-        "Protected by the Dutch Deposit Guarantee Scheme up to €100,000, not the Irish scheme.",
-        "Variable rate: it can change.",
-        "Not stated by the source: the minimum age to open it.",
-        "Check eligibility with bunq: CCPC does not record who can open it (for example, whether an account with bunq is needed first)."
-      ]
-    },
-    {
-      "rank": 3,
-      "product": {
-        "id": "banca_cf:deposit.c7028",
-        "provider": "banca_cf",
-        "providerName": "Banca CF+",
-        "name": "Demand Deposit - Easy access",
-        "category": "deposit",
-        "terms": {
-          "kind": "deposit",
-          "access": "instant",
-          "noticeDays": 0,
-          "aerPct": 2.52,
-          "basis": "variable",
-          "bands": [{ "fromEur": 0, "toEur": null, "aerPct": 2.52 }],
-          "lumpSumAerPct": null,
-          "introductory": null,
-          "ladder": [],
-          "takesMonthly": true,
-          "takesLumpSum": true,
-          "minMonthlyEur": null,
-          "maxMonthlyEur": null,
-          "minLumpSumEur": 1,
-          "maxLumpSumEur": 100000,
-          "dirtApplies": true,
-          "bonus": null
-        },
-        "provenance": {
-          "source": "ccpc",
-          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
-          "providerUrl": "https://www.raisin.com/en-ie/bank/banca-cf/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
-          "lastChangedAt": null,
-          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
-          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
-          "rows": [{ "source": "ccpc", "productId": "deposit.c7028" }],
-          "preferredOver": []
-        },
-        "platform": {
-          "name": "Raisin",
-          "note": "Opened through Raisin (raisin.ie), not with Banca CF+ directly: a free Raisin account comes first. The deposit is held by Banca CF+."
-        },
-        "depositGuarantee": {
-          "scheme": "Italian Deposit Guarantee Scheme",
-          "country": "Italy",
-          "coverEur": 100000,
-          "basis": "stated_by_source"
-        },
-        "unknowns": [{ "field": "conditions.minAge", "meaning": "the minimum age to open it" }],
-        "checks": [
-          "Needs a Raisin account, opened online at raisin.ie.",
-          "Check eligibility with Banca CF+: CCPC does not record who can open it (for example, whether an account with Banca CF+ is needed first)."
-        ]
-      },
-      "figures": {
-        "kind": "savings",
-        "horizonMonths": 24,
-        "knownMonths": 24,
-        "termMonths": null,
-        "paidIn": 25000,
-        "grossInterest": 1270.64,
-        "dirt": 419.31,
-        "netInterest": 851.33,
-        "endBalance": 25851.33,
-        "netRatePct": 1.69,
-        "stop": null,
-        "notPlaced": { "lumpSum": 0, "monthly": 0 }
-      },
-      "flags": [
-        "Opened through Raisin (raisin.ie), not with Banca CF+ directly: a free Raisin account comes first. The deposit is held by Banca CF+.",
-        "Protected by the Italian Deposit Guarantee Scheme up to €100,000, not the Irish scheme.",
-        "Variable rate: it can change.",
-        "Not stated by the source: the minimum age to open it.",
-        "Needs a Raisin account, opened online at raisin.ie.",
-        "Check eligibility with Banca CF+: CCPC does not record who can open it (for example, whether an account with Banca CF+ is needed first)."
-      ]
-    },
-    {
-      "rank": 4,
-      "product": {
-        "id": "nordax:deposit.c8901",
-        "provider": "nordax",
-        "providerName": "Nordax Bank",
-        "name": "Demand Deposit - Easy access",
-        "category": "deposit",
-        "terms": {
-          "kind": "deposit",
-          "access": "instant",
-          "noticeDays": 0,
-          "aerPct": 2.52,
-          "basis": "variable",
-          "bands": [{ "fromEur": 0, "toEur": null, "aerPct": 2.52 }],
-          "lumpSumAerPct": null,
-          "introductory": null,
-          "ladder": [],
-          "takesMonthly": true,
-          "takesLumpSum": true,
-          "minMonthlyEur": null,
-          "maxMonthlyEur": null,
-          "minLumpSumEur": 1,
-          "maxLumpSumEur": 100000,
-          "dirtApplies": true,
-          "bonus": null
-        },
-        "provenance": {
-          "source": "ccpc",
-          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
-          "providerUrl": "https://www.raisin.com/en-ie/bank/nordax-bank-ab-publ/",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
-          "lastChangedAt": null,
-          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
-          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
-          "rows": [{ "source": "ccpc", "productId": "deposit.c8901" }],
-          "preferredOver": []
-        },
-        "platform": {
-          "name": "Raisin",
-          "note": "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank."
-        },
-        "depositGuarantee": {
-          "scheme": "Swedish Deposit Guarantee Scheme",
-          "country": "Sweden",
-          "coverEur": 100000,
-          "basis": "stated_by_source"
-        },
-        "unknowns": [{ "field": "conditions.minAge", "meaning": "the minimum age to open it" }],
-        "checks": [
-          "Needs a Raisin account, opened online at raisin.ie.",
-          "Check eligibility with Nordax Bank: CCPC does not record who can open it (for example, whether an account with Nordax Bank is needed first)."
-        ]
-      },
-      "figures": {
-        "kind": "savings",
-        "horizonMonths": 24,
-        "knownMonths": 24,
-        "termMonths": null,
-        "paidIn": 25000,
-        "grossInterest": 1270.64,
-        "dirt": 419.31,
-        "netInterest": 851.33,
-        "endBalance": 25851.33,
-        "netRatePct": 1.69,
-        "stop": null,
-        "notPlaced": { "lumpSum": 0, "monthly": 0 }
-      },
-      "flags": [
-        "Opened through Raisin (raisin.ie), not with Nordax Bank directly: a free Raisin account comes first. The deposit is held by Nordax Bank.",
-        "Protected by the Swedish Deposit Guarantee Scheme up to €100,000, not the Irish scheme.",
-        "Variable rate: it can change.",
-        "Not stated by the source: the minimum age to open it.",
-        "Needs a Raisin account, opened online at raisin.ie.",
-        "Check eligibility with Nordax Bank: CCPC does not record who can open it (for example, whether an account with Nordax Bank is needed first)."
-      ]
-    },
-    {
-      "rank": 5,
-      "product": {
         "id": "aib:deposit.ladder_personal_fixed_term_deposit",
         "provider": "aib",
         "providerName": "AIB",
@@ -324,6 +19,7 @@
           "aerPct": null,
           "basis": "fixed",
           "bands": [],
+          "thresholdBonus": null,
           "lumpSumAerPct": null,
           "introductory": null,
           "ladder": [
@@ -344,7 +40,7 @@
           "source": "ccpc",
           "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
           "providerUrl": "https://aib.ie/our-products/savings-and-deposits/personal-fixed-term-deposit-account",
-          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
           "lastChangedAt": null,
           "firstRecordedAt": "2026-11-09T12:14:36.808Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
@@ -366,6 +62,7 @@
           { "field": "conditions.minAge", "meaning": "the minimum age to open it" },
           { "field": "conditions.takesMonthly", "meaning": "whether it takes regular monthly saving" }
         ],
+        "rateConfirmed": true,
         "checks": [
           "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
         ]
@@ -389,10 +86,348 @@
         "Not stated by the source: whether it takes regular monthly saving.",
         "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
       ]
+    },
+    {
+      "rank": 2,
+      "product": {
+        "id": "moco:deposit.c8548",
+        "provider": "moco",
+        "providerName": "MoCo",
+        "name": "MoCo EasySaver",
+        "category": "deposit",
+        "terms": {
+          "kind": "deposit",
+          "access": "instant",
+          "noticeDays": 0,
+          "aerPct": 2.1,
+          "basis": "variable",
+          "bands": [{ "fromEur": 0, "toEur": null, "aerPct": 2.1 }],
+          "thresholdBonus": null,
+          "lumpSumAerPct": null,
+          "introductory": null,
+          "ladder": [],
+          "takesMonthly": true,
+          "takesLumpSum": true,
+          "minMonthlyEur": null,
+          "maxMonthlyEur": null,
+          "minLumpSumEur": 1,
+          "maxLumpSumEur": null,
+          "dirtApplies": true,
+          "bonus": null
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
+          "providerUrl": "https://www.moco.ie/",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [{ "source": "ccpc", "productId": "deposit.c8548" }],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": { "scheme": null, "country": null, "coverEur": null, "basis": "unknown" },
+        "unknowns": [
+          { "field": "conditions.minAge", "meaning": "the minimum age to open it" },
+          { "field": "depositGuarantee", "meaning": "which deposit guarantee scheme covers it" }
+        ],
+        "rateConfirmed": false,
+        "checks": [
+          "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+          "Check eligibility with MoCo: CCPC does not record who can open it (for example, whether an account with MoCo is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "savings",
+        "horizonMonths": 24,
+        "knownMonths": 24,
+        "termMonths": null,
+        "paidIn": 25000,
+        "grossInterest": 1057.39,
+        "dirt": 348.94,
+        "netInterest": 708.45,
+        "endBalance": 25708.45,
+        "netRatePct": 1.41,
+        "stop": null,
+        "notPlaced": { "lumpSum": 0, "monthly": 0 }
+      },
+      "flags": [
+        "Introductory or tiered rate not confirmed: CCPC states this one rate and nothing after it, and Saoi has not read the provider’s own terms. The provider may pay it only for a period or only on part of the balance; check its terms.",
+        "Which deposit guarantee scheme covers it is not stated.",
+        "Variable rate: it can change.",
+        "Not stated by the source: the minimum age to open it.",
+        "Not stated by the source: which deposit guarantee scheme covers it.",
+        "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+        "Check eligibility with MoCo: CCPC does not record who can open it (for example, whether an account with MoCo is needed first)."
+      ]
+    },
+    {
+      "rank": 3,
+      "product": {
+        "id": "bunq:deposit.ladder_bunq_term_deposits",
+        "provider": "bunq",
+        "providerName": "bunq",
+        "name": "bunq Term Deposits",
+        "category": "deposit",
+        "terms": {
+          "kind": "deposit",
+          "access": "fixed_term",
+          "noticeDays": 0,
+          "aerPct": null,
+          "basis": "fixed",
+          "bands": [],
+          "thresholdBonus": null,
+          "lumpSumAerPct": null,
+          "introductory": null,
+          "ladder": [
+            { "months": 3, "aerPct": 1.76, "productId": "deposit.c8733" },
+            { "months": 6, "aerPct": 1.86, "productId": "deposit.c8732" },
+            { "months": 12, "aerPct": 2.11, "productId": "deposit.c8731" },
+            { "months": 24, "aerPct": 1.91, "productId": "deposit.c8734" }
+          ],
+          "takesMonthly": null,
+          "takesLumpSum": true,
+          "minMonthlyEur": null,
+          "maxMonthlyEur": null,
+          "minLumpSumEur": 1000,
+          "maxLumpSumEur": 100000,
+          "dirtApplies": true,
+          "bonus": null
+        },
+        "provenance": {
+          "source": "ccpc",
+          "sourceUrl": "https://www.ccpc.ie/manage-your-money/saving-and-investments/compare-savings-accounts/lump-sum-savings-comparison-tool",
+          "providerUrl": "https://www.bunq.com/en-ie/personal-account/banking-features/term-deposits",
+          "checkedAt": "2026-11-09T13:16:08.102Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T12:14:36.808Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "rows": [
+            { "source": "ccpc", "productId": "deposit.c8733" },
+            { "source": "ccpc", "productId": "deposit.c8732" },
+            { "source": "ccpc", "productId": "deposit.c8731" },
+            { "source": "ccpc", "productId": "deposit.c8734" }
+          ],
+          "preferredOver": []
+        },
+        "platform": null,
+        "depositGuarantee": { "scheme": null, "country": null, "coverEur": null, "basis": "unknown" },
+        "unknowns": [
+          { "field": "conditions.minAge", "meaning": "the minimum age to open it" },
+          { "field": "conditions.takesMonthly", "meaning": "whether it takes regular monthly saving" },
+          { "field": "depositGuarantee", "meaning": "which deposit guarantee scheme covers it" }
+        ],
+        "rateConfirmed": true,
+        "checks": [
+          "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+          "Check eligibility with bunq: CCPC does not record who can open it (for example, whether an account with bunq is needed first)."
+        ]
+      },
+      "figures": {
+        "kind": "savings",
+        "horizonMonths": 24,
+        "knownMonths": 24,
+        "termMonths": 24,
+        "paidIn": 25000,
+        "grossInterest": 961.11,
+        "dirt": 317.17,
+        "netInterest": 643.94,
+        "endBalance": 25643.94,
+        "netRatePct": 1.28,
+        "stop": null,
+        "notPlaced": { "lumpSum": 0, "monthly": 0 }
+      },
+      "flags": [
+        "Which deposit guarantee scheme covers it is not stated.",
+        "Not stated by the source: the minimum age to open it.",
+        "Not stated by the source: whether it takes regular monthly saving.",
+        "Not stated by the source: which deposit guarantee scheme covers it.",
+        "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+        "Check eligibility with bunq: CCPC does not record who can open it (for example, whether an account with bunq is needed first)."
+      ]
+    },
+    {
+      "rank": 4,
+      "product": {
+        "id": "boi:savings.advantage_fixed",
+        "provider": "boi",
+        "providerName": "Bank of Ireland",
+        "name": "Advantage Fixed Term Deposit Account",
+        "category": "deposit",
+        "terms": {
+          "kind": "deposit",
+          "access": "fixed_term",
+          "noticeDays": null,
+          "aerPct": null,
+          "basis": "fixed",
+          "bands": [],
+          "thresholdBonus": null,
+          "lumpSumAerPct": null,
+          "introductory": null,
+          "ladder": [
+            { "months": 6, "aerPct": 2.01, "productId": "savings.advantage_fixed" },
+            { "months": 12, "aerPct": 2.4, "productId": "savings.advantage_fixed" },
+            { "months": 18, "aerPct": 2.48, "productId": "savings.advantage_fixed" }
+          ],
+          "takesMonthly": false,
+          "takesLumpSum": true,
+          "minMonthlyEur": null,
+          "maxMonthlyEur": null,
+          "minLumpSumEur": 5000,
+          "maxLumpSumEur": null,
+          "dirtApplies": true,
+          "bonus": null
+        },
+        "provenance": {
+          "source": "bank",
+          "sourceUrl": "https://personalbanking.bankofireland.com/save-and-invest/savings/fixed-term-savings-accounts/advantage-deposit-account/features-and-benefits/",
+          "providerUrl": null,
+          "checkedAt": "2026-11-09T12:14:36.808Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T11:11:34.734Z",
+          "attribution": null,
+          "rows": [{ "source": "bank", "productId": "savings.advantage_fixed" }],
+          "preferredOver": [
+            {
+              "source": "ccpc",
+              "productId": "deposit.c5596",
+              "providerProductName": "Advantage 6 Month Fixed Term Account 25% Access"
+            },
+            {
+              "source": "ccpc",
+              "productId": "deposit.c4161",
+              "providerProductName": "Advantage 12 Month Fixed Term Account 25% Access"
+            },
+            {
+              "source": "ccpc",
+              "productId": "deposit.c5330",
+              "providerProductName": "Advantage 18 Month Fixed Term Account 25% Access"
+            }
+          ]
+        },
+        "platform": null,
+        "depositGuarantee": {
+          "scheme": "Deposit Guarantee Scheme (Central Bank of Ireland)",
+          "country": "Ireland",
+          "coverEur": 100000,
+          "basis": "recorded_by_saoi"
+        },
+        "unknowns": [],
+        "rateConfirmed": true,
+        "checks": [
+          "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."
+        ]
+      },
+      "figures": {
+        "kind": "savings",
+        "horizonMonths": 24,
+        "knownMonths": 18,
+        "termMonths": 18,
+        "paidIn": 25000,
+        "grossInterest": 935.15,
+        "dirt": 308.6,
+        "netInterest": 626.55,
+        "endBalance": 25626.55,
+        "netRatePct": 1.66,
+        "stop": {
+          "afterMonths": 18,
+          "reason": "The 18-month term ends at month 18 and the balance is returned. What it earns after that is not known, so the figures stop there."
+        },
+        "notPlaced": { "lumpSum": 0, "monthly": 0 }
+      },
+      "flags": [
+        "The 18-month term ends at month 18 and the balance is returned. What it earns after that is not known, so the figures stop there.",
+        "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."
+      ]
+    },
+    {
+      "rank": 5,
+      "product": {
+        "id": "bunq:deposit.bunq_savings",
+        "provider": "bunq",
+        "providerName": "bunq",
+        "name": "bunq Savings Account",
+        "category": "deposit",
+        "terms": {
+          "kind": "deposit",
+          "access": "instant",
+          "noticeDays": 0,
+          "aerPct": 3.11,
+          "basis": "variable",
+          "bands": [{ "fromEur": 0, "toEur": null, "aerPct": 3.11 }],
+          "thresholdBonus": {
+            "bonusAerPct": 3.11,
+            "resetMonths": [1, 7],
+            "lookbackMonths": 6,
+            "baseBands": [
+              { "fromEur": 0, "toEur": 10000, "aerPct": 1.61 },
+              { "fromEur": 10000, "toEur": null, "aerPct": 1.51 }
+            ]
+          },
+          "lumpSumAerPct": null,
+          "introductory": null,
+          "ladder": [],
+          "takesMonthly": true,
+          "takesLumpSum": true,
+          "minMonthlyEur": null,
+          "maxMonthlyEur": null,
+          "minLumpSumEur": null,
+          "maxLumpSumEur": null,
+          "dirtApplies": true,
+          "bonus": null
+        },
+        "provenance": {
+          "source": "bank",
+          "sourceUrl": "https://www.bunq.com/en-ie/personal/features/savings-accounts",
+          "providerUrl": null,
+          "checkedAt": "2026-11-09T13:38:43.806Z",
+          "lastChangedAt": null,
+          "firstRecordedAt": "2026-11-09T13:38:43.806Z",
+          "attribution": null,
+          "rows": [{ "source": "bank", "productId": "deposit.bunq_savings" }],
+          "preferredOver": [
+            { "source": "ccpc", "productId": "deposit.c3147", "providerProductName": "bunq Free" }
+          ]
+        },
+        "platform": null,
+        "depositGuarantee": {
+          "scheme": "Dutch Deposit Guarantee Scheme",
+          "country": "Netherlands",
+          "coverEur": 100000,
+          "basis": "stated_by_source"
+        },
+        "unknowns": [],
+        "rateConfirmed": true,
+        "checks": [
+          "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+          "Check eligibility with bunq: the rates and limits were read from its own page; who can open it is not recorded."
+        ]
+      },
+      "figures": {
+        "kind": "savings",
+        "horizonMonths": 24,
+        "knownMonths": 24,
+        "termMonths": null,
+        "paidIn": 25000,
+        "grossInterest": 811.89,
+        "dirt": 267.92,
+        "netInterest": 543.97,
+        "endBalance": 25543.97,
+        "netRatePct": 1.08,
+        "stop": null,
+        "notPlaced": { "lumpSum": 0, "monthly": 0 }
+      },
+      "flags": [
+        "Protected by the Dutch Deposit Guarantee Scheme up to €100,000, not the Irish scheme.",
+        "Variable rate: it can change.",
+        "Tax: a bank outside Ireland may not take DIRT at source; the interest is then declared to Revenue. The figures take DIRT off at 33% either way.",
+        "Check eligibility with bunq: the rates and limits were read from its own page; who can open it is not recorded."
+      ]
     }
   ],
-  "matched": 29,
-  "excluded": [{ "reason": "Every term ends after the 24-month horizon", "count": 4 }],
+  "matched": 22,
+  "excluded": [{ "reason": "Every term ends after the 24-month horizon", "count": 3 }],
   "assumptions": [
     "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
     "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",

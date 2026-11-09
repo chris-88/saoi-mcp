@@ -187,7 +187,7 @@ describe('tools/call', () => {
       undefined,
     )
     expect(text(body)).toMatch(/Ranked by highest net return/)
-    expect(text(body)).toMatch(/Raisin/)
+    expect(text(body)).toMatch(/Check eligibility/)
     expect(text(body)).toMatch(/Competition and Consumer Protection Commission/)
     expect(body.result?.['structuredContent']).toMatchObject({ ranking: { objective: 'highest_net_return' } })
   })

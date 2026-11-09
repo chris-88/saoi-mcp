@@ -3,19 +3,19 @@
     {
       "kind": "idle_money",
       "headline": "€25,000 in Current account earns €0 a year after DIRT",
-      "detail": "At 0% it earns €0 a year. The highest instant-access rate Saoi holds (bunq Free) would pay about €520 after DIRT on the same money, with access kept.",
-      "figures": { "balance": 25000, "earnsNow": 0, "couldEarnInstantAccess": 520, "difference": 520 }
+      "detail": "At 0% it earns €0 a year. The highest instant-access rate Saoi holds (MoCo EasySaver) would pay about €352.50 after DIRT on the same money, with access kept.",
+      "figures": { "balance": 25000, "earnsNow": 0, "couldEarnInstantAccess": 352.5, "difference": 352.5 }
     },
     {
       "kind": "debt_costs_more_than_savings_earn",
       "headline": "Car loan at 9% costs more than any savings account earns",
-      "detail": "€9,000 at 9% costs about €810 a year in interest. The same money in the highest-paying instant-access account would earn about €187.20 after DIRT. Interest still to pay at the current repayment: €1,274.96. €25,000 is held in savings.",
+      "detail": "€9,000 at 9% costs about €810 a year in interest. The same money in the highest-paying instant-access account would earn about €126.90 after DIRT. Interest still to pay at the current repayment: €1,274.96. €25,000 is held in savings.",
       "figures": {
         "balance": 9000,
         "ratePct": 9,
         "annualInterest": 810,
-        "bestSavingsNetRatePct": 2.08,
-        "sameMoneyInSavingsEarns": 187.2,
+        "bestSavingsNetRatePct": 1.41,
+        "sameMoneyInSavingsEarns": 126.9,
         "interestRemaining": 1274.96
       }
     }
@@ -37,6 +37,6 @@
     "Variable rates are assumed to stay as published.",
     "Goal pace counts savings held and monthly saving before interest; every goal is set against all savings held."
   ],
-  "dataCheckedAt": "2026-11-09T12:14:36.808Z",
+  "dataCheckedAt": "2026-11-09T13:16:08.102Z",
   "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"]
 }

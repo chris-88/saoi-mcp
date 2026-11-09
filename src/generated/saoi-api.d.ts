@@ -2800,7 +2800,7 @@ export interface paths {
         put?: never;
         /**
          * Search and rank Irish financial products for the customer’s own figures
-         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), a Raisin-platform flag with the home deposit guarantee, and eligibility to check. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
+         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), its deposit guarantee, and eligibility to check. Providers that operate in Ireland only. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated and stateless: nothing sent is stored.
          */
         post: {
             parameters: {
@@ -7566,6 +7566,17 @@ export interface components {
                         maxMonthlyEur: number | null;
                         minLumpSumEur: number | null;
                         maxLumpSumEur: number | null;
+                        /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                        thresholdBonus: {
+                            bonusAerPct: number;
+                            resetMonths: number[];
+                            lookbackMonths: number;
+                            baseBands: {
+                                fromEur: number;
+                                toEur: number | null;
+                                aerPct: number;
+                            }[];
+                        } | null;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -7693,6 +7704,8 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                    rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
                     checks: string[];
                 };
@@ -7790,8 +7803,6 @@ export interface components {
              */
             access?: "instant" | "notice" | "fixed_term" | "any";
             maxNoticeDays?: number;
-            /** @description Include products opened through a deposit platform (Raisin). Default true; they are flagged. */
-            includePlatforms?: boolean;
             providers?: string[];
             /**
              * @description Mortgages: whose list to search. Default first_time_buyer.
@@ -7876,6 +7887,17 @@ export interface components {
                     maxMonthlyEur: number | null;
                     minLumpSumEur: number | null;
                     maxLumpSumEur: number | null;
+                    /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                    thresholdBonus: {
+                        bonusAerPct: number;
+                        resetMonths: number[];
+                        lookbackMonths: number;
+                        baseBands: {
+                            fromEur: number;
+                            toEur: number | null;
+                            aerPct: number;
+                        }[];
+                    } | null;
                     /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                     dirtApplies: boolean;
                     /** @description A conditional bonus, kept apart from interest. */
@@ -8003,6 +8025,8 @@ export interface components {
                     /** @description What is not known, in words. */
                     meaning: string;
                 }[];
+                /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                rateConfirmed: boolean;
                 /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
                 checks: string[];
             };
@@ -8170,6 +8194,17 @@ export interface components {
                         maxMonthlyEur: number | null;
                         minLumpSumEur: number | null;
                         maxLumpSumEur: number | null;
+                        /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                        thresholdBonus: {
+                            bonusAerPct: number;
+                            resetMonths: number[];
+                            lookbackMonths: number;
+                            baseBands: {
+                                fromEur: number;
+                                toEur: number | null;
+                                aerPct: number;
+                            }[];
+                        } | null;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -8297,6 +8332,8 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                    rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
                     checks: string[];
                 };
@@ -8388,7 +8425,6 @@ export interface components {
             monthly?: number;
             /** @description A goal: the month it is reached is reported. */
             targetAmount?: number;
-            includePlatforms?: boolean;
         };
         MortgageCalculationResult: {
             /** @enum {string} */
@@ -8471,6 +8507,17 @@ export interface components {
                         maxMonthlyEur: number | null;
                         minLumpSumEur: number | null;
                         maxLumpSumEur: number | null;
+                        /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                        thresholdBonus: {
+                            bonusAerPct: number;
+                            resetMonths: number[];
+                            lookbackMonths: number;
+                            baseBands: {
+                                fromEur: number;
+                                toEur: number | null;
+                                aerPct: number;
+                            }[];
+                        } | null;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -8598,6 +8645,8 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                    rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
                     checks: string[];
                 };
@@ -8693,6 +8742,17 @@ export interface components {
                         maxMonthlyEur: number | null;
                         minLumpSumEur: number | null;
                         maxLumpSumEur: number | null;
+                        /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                        thresholdBonus: {
+                            bonusAerPct: number;
+                            resetMonths: number[];
+                            lookbackMonths: number;
+                            baseBands: {
+                                fromEur: number;
+                                toEur: number | null;
+                                aerPct: number;
+                            }[];
+                        } | null;
                         /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                         dirtApplies: boolean;
                         /** @description A conditional bonus, kept apart from interest. */
@@ -8820,6 +8880,8 @@ export interface components {
                         /** @description What is not known, in words. */
                         meaning: string;
                     }[];
+                    /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                    rateConfirmed: boolean;
                     /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
                     checks: string[];
                 };
@@ -8980,6 +9042,17 @@ export interface components {
                             maxMonthlyEur: number | null;
                             minLumpSumEur: number | null;
                             maxLumpSumEur: number | null;
+                            /** @description A bonus that gives way to base rates (bunq): every euro earns the bonus until the first reset (the first day of each month in `resetMonths`); then the threshold is the highest balance of the past `lookbackMonths`, the balance up to it earns `baseBands`, and only the part above it earns the bonus. */
+                            thresholdBonus: {
+                                bonusAerPct: number;
+                                resetMonths: number[];
+                                lookbackMonths: number;
+                                baseBands: {
+                                    fromEur: number;
+                                    toEur: number | null;
+                                    aerPct: number;
+                                }[];
+                            } | null;
                             /** @description Whether DIRT (33%) is deducted from interest. State Savings products are DIRT-free. */
                             dirtApplies: boolean;
                             /** @description A conditional bonus, kept apart from interest. */
@@ -9107,6 +9180,8 @@ export interface components {
                             /** @description What is not known, in words. */
                             meaning: string;
                         }[];
+                        /** @description False for a savings or deposit rate read only from CCPC with nothing stated about what follows it: the provider may pay it only for a period, or only on part of the balance. Shown as a flag when it ranks in the top three. */
+                        rateConfirmed: boolean;
                         /** @description Eligibility the data cannot confirm. The source does not record who can open a product, so check with the provider. */
                         checks: string[];
                     };
@@ -9365,8 +9440,6 @@ export interface components {
             }[];
             /** @description With an `emergency_fund` goal and no target: months of outgoings to hold. Default 3. */
             emergencyFundMonths?: number;
-            /** @description Allow products opened through Raisin. Default true. */
-            includePlatforms?: boolean;
             /** @description The most accounts the plan may open. Default 5. */
             maxAccounts?: number;
         };
@@ -10198,6 +10271,16 @@ export interface components {
                     }[];
                     termMonths?: number;
                     noticeDays?: number;
+                    thresholdBonus?: {
+                        bonusAerPct: number;
+                        resetMonths: number[];
+                        lookbackMonths: number;
+                        baseTiers: {
+                            minEur: number;
+                            maxEur: number | null;
+                            aerPct: number;
+                        }[];
+                    };
                 } | {
                     /** @enum {string} */
                     kind: "mortgage";

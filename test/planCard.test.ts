@@ -16,13 +16,13 @@ afterEach(async () => {
 })
 
 describe('plan card over the protocol', () => {
-  it('saoi_build_plan names the card; no other tool does', async () => {
+  it('saoi_money_check and saoi_build_plan name the card; no other tool does', async () => {
     const tools = (await result(await modernPost(srv.url, 'tools/list')))['tools'] as {
       name: string
       _meta?: Record<string, unknown>
     }[]
     const withUi = tools.filter((tool) => tool._meta?.['ui'] !== undefined)
-    expect(withUi.map((tool) => tool.name)).toEqual(['saoi_build_plan'])
+    expect(withUi.map((tool) => tool.name).sort()).toEqual(['saoi_build_plan', 'saoi_money_check'])
     expect(withUi[0]?._meta).toEqual({ ui: { resourceUri: PLAN_CARD_URI }, 'ui/resourceUri': PLAN_CARD_URI })
   })
 
@@ -65,7 +65,7 @@ describe('plan card over the protocol', () => {
         'saoi_build_plan',
       ),
     )
-    expect(called['structuredContent']).toEqual(recorded.plan)
+    expect(called['structuredContent']).toEqual(recorded.planPresented)
     expect((called['content'] as { text: string }[])[0]?.text).toMatch(/House deposit by November 2028/)
   })
 })

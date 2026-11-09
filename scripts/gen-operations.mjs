@@ -21,6 +21,7 @@ const out = new URL('../src/generated/operations.ts', import.meta.url)
 
 /** Tool or resource name → the saoi-api operation it wraps, and fields the adapter fills. */
 const OPERATIONS = {
+  saoi_money_check: { method: 'post', path: '/api/calc/money-check' },
   saoi_review_situation: { method: 'post', path: '/api/calc/review-situation' },
   saoi_search_products: { method: 'post', path: '/api/market/search' },
   saoi_product: { method: 'get', path: '/api/market/products/{id}' },

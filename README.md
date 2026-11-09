@@ -12,33 +12,34 @@
 
 An [MCP](https://modelcontextprotocol.io) server for Saoi: it compares Irish savings, deposit, mortgage, loan, credit card and current account products against the customer's own figures, inside whichever AI the customer already uses. The customer's AI talks; Saoi supplies the facts and the arithmetic (interest after DIRT, repayments, total cost, the month a goal is reached). Live at `https://mcp.saoi.ie/mcp`.
 
-**Information, not advice.** Every result is ranked by a stated objective the customer can change, and carries its source (the provider's own site, or the CCPC comparison tables, with CCPC's attribution), when it was checked and last changed, what the data does not say (never treated as zero), and eligibility to check. **Stateless until saved:** the customer's circumstances travel in each call and nothing is stored until `saoi_save_plan`.
+**Information, not advice.** Every result is ranked by a stated objective the customer can change, and carries its source (the provider's own site, or the CCPC comparison tables, with CCPC's attribution), when it was checked and last changed, what the data does not say (never treated as zero), and eligibility to check. **Connect it and just talk:** the host calls `saoi_money_check` as soon as the customer talks about their own money; no prompt is needed. **Only a plan is stored:** the customer's circumstances travel in each call, and each plan is held for 24 hours behind a single-use link ("Save this plan to the Saoi app"), then deleted unless opened.
 
 It is a thin adapter over `saoi-api`'s public routes (`/api/market/*`, `/api/calc/*`, `POST /api/plans`); all the logic lives in `saoi` (`supabase/functions/_shared/domain/market/`). Tool input schemas and descriptions are generated from `saoi-api`'s OpenAPI document (`npm run gen` writes `src/generated/operations.ts` and the response types in `src/generated/saoi-api.d.ts`; both are committed).
 
 ## Tools
 
-| Tool                      | Route                               | Use it to                                                                                       |
-| ------------------------- | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `saoi_review_situation`   | `POST /api/calc/review-situation`   | Findings with euro figures (idle money, no emergency fund, debt costing more than savings earn) |
-| `saoi_search_products`    | `POST /api/market/search`           | Rank one category for the customer's amounts; top 5 by default                                  |
-| `saoi_product`            | `GET /api/market/products/{id}`     | One product in full: rate history, unknowns, the source's own words                             |
-| `saoi_savings_projection` | `POST /api/calc/savings-projection` | Month by month, net of DIRT, within caps and tiers; the month a target is reached               |
-| `saoi_mortgage`           | `POST /api/calc/mortgage`           | `mode: affordability` (Central Bank limits) or `mode: switch` (saving, cashback, break-even)    |
-| `saoi_debt`               | `POST /api/calc/debt`               | What debts cost, payoff order, overpay versus save, refinance rates                             |
-| `saoi_build_plan`         | `POST /api/calc/build-plan`         | The fastest combination for the chosen goals, as a plan                                         |
-| `saoi_first_home`         | `POST /api/calc/first-home`         | Help to Buy, the Central Bank limits with it, green rates; every rule with its source page      |
-| `saoi_save_plan`          | `POST /api/plans`                   | Store the plan behind a one-time link into app.saoi.ie (the only tool that writes)              |
+| Tool                      | Route                               | Use it to                                                                                           |
+| ------------------------- | ----------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `saoi_money_check`        | `POST /api/calc/money-check`        | Start here: whatever was said so far; the review, a plan or the questions that unlock one, the link |
+| `saoi_review_situation`   | `POST /api/calc/review-situation`   | Findings with euro figures (idle money, no emergency fund, debt costing more than savings earn)     |
+| `saoi_search_products`    | `POST /api/market/search`           | Rank one category for the customer's amounts; top 5 by default                                      |
+| `saoi_product`            | `GET /api/market/products/{id}`     | One product in full: rate history, unknowns, the source's own words                                 |
+| `saoi_savings_projection` | `POST /api/calc/savings-projection` | Month by month, net of DIRT, within caps and tiers; the month a target is reached                   |
+| `saoi_mortgage`           | `POST /api/calc/mortgage`           | `mode: affordability` (Central Bank limits) or `mode: switch` (saving, cashback, break-even)        |
+| `saoi_debt`               | `POST /api/calc/debt`               | What debts cost, payoff order, overpay versus save, refinance rates                                 |
+| `saoi_build_plan`         | `POST /api/calc/build-plan`         | The fastest combination for the chosen goals, as a plan                                             |
+| `saoi_first_home`         | `POST /api/calc/first-home`         | Help to Buy, the Central Bank limits with it, green rates; every rule with its source page          |
+| `saoi_save_plan`          | `POST /api/plans`                   | A fresh 24-hour link, for a plan that came back without one                                         |
 
-`saoi_review_situation` and `saoi_build_plan` lead with **money found**: one euro-a-year figure in sourced, dated parts, with what is not counted (unconfirmed rates, unknown current rates, bonuses) shown apart. All but `saoi_save_plan` are annotated read-only. Each result is structured content (saoi-api's response as is) plus a short text rendering with the figures, flags, unknowns, the data date and the CCPC attribution, for hosts that do not read structured content.
+Every result's text opens with **Present to the customer**: the headline sentences (money found, one net figure per scenario, the save link for a plan), then the detail. Review and plan results carry **money found**: one euro-a-year figure in sourced, dated parts, with what is not counted (unconfirmed rates, unknown current rates, bonuses) shown apart. `saoi_money_check`, `saoi_build_plan` and `saoi_save_plan` write (the 24-hour plan link); the rest are annotated read-only. Each result is structured content (saoi-api's response as is) plus a short text rendering with the figures, flags, unknowns, the data date and the CCPC attribution, for hosts that do not read structured content.
 
 **Resources:** `saoi://about/ranking` (how Saoi ranks) and `saoi://about/earnings` (how Saoi earns: referral fees, disclosed, never used in ranking), Markdown from `GET /api/market/about/*`.
 
-**Plan card (MCP Apps):** `saoi_build_plan` declares `_meta.ui.resourceUri` = `ui://saoi/plan-card-v2.html`, an MCP Apps UI resource (`text/html;profile=mcp-app`, extension `io.modelcontextprotocol/ui`, spec 2026-01-26). Hosts that render MCP Apps (claude.ai web, desktop and mobile; ChatGPT) show Saoi's own card with the result: money found, the products with figures, checks and deposit guarantees, the net position per scenario, the ranking basis and CCPC attribution, and **Save to Saoi app**, which opens the result's 24-hour `saveLink` (or, when there is none, calls `saoi_save_plan` and opens the claim link). Other hosts read the text content as before. The card is one inline document (`src/ui/`): no external scripts; its only CSP allowance is `https://assets.claude.ai` for Claude's fonts. Bump the URI's version when the card changes in a way a cached copy would get wrong.
+**Plan card (MCP Apps):** `saoi_money_check` and `saoi_build_plan` declare `_meta.ui.resourceUri` = `ui://saoi/plan-card-v2.html`, an MCP Apps UI resource (`text/html;profile=mcp-app`, extension `io.modelcontextprotocol/ui`, spec 2026-01-26). Hosts that render MCP Apps (claude.ai web, desktop and mobile; ChatGPT) show Saoi's own card with the result: money found, the products with figures, checks and deposit guarantees, the net position per scenario, the ranking basis and CCPC attribution, and **Save to Saoi app**, which opens the result's 24-hour `saveLink` (or, when there is none, calls `saoi_save_plan` and opens the claim link). Other hosts read the text content as before. The card is one inline document (`src/ui/`): no external scripts; its only CSP allowance is `https://assets.claude.ai` for Claude's fonts. Bump the URI's version when the card changes in a way a cached copy would get wrong.
 
-**Server instructions** (sent at `initialize`): present results as options with their figures and let the customer decide, never as instructions; use the tools' figures and call a tool again to change an assumption rather than recomputing; once a plan exists, offer `saoi_save_plan` and say what the app does with it today (a card Saoirse knows and can talk through; sign-in keeps it across devices) and that rate alerts and goal reminders are coming, not built; nothing is kept until the customer saves. `saoi_review_situation` and `saoi_build_plan` results carry a `next` field with that offer, and `saoi_build_plan` takes an emergency buffer, `keepAccessible`, `goalDateCertain` and lock thresholds so a host re-asks instead of recalculating.
+**Server instructions** (sent at `initialize`): call `saoi_money_check` as soon as the customer talks about their own money in Ireland; Saoi's tools are the source for Irish product and scheme facts (rates, deposit guarantees, Help to Buy, the Central Bank limits), not the web; relay the "Present to the customer" block first; present options with figures, never instructions; compare scenarios by their net figures and call a tool again to change an assumption; always give the save link, which holds the plan for 24 hours and is the only thing stored.
 
-**Prompt:** `money-check-up` (optional `focus`): situation, then `saoi_review_situation`, goals, `saoi_build_plan`, then an offer to save. It asks only for what the tools need and never phrases results as advice.
+**Prompt:** `money-check-up` (optional `focus`), optional: situation, then `saoi_review_situation`, goals, `saoi_build_plan`, then the save link. Nothing depends on it. It asks only for what the tools need and never phrases results as advice.
 
 ## Protocol
 
@@ -73,7 +74,7 @@ Production runs from `~/code/infra/stacks/mcp` behind the Cloudflare Tunnel.
 
 ## Add it to Claude
 
-- **claude.ai (web, desktop, mobile):** Settings, then Connectors, then Add custom connector. Name `Saoi`, URL `https://mcp.saoi.ie/mcp`, no authentication. In a chat, enable it from the tools menu; the `money-check-up` prompt is under the same menu.
+- **claude.ai (web, desktop, mobile):** Settings, then Connectors, then Add custom connector. Name `Saoi`, URL `https://mcp.saoi.ie/mcp`, no authentication. In a chat, enable it from the tools menu and talk about your money.
 - **Claude Code:** `claude mcp add --transport http saoi https://mcp.saoi.ie/mcp`
 
 ## Licence

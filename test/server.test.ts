@@ -76,12 +76,15 @@ describe('protocol eras', () => {
     const body = await asRpc(res)
     expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoi' })
     const instructions = String(body.result?.['instructions'])
-    expect(instructions).toMatch(/Present results as options with their figures/)
+    expect(instructions).toMatch(/Present options with their figures; the customer decides/)
+    expect(instructions).toMatch(/Present to the customer/)
     expect(instructions).toMatch(/call the tool again with the/)
-    expect(instructions).toMatch(/offer saoi_save_plan/)
+    expect(instructions).toMatch(/Call saoi_money_check as soon as the customer talks about their own money/)
+    expect(instructions).toMatch(/searching the web/)
+    expect(instructions).toMatch(/24 hours behind a single-use link/)
     expect(instructions).toMatch(/coming, not built/)
     expect(instructions).not.toMatch(/partner/)
-    expect(instructions).toMatch(/Nothing is kept until the customer saves/)
+    expect(instructions).toMatch(/Nothing else is stored/)
   })
 
   it('serves server/discover on the 2026-07-28 path', async () => {
@@ -100,6 +103,7 @@ describe('tools/list', () => {
     'saoi_build_plan',
     'saoi_debt',
     'saoi_first_home',
+    'saoi_money_check',
     'saoi_mortgage',
     'saoi_product',
     'saoi_review_situation',
@@ -111,7 +115,7 @@ describe('tools/list', () => {
   it.each([
     ['modern', () => modernPost(srv.url, 'tools/list')],
     ['legacy', () => legacyPost(srv.url, { jsonrpc: '2.0', id: 1, method: 'tools/list' })],
-  ])('lists the nine saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
+  ])('lists the ten saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
     const body = await asRpc(await call())
     const tools = body.result?.['tools'] as {
       name: string
@@ -124,7 +128,9 @@ describe('tools/list', () => {
       expect(tool.inputSchema.type).toBe('object')
       expect(tool.inputSchema.oneOf, `${tool.name} has no top-level oneOf`).toBeUndefined()
       expect(tool.description.toLowerCase()).not.toMatch(/you should/)
-      expect(tool.annotations?.readOnlyHint, tool.name).toBe(tool.name !== 'saoi_save_plan')
+      expect(tool.annotations?.readOnlyHint, tool.name).toBe(
+        !['saoi_save_plan', 'saoi_build_plan', 'saoi_money_check'].includes(tool.name),
+      )
     }
     const mortgage = tools.find((t) => t.name === 'saoi_mortgage')
     expect(Object.keys(mortgage?.inputSchema.properties ?? {})).toEqual(
@@ -165,7 +171,7 @@ describe('resources and prompts', () => {
       ),
     )
     const text = (got.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
-    expect(text).toMatch(/saoi_review_situation[\s\S]*saoi_build_plan[\s\S]*saoi_save_plan/)
+    expect(text).toMatch(/saoi_review_situation[\s\S]*saoi_build_plan[\s\S]*Save this plan to the Saoi app/)
     expect(text).toMatch(/never as instructions, advice or "you should"/)
     expect(text).toMatch(/call the tool again/)
     expect(text).toMatch(/a house/)
@@ -218,30 +224,38 @@ describe('tools/call', () => {
     expect(text(await call('saoi_debt', { debts: [DEBT] }))).toMatch(/Payoff order/)
     const plan = text(await call('saoi_build_plan', { situation: {}, goals: [GOAL] }))
     expect(plan).toMatch(/House deposit by November 2028/)
-    expect(plan).toMatch(/Nothing has been stored/)
-    expect(plan).toMatch(/Next: .*saoi_save_plan/)
+    expect(plan).toMatch(/^Present to the customer:\n- Money found: /)
+    expect(plan).toMatch(/Save this plan to the Saoi app: https:\/\/app\.saoi\.ie\/#\/plan\//)
+    expect(plan).toMatch(/net at November 2028/)
     expect(plan).toMatch(/Locked or accessible: /)
     expect(plan).toMatch(/What if:\n- /)
     expect(plan).toMatch(/Deposit guarantee: /)
-    expect(plan).toMatch(/Car loan: cleared from the lump sum in this plan\./)
+    expect(plan).toMatch(/Help to Buy: /)
     expect(plan).not.toMatch(/pay off first/)
-    expect(plan).toMatch(/^Money found: /)
     expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(
-      /^Money found: |^No money found/,
+      /^Present to the customer:\n- (Money found|No money found)/,
     )
     const home = text(await call('saoi_first_home', { annualGrossIncome: 62000, deposit: 35000 }))
-    expect(home).toMatch(/^Help to Buy: /)
+    expect(home).toMatch(/^Present to the customer:\n- Help to Buy: /)
     expect(home).toMatch(/revenue\.ie/)
     expect(home).toMatch(/centralbank\.ie/)
-    expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(/Next: .*saoi_build_plan/)
+    const entry = text(await call('saoi_money_check', {}))
+    expect(entry).toMatch(/^Present to the customer:\n/)
+    expect(entry).toMatch(/Save this plan to the Saoi app/)
+    for (const [name, args] of [
+      ['saoi_search_products', { category: 'deposit' }],
+      ['saoi_debt', { debts: [DEBT] }],
+      ['saoi_mortgage', { mode: 'affordability' }],
+    ] as const) {
+      expect(text(await call(name, args))).toMatch(/^Present to the customer:\n/)
+    }
   })
 
-  it('saoi_save_plan returns the link and says nothing was kept before', async () => {
+  it('saoi_save_plan returns a 24-hour link', async () => {
     const body = await call('saoi_save_plan', { plan: recorded.plan.plan })
     expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined)
     expect(text(body)).toMatch(/app\.saoi\.ie\/#\/plan\//)
-    expect(text(body)).toMatch(/Nothing about the customer was kept before this call/)
-    expect(body.result?.['structuredContent']).toMatchObject({ storedBeforeThisCall: false })
+    expect(text(body)).toMatch(/held for 24 hours so it can be opened, then deleted unless opened/)
   })
 
   it('turns a saoi-api refusal into an isError result with its details', async () => {

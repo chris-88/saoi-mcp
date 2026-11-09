@@ -7,6 +7,7 @@ import type {
   BuildPlanResult,
   DebtResult,
   FirstHomeResult,
+  MoneyCheckResult,
   MortgageResult,
   ProductDetail,
   ProjectionResult,
@@ -31,6 +32,11 @@ export const recorded = {
   debt: recording('debt') as DebtResult,
   plan: recording('plan') as BuildPlanResult,
   firstHome: recording('first-home') as FirstHomeResult,
+  moneyCheck: recording('money-check') as MoneyCheckResult,
+  /** The same calls after results gained `presentation` and the 24-hour `saveLink`. */
+  planPresented: recording('plan-presented') as BuildPlanResult,
+  reviewPresented: recording('review-presented') as ReviewResult,
+  firstHomePresented: recording('first-home-presented') as FirstHomeResult,
   ranking: recording('ranking') as About,
   saved: recording('saved') as SavePlanResult,
 }
@@ -39,12 +45,13 @@ export const mockSaoi = (): { [K in keyof SaoiApi]: ReturnType<typeof vi.fn<Saoi
   search: vi.fn<SaoiApi['search']>(() => Promise.resolve(recorded.search)),
   product: vi.fn<SaoiApi['product']>(() => Promise.resolve(recorded.product)),
   about: vi.fn<SaoiApi['about']>(() => Promise.resolve(recorded.ranking)),
-  review: vi.fn<SaoiApi['review']>(() => Promise.resolve(recorded.review)),
+  review: vi.fn<SaoiApi['review']>(() => Promise.resolve(recorded.reviewPresented)),
   projection: vi.fn<SaoiApi['projection']>(() => Promise.resolve(recorded.projection)),
   mortgage: vi.fn<SaoiApi['mortgage']>(() => Promise.resolve(recorded.affordability)),
   debt: vi.fn<SaoiApi['debt']>(() => Promise.resolve(recorded.debt)),
-  buildPlan: vi.fn<SaoiApi['buildPlan']>(() => Promise.resolve(recorded.plan)),
-  firstHome: vi.fn<SaoiApi['firstHome']>(() => Promise.resolve(recorded.firstHome)),
+  buildPlan: vi.fn<SaoiApi['buildPlan']>(() => Promise.resolve(recorded.planPresented)),
+  firstHome: vi.fn<SaoiApi['firstHome']>(() => Promise.resolve(recorded.firstHomePresented)),
+  moneyCheck: vi.fn<SaoiApi['moneyCheck']>(() => Promise.resolve(recorded.moneyCheck)),
   savePlan: vi.fn<SaoiApi['savePlan']>(() => Promise.resolve(recorded.saved)),
 })
 

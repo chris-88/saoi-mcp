@@ -22,6 +22,7 @@ export type MortgageResult = Schemas['MortgageCalculationResult']
 export type DebtResult = Schemas['DebtCalculationResult']
 export type BuildPlanResult = Schemas['BuildPlanResult']
 export type FirstHomeResult = Schemas['FirstHomeResult']
+export type MoneyCheckResult = Schemas['MoneyCheckResult']
 export type SavePlanResult = Schemas['SavePlanResponse']
 
 /** A refusal from saoi-api, with what it says is wrong. Safe to show: saoi-api writes it for callers. */
@@ -49,6 +50,7 @@ export interface SaoiApi {
   debt(body: Body, ip?: string): Promise<DebtResult>
   buildPlan(body: Body, ip?: string): Promise<BuildPlanResult>
   firstHome(body: Body, ip?: string): Promise<FirstHomeResult>
+  moneyCheck(body: Body, ip?: string): Promise<MoneyCheckResult>
   savePlan(body: Body, ip?: string): Promise<SavePlanResult>
 }
 
@@ -96,6 +98,9 @@ export class SaoiClient implements SaoiApi {
   }
   firstHome(body: Body, ip?: string) {
     return this.call<FirstHomeResult>('POST', '/api/calc/first-home', body, ip)
+  }
+  moneyCheck(body: Body, ip?: string) {
+    return this.call<MoneyCheckResult>('POST', '/api/calc/money-check', body, ip)
   }
   savePlan(body: Body, ip?: string) {
     return this.call<SavePlanResult>('POST', '/api/plans', { ...body, client: 'mcp' }, ip)

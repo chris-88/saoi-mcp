@@ -21,9 +21,9 @@
       "cadence": "monthly",
       "horizonMonths": 37,
       "interestSavedByOverpaying": 570.73,
-      "netInterestBySaving": 247.29,
-      "savingProduct": "bunq Free",
-      "difference": 323.44
+      "netInterestBySaving": 238.44,
+      "savingProduct": "AIB Online Saver",
+      "difference": 332.29
     },
     {
       "debtId": "car-loan",
@@ -31,9 +31,9 @@
       "cadence": "once",
       "horizonMonths": 37,
       "interestSavedByOverpaying": 1274.96,
-      "netInterestBySaving": 591.03,
-      "savingProduct": "bunq Free",
-      "difference": 683.93
+      "netInterestBySaving": 539.64,
+      "savingProduct": "Ireland State Savings Savings Bonds (DIRT free)",
+      "difference": 735.32
     }
   ],
   "refinance": [
@@ -61,8 +61,8 @@
               "source": "ccpc",
               "sourceUrl": "https://www.ccpc.ie/manage-your-money/borrowing-money/loan-calculator",
               "providerUrl": "https://aib.ie/our-products/loans/green-personal-loan",
-              "checkedAt": "2026-11-09T12:14:36.808Z",
-              "lastChangedAt": null,
+              "checkedAt": "2026-11-09T13:16:08.102Z",
+              "lastChangedAt": "2026-11-09T13:16:08.102Z",
               "firstRecordedAt": "2026-11-09T12:14:36.808Z",
               "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
               "rows": [{ "source": "ccpc", "productId": "loan.c2145" }],
@@ -73,6 +73,7 @@
             "unknowns": [
               { "field": "rates.minAmountEur", "meaning": "the smallest amount that can be borrowed" }
             ],
+            "rateConfirmed": true,
             "checks": [
               "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
             ]
@@ -114,8 +115,8 @@
               "source": "ccpc",
               "sourceUrl": "https://www.ccpc.ie/manage-your-money/borrowing-money/loan-calculator",
               "providerUrl": "https://www.creditunion.ie/",
-              "checkedAt": "2026-11-09T12:14:36.808Z",
-              "lastChangedAt": null,
+              "checkedAt": "2026-11-09T13:16:08.102Z",
+              "lastChangedAt": "2026-11-09T13:16:08.102Z",
               "firstRecordedAt": "2026-11-09T12:14:36.808Z",
               "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
               "rows": [{ "source": "ccpc", "productId": "loan.c8508" }],
@@ -126,6 +127,7 @@
             "unknowns": [
               { "field": "rates.minAmountEur", "meaning": "the smallest amount that can be borrowed" }
             ],
+            "rateConfirmed": true,
             "checks": [
               "Credit union rates and terms vary by credit union; membership is needed.",
               "Check eligibility with Credit Union: CCPC does not record who can open it (for example, whether an account with Credit Union is needed first)."
@@ -169,8 +171,8 @@
               "source": "ccpc",
               "sourceUrl": "https://www.ccpc.ie/manage-your-money/borrowing-money/loan-calculator",
               "providerUrl": "https://www.anpost.com/Money/Low-Fixed-Rate-Loans/Green-Loans/Electric-Car-Loans",
-              "checkedAt": "2026-11-09T12:14:36.808Z",
-              "lastChangedAt": null,
+              "checkedAt": "2026-11-09T13:16:08.102Z",
+              "lastChangedAt": "2026-11-09T13:16:08.102Z",
               "firstRecordedAt": "2026-11-09T12:14:36.808Z",
               "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
               "rows": [{ "source": "ccpc", "productId": "loan.c1520" }],
@@ -182,6 +184,7 @@
               { "field": "rates.minAmountEur", "meaning": "the smallest amount that can be borrowed" },
               { "field": "rates.maxTermMonths", "meaning": "the longest term: CCPC gives “7” with no unit" }
             ],
+            "rateConfirmed": true,
             "checks": [
               "Check eligibility with An Post Money: CCPC does not record who can open it (for example, whether an account with An Post Money is needed first)."
             ]
@@ -213,6 +216,6 @@
     "Fees and charges are not added.",
     "Overpaying is compared with saving the same money over 37 months (the time the debt takes to clear now), in the savings product that earns the most after DIRT. The repayment freed when a debt clears early is not counted."
   ],
-  "dataCheckedAt": "2026-11-09T12:14:36.808Z",
+  "dataCheckedAt": "2026-11-09T13:16:08.102Z",
   "attributions": ["Source: Competition and Consumer Protection Commission, www.ccpc.ie"]
 }

@@ -20,7 +20,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.3.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.4.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -99,6 +99,7 @@ describe('tools/list', () => {
   const expectedNames = [
     'saoi_build_plan',
     'saoi_debt',
+    'saoi_first_home',
     'saoi_mortgage',
     'saoi_product',
     'saoi_review_situation',
@@ -110,7 +111,7 @@ describe('tools/list', () => {
   it.each([
     ['modern', () => modernPost(srv.url, 'tools/list')],
     ['legacy', () => legacyPost(srv.url, { jsonrpc: '2.0', id: 1, method: 'tools/list' })],
-  ])('lists the eight saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
+  ])('lists the nine saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
     const body = await asRpc(await call())
     const tools = body.result?.['tools'] as {
       name: string
@@ -224,6 +225,14 @@ describe('tools/call', () => {
     expect(plan).toMatch(/Deposit guarantee: /)
     expect(plan).toMatch(/Car loan: cleared from the lump sum in this plan\./)
     expect(plan).not.toMatch(/pay off first/)
+    expect(plan).toMatch(/^Money found: /)
+    expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(
+      /^Money found: |^No money found/,
+    )
+    const home = text(await call('saoi_first_home', { annualGrossIncome: 62000, deposit: 35000 }))
+    expect(home).toMatch(/^Help to Buy: /)
+    expect(home).toMatch(/revenue\.ie/)
+    expect(home).toMatch(/centralbank\.ie/)
     expect(text(await call('saoi_review_situation', { situation: {} }))).toMatch(/Next: .*saoi_build_plan/)
   })
 

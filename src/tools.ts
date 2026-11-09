@@ -5,6 +5,7 @@ import { OPERATIONS } from './generated/operations.js'
 import {
   renderAbout,
   renderDebt,
+  renderFirstHome,
   renderMortgage,
   renderPlan,
   renderProduct,
@@ -27,6 +28,8 @@ export const SERVER_INSTRUCTIONS = [
   '  money accessible, a different monthly amount or date, clearing or keeping a debt), call the tool again with the',
   '  new inputs. saoi_build_plan takes emergencyBufferEur or emergencyBufferMonths, keepAccessible, goalDateCertain',
   '  and lock thresholds for exactly this.',
+  '- Lead with `moneyFound` where a result has it: the euro-a-year figure and its parts, and what is not counted and',
+  '  why. Do not add the not-counted figures in.',
   '- Say what each result is ranked by, show the flags and unknowns, say "check eligibility" where a result does,',
   '  name the deposit guarantee each product carries, and show the CCPC attribution with CCPC figures.',
   '',
@@ -205,6 +208,24 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
   )
 
   server.registerTool(
+    'saoi_first_home',
+    {
+      title: 'A first home: Help to Buy and the lending limits',
+      description: describe(
+        'saoi_first_home',
+        'Use when a first-time buyer asks what they can buy, about Help to Buy, or what a deposit and income allow for a price. Give the kind of property and tax paid when known; what is not given is shown as depending on it, never assumed.',
+      ),
+      inputSchema: input('saoi_first_home'),
+      annotations: READ_ONLY,
+    },
+    (args) =>
+      guarded(async () => {
+        const result = await saoi.firstHome(args, ip)
+        return ok(renderFirstHome(result), result)
+      }),
+  )
+
+  server.registerTool(
     'saoi_build_plan',
     {
       title: 'Build a plan for the customer’s goals',
@@ -292,7 +313,8 @@ export function moneyCheckUp(focus: string | undefined): string {
     '1. Situation. Ask only for what the tools need, a few things at a time: take-home pay (and gross income if a mortgage is in view),',
     '   monthly outgoings (rent and the rest), what I can save each month, savings I hold (where, how much, the rate if I know it),',
     '   and debts (what kind, balance, rate, monthly repayment, months left). Rough figures are fine. Do not ask for anything else.',
-    '2. Review. Call saoi_review_situation with what I said. Tell me the findings with their euro figures.',
+    '2. Review. Call saoi_review_situation with what I said. Lead with the money found (its parts, and what is not counted), then',
+    '   the findings with their euro figures. For a first home, saoi_first_home covers Help to Buy and the lending limits.',
     '3. Goals. Ask what I want: the candidate goals the review suggests and my own, each with an amount and a date where I have one.',
     '4. Plan. Call saoi_build_plan with my situation and chosen goals, and an emergency buffer if I want one (an amount, or months',
     '   of outgoings). For a house deposit, saoi_mortgage (affordability) shows what it unlocks. Show the products, figures, the date',

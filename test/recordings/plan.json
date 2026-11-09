@@ -1,4 +1,27 @@
 {
+  "moneyFound": {
+    "annualEur": 496,
+    "headline": "Money found: about €496 a year after DIRT (€496 car loan: cleared in this plan).",
+    "parts": [
+      {
+        "kind": "debt_interest",
+        "label": "Car loan: cleared in this plan",
+        "annualEur": 496,
+        "detail": "The plan with it cleared ends €991.72 better off (savings less debt) after 24 months than with it kept: about €496 a year.",
+        "source": "the customer’s figures and the plan’s products",
+        "sourceUrl": null,
+        "checkedAt": null
+      }
+    ],
+    "notCounted": [
+      {
+        "label": "€16,000 in MoCo EasySaver",
+        "annualEur": 225,
+        "why": "Its rate rests on CCPC’s one figure: the provider may pay it only for a period or on part of the balance, so it is not counted."
+      }
+    ],
+    "basis": "A year’s figures, after DIRT at 33%: idle cash against the best confirmed instant-access rate (only where its current rate was given), debt interest not paid in the next twelve months less what the same money would earn, and a mortgage switch’s lower repayment. Bonuses, cashback and rates resting on CCPC’s one figure are not counted. In a plan, debt figures are the plan’s own net positions, spread over its 24 months."
+  },
   "plan": {
     "version": 1,
     "title": "House deposit by November 2028",
@@ -175,7 +198,7 @@
       "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant ac…",
       "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
     ],
-    "createdAt": "2026-11-09T14:39:23.070Z",
+    "createdAt": "2026-11-09T14:53:05.105Z",
     "dataCheckedAt": "2026-11-09T13:16:08.102Z"
   },
   "horizonMonths": 24,
@@ -190,7 +213,8 @@
     "€586 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
     "€494 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
     "House deposit: €35,000 is reached in May 2028.",
-    "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
+    "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds).",
+    "For a new build or self-build, Help to Buy (up to €32,324.33 at that price: 10% of it, at most €35,000, and no more than the Income Tax and DIRT paid over the last four years, not given) counted towards the deposit lifts that to €323,243.27."
   ],
   "debtScenarios": [
     {
@@ -216,7 +240,14 @@
     "maxPrice": 290918.94,
     "maxLoanByIncome": 248000,
     "bindingLimit": "income",
-    "note": "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
+    "note": "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds).",
+    "helpToBuy": {
+      "upToEur": 32324.33,
+      "maxPriceWithHelpToBuy": 323243.27,
+      "note": "For a new build or self-build, Help to Buy (up to €32,324.33 at that price: 10% of it, at most €35,000, and no more than the Income Tax and DIRT paid over the last four years, not given) counted towards the deposit lifts that to €323,243.27.",
+      "sourceUrl": "https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx",
+      "checkedOn": "2026-11-09"
+    }
   },
   "unplaced": { "lumpSum": 0, "monthly": 0 },
   "liquidity": {

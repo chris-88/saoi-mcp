@@ -80,6 +80,9 @@ describe('protocol eras', () => {
     expect(instructions).toMatch(/Never present a single option as right for the customer/)
     expect(instructions).toMatch(/Saoi is not regulated by the Central/)
     expect(instructions).toMatch(/call saoi_home_calculator/)
+    expect(instructions).toMatch(
+      /every route to a home as\s+facts, schemes included, and the customer chooses between them: relay the route lines as given, in their order,\s+and never call one the best\./,
+    )
     expect(instructions).not.toMatch(/recommendation into an option|only €24/)
     expect(instructions).toMatch(/Present to the customer/)
     expect(instructions).toMatch(/Call saoi_money_check OR saoi_build_plan, once, per reply; never both/)
@@ -318,11 +321,48 @@ describe('tools/call', () => {
     )
     const said = text(body)
     expect(said).toMatch(/^Present to the customer:\n/)
-    expect(said).toMatch(/Needed at the keys: €41,500/)
+    expect(said).toMatch(/Needed at the keys: €47,000/)
     expect(said).toMatch(/Warning: the cost of your monthly repayments may increase\./)
     expect(said).toMatch(/Saoi is not regulated by the Central Bank of Ireland/)
     expect(said).toMatch(/Show my options/)
-    expect(body.result?.['structuredContent']).toEqual(recorded.homeCalculator)
+    expect(body.result?.['structuredContent']).toEqual(recorded.homeCalculatorSecondHand)
+  })
+
+  it('relays three route lines after the headline, then More routes, with nothing that reads as a pick', async () => {
+    saoi.homeCalculator.mockResolvedValueOnce(recorded.homeCalculatorNewBuild)
+    const said = text(
+      await call('saoi_home_calculator', { targetPriceEur: 400000, propertyKind: 'new_build' }),
+    )
+    const present = said.split('\nDetail:\n')[0] ?? ''
+    const routes = recorded.homeCalculatorNewBuild.routes
+    const lines = present.split('\n')
+    const first = lines.indexOf(`- ${routes[0]?.line ?? ''}`)
+    expect(first).toBeGreaterThan(
+      lines.findIndex((line) => line.includes('Help to Buy is not counted above')),
+    )
+    expect(lines.slice(first, first + 4)).toEqual([
+      ...routes.slice(0, 3).map((route) => `- ${route.line}`),
+      '- More routes: 3',
+    ])
+    expect(said).toMatch(/- Help to Buy: not counted above; up to €35,000/)
+    expect(said).toMatch(/Every route to a home, in the order given/)
+    expect(said).toMatch(/Still to know: Which county is the home in\?/)
+    expect(said).not.toMatch(/\b(best|faster|fastest|recommended)\b/i)
+
+    const home = text(await call('saoi_first_home', { annualGrossIncome: 100000, deposit: 45000 }))
+    const firstHome = recorded.firstHomeRoutes
+    expect(home).toContain(
+      firstHome.routes
+        .slice(0, 3)
+        .map((route) => `- ${route.line}`)
+        .join('\n'),
+    )
+    expect(home).toMatch(/- More routes: 3/)
+    const detail = home.split('\nDetail:\n')[1] ?? ''
+    const options = detail.indexOf('Mortgages that fit.')
+    for (const line of firstHome.rentVsRepayment) expect(detail.indexOf(line)).toBeGreaterThan(options)
+    expect(firstHome.rentVsRepayment[0]).toMatch(/^Rent €1,800 a month against a €[\d,]+ repayment/)
+    expect(home).not.toMatch(/\b(best|faster|fastest|recommended)\b/i)
   })
 
   it('accepts the calculator card’s comparison body for saoi_build_plan', async () => {

@@ -66,9 +66,9 @@ export const mockSaoi = (): { [K in keyof SaoiApi]: ReturnType<typeof vi.fn<Saoi
   mortgage: vi.fn<SaoiApi['mortgage']>(() => Promise.resolve(recorded.affordability)),
   debt: vi.fn<SaoiApi['debt']>(() => Promise.resolve(recorded.debt)),
   buildPlan: vi.fn<SaoiApi['buildPlan']>(() => Promise.resolve(recorded.planPresented)),
-  firstHome: vi.fn<SaoiApi['firstHome']>(() => Promise.resolve(recorded.firstHomePresented)),
+  firstHome: vi.fn<SaoiApi['firstHome']>(() => Promise.resolve(recorded.firstHomeRoutes)),
   moneyCheck: vi.fn<SaoiApi['moneyCheck']>(() => Promise.resolve(recorded.moneyCheck)),
-  homeCalculator: vi.fn<SaoiApi['homeCalculator']>(() => Promise.resolve(recorded.homeCalculator)),
+  homeCalculator: vi.fn<SaoiApi['homeCalculator']>(() => Promise.resolve(recorded.homeCalculatorSecondHand)),
   savePlan: vi.fn<SaoiApi['savePlan']>(() => Promise.resolve(recorded.saved)),
 })
 

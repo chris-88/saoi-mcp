@@ -10,7 +10,7 @@ import { planCardModel } from './planCardModel.js'
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong:
  * hosts may treat the URI as a cache key.
  */
-export const PLAN_CARD_URI = 'ui://saoi/plan-card-v6.html'
+export const PLAN_CARD_URI = 'ui://saoi/plan-card-v7.html'
 export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 
 /** On a tool: the card that renders its result. The flat key is the spec's legacy spelling. */

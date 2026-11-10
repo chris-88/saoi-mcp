@@ -9964,7 +9964,10 @@ export interface components {
                 /** @description How far the plan moved across a few plausible answers. */
                 spread: {
                     keysMonths: number;
+                    /** @description Reported, not scored: a bigger home costs more. */
                     costEur: number;
+                    /** @description The spread in cost per €100,000 borrowed: scored. */
+                    costPer100kEur: number;
                     priceEur: number;
                     totalEur: number;
                 };
@@ -9982,7 +9985,10 @@ export interface components {
                 /** @description How far the plan moved across a few plausible answers. */
                 spread: {
                     keysMonths: number;
+                    /** @description Reported, not scored: a bigger home costs more. */
                     costEur: number;
+                    /** @description The spread in cost per €100,000 borrowed: scored. */
+                    costPer100kEur: number;
                     priceEur: number;
                     totalEur: number;
                 };
@@ -10028,7 +10034,7 @@ export interface components {
                 /** @description The period every pathway is costed over, the same for all. */
                 comparedOver: {
                     /** @enum {string} */
-                    basis: "term" | "fixed_period";
+                    basis: "term" | "fixed_period" | "first_years";
                     years: number;
                 };
                 pathways: {
@@ -10050,8 +10056,14 @@ export interface components {
                     cashbackEur: number;
                     /** @description Savings bonuses tied to this lender’s mortgage, net of DIRT. */
                     bonusEur: number;
-                    /** @description Interest less cashback and bonuses over the period compared. */
+                    /** @description Over the first 5 years: interest on a 30-year term plus the valuation fee, less cashback paid within 5 years and any savings bonus. What pathways are ranked by. */
                     netCostEur: number;
+                    /** @description Cashback paid after the 5 years if repayments are on time: listed, not ranked. */
+                    cashbackAfterEur: number;
+                    /** @description The same over 30 years, if today’s follow-on rates held for 30 years. Secondary detail. */
+                    thirtyYearNetEur: number | null;
+                    /** @description A fix shorter than 5 years with no stated follow-on rate: the fixed rate carried on, unconfirmed. */
+                    followOnAssumed: boolean;
                     /** @description Net cost less the cheapest pathway’s. 0 for the cheapest. */
                     vsCheapestEur: number;
                     /** @description What makes this pathway differ, in a few words. */
@@ -10598,7 +10610,10 @@ export interface components {
                     /** @description How far the plan moved across a few plausible answers. */
                     spread: {
                         keysMonths: number;
+                        /** @description Reported, not scored: a bigger home costs more. */
                         costEur: number;
+                        /** @description The spread in cost per €100,000 borrowed: scored. */
+                        costPer100kEur: number;
                         priceEur: number;
                         totalEur: number;
                     };
@@ -10616,7 +10631,10 @@ export interface components {
                     /** @description How far the plan moved across a few plausible answers. */
                     spread: {
                         keysMonths: number;
+                        /** @description Reported, not scored: a bigger home costs more. */
                         costEur: number;
+                        /** @description The spread in cost per €100,000 borrowed: scored. */
+                        costPer100kEur: number;
                         priceEur: number;
                         totalEur: number;
                     };
@@ -10662,7 +10680,7 @@ export interface components {
                     /** @description The period every pathway is costed over, the same for all. */
                     comparedOver: {
                         /** @enum {string} */
-                        basis: "term" | "fixed_period";
+                        basis: "term" | "fixed_period" | "first_years";
                         years: number;
                     };
                     pathways: {
@@ -10684,8 +10702,14 @@ export interface components {
                         cashbackEur: number;
                         /** @description Savings bonuses tied to this lender’s mortgage, net of DIRT. */
                         bonusEur: number;
-                        /** @description Interest less cashback and bonuses over the period compared. */
+                        /** @description Over the first 5 years: interest on a 30-year term plus the valuation fee, less cashback paid within 5 years and any savings bonus. What pathways are ranked by. */
                         netCostEur: number;
+                        /** @description Cashback paid after the 5 years if repayments are on time: listed, not ranked. */
+                        cashbackAfterEur: number;
+                        /** @description The same over 30 years, if today’s follow-on rates held for 30 years. Secondary detail. */
+                        thirtyYearNetEur: number | null;
+                        /** @description A fix shorter than 5 years with no stated follow-on rate: the fixed rate carried on, unconfirmed. */
+                        followOnAssumed: boolean;
                         /** @description Net cost less the cheapest pathway’s. 0 for the cheapest. */
                         vsCheapestEur: number;
                         /** @description What makes this pathway differ, in a few words. */

@@ -245,3 +245,19 @@ describe('plan card model: pathways to a home', () => {
     expect(planCardModel(recorded.plan).home).toBeNull()
   })
 })
+
+describe('plan card model: the save call grows with the plan', () => {
+  it('keeps the button, labels it by completeness, and shows what is coming only as coming', () => {
+    const view = planCardModel(recorded.planHome)
+    expect(view.save.label).toBe(recorded.planHome.saveCall.label)
+    expect(view.completeness).toMatch(/^Plan based on \d of \d answers\.$/)
+    expect(view.save.today).toMatch(/^Today the app /)
+    expect(view.save.today).not.toMatch(/partner|reminder|checklist|document/)
+  })
+
+  it('falls back to the plain button for older results', () => {
+    const older = planCardModel(recorded.plan)
+    expect(older.save.label).toBe('Save to Saoi app')
+    expect(older.completeness).toBeNull()
+  })
+})

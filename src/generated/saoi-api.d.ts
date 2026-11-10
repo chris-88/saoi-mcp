@@ -7779,6 +7779,8 @@ export interface components {
                         };
                         /** @description A high-value-mortgage rate (larger loans only). */
                         highValue: boolean;
+                        /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                        minLoanEur: number | null;
                     } | {
                         /** @enum {string} */
                         kind: "loan";
@@ -8125,6 +8127,8 @@ export interface components {
                     };
                     /** @description A high-value-mortgage rate (larger loans only). */
                     highValue: boolean;
+                    /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                    minLoanEur: number | null;
                 } | {
                     /** @enum {string} */
                     kind: "loan";
@@ -8496,6 +8500,8 @@ export interface components {
                         };
                         /** @description A high-value-mortgage rate (larger loans only). */
                         highValue: boolean;
+                        /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                        minLoanEur: number | null;
                     } | {
                         /** @enum {string} */
                         kind: "loan";
@@ -8834,6 +8840,8 @@ export interface components {
                         };
                         /** @description A high-value-mortgage rate (larger loans only). */
                         highValue: boolean;
+                        /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                        minLoanEur: number | null;
                     } | {
                         /** @enum {string} */
                         kind: "loan";
@@ -9094,6 +9102,8 @@ export interface components {
                         };
                         /** @description A high-value-mortgage rate (larger loans only). */
                         highValue: boolean;
+                        /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                        minLoanEur: number | null;
                     } | {
                         /** @enum {string} */
                         kind: "loan";
@@ -9419,6 +9429,8 @@ export interface components {
                             };
                             /** @description A high-value-mortgage rate (larger loans only). */
                             highValue: boolean;
+                            /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                            minLoanEur: number | null;
                         } | {
                             /** @enum {string} */
                             kind: "loan";
@@ -9774,6 +9786,8 @@ export interface components {
                         };
                         /** @description A high-value-mortgage rate (larger loans only). */
                         highValue: boolean;
+                        /** @description The smallest loan the rate is for, where the source states one ("borrowing €250,000 or more"). Null: not stated; for a high-value rate that means the threshold is unknown, not absent. */
+                        minLoanEur: number | null;
                     } | {
                         /** @enum {string} */
                         kind: "loan";
@@ -9939,6 +9953,58 @@ export interface components {
             limit?: number;
         };
         BuildPlanResult: {
+            /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
+            nextQuestion: {
+                /** @enum {string} */
+                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                /** @description For the host to ask, in its own words. */
+                question: string;
+                /** @description What the answer changes, with the figures from the runs. */
+                why: string;
+                /** @description How far the plan moved across a few plausible answers. */
+                spread: {
+                    keysMonths: number;
+                    costEur: number;
+                    priceEur: number;
+                    totalEur: number;
+                };
+                /** @description The spread in euro, the order questions are asked in. */
+                scoreEur: number;
+            } | null;
+            /** @description The rest, in order, for later replies. */
+            laterQuestions: {
+                /** @enum {string} */
+                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                /** @description For the host to ask, in its own words. */
+                question: string;
+                /** @description What the answer changes, with the figures from the runs. */
+                why: string;
+                /** @description How far the plan moved across a few plausible answers. */
+                spread: {
+                    keysMonths: number;
+                    costEur: number;
+                    priceEur: number;
+                    totalEur: number;
+                };
+                /** @description The spread in euro, the order questions are asked in. */
+                scoreEur: number;
+            }[];
+            completeness: {
+                answered: string[];
+                assumed: string[];
+                /** @description "Plan based on 4 of 6 answers". */
+                line: string;
+            };
+            saveCall: {
+                /** @description True once the inputs that move the plan most are answered (for a home: income and new or second-hand). */
+                ready: boolean;
+                label: string;
+                note: string;
+                /** @description What the Saoi app does with the plan today. */
+                appToday: string[];
+                /** @description Not built yet: never offered as available. */
+                coming: string[];
+            };
             /** @description Pathways to a home, when the main goal is a house deposit. Null otherwise. */
             home: {
                 /** @description "Your home: keys around <month>". */
@@ -9995,6 +10061,26 @@ export interface components {
                     confirmed: boolean;
                     greenNote: string | null;
                     sources: string[];
+                    /** @description The lowest initial rate among this lender’s eligible products. */
+                    lowestRatePct: number;
+                    /** @description This lender’s cheapest eligible products by net cost, the chosen one first. */
+                    considered: {
+                        productId: string;
+                        name: string;
+                        ratePct: number;
+                        netCostEur: number;
+                    }[];
+                    /** @description What the customer would hold with this lender on this path, and what stays where it is. */
+                    bundle: {
+                        products: {
+                            /** @enum {string} */
+                            role: "linked_saver" | "regular_saver" | "mortgage" | "cashback";
+                            name: string;
+                            detail: string;
+                        }[];
+                        /** @description Whether the current account can stay where it is, or a product needs one with the lender. */
+                        currentAccount: string;
+                    };
                     /** @description The pathway in one sentence, as an option with its figures. */
                     line: string;
                 }[];
@@ -10501,6 +10587,58 @@ export interface components {
             };
             /** @description A plan, when there was enough to build one (money to place, or a debt to weigh). Null otherwise. */
             plan: {
+                /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
+                nextQuestion: {
+                    /** @enum {string} */
+                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                    /** @description For the host to ask, in its own words. */
+                    question: string;
+                    /** @description What the answer changes, with the figures from the runs. */
+                    why: string;
+                    /** @description How far the plan moved across a few plausible answers. */
+                    spread: {
+                        keysMonths: number;
+                        costEur: number;
+                        priceEur: number;
+                        totalEur: number;
+                    };
+                    /** @description The spread in euro, the order questions are asked in. */
+                    scoreEur: number;
+                } | null;
+                /** @description The rest, in order, for later replies. */
+                laterQuestions: {
+                    /** @enum {string} */
+                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                    /** @description For the host to ask, in its own words. */
+                    question: string;
+                    /** @description What the answer changes, with the figures from the runs. */
+                    why: string;
+                    /** @description How far the plan moved across a few plausible answers. */
+                    spread: {
+                        keysMonths: number;
+                        costEur: number;
+                        priceEur: number;
+                        totalEur: number;
+                    };
+                    /** @description The spread in euro, the order questions are asked in. */
+                    scoreEur: number;
+                }[];
+                completeness: {
+                    answered: string[];
+                    assumed: string[];
+                    /** @description "Plan based on 4 of 6 answers". */
+                    line: string;
+                };
+                saveCall: {
+                    /** @description True once the inputs that move the plan most are answered (for a home: income and new or second-hand). */
+                    ready: boolean;
+                    label: string;
+                    note: string;
+                    /** @description What the Saoi app does with the plan today. */
+                    appToday: string[];
+                    /** @description Not built yet: never offered as available. */
+                    coming: string[];
+                };
                 /** @description Pathways to a home, when the main goal is a house deposit. Null otherwise. */
                 home: {
                     /** @description "Your home: keys around <month>". */
@@ -10557,6 +10695,26 @@ export interface components {
                         confirmed: boolean;
                         greenNote: string | null;
                         sources: string[];
+                        /** @description The lowest initial rate among this lender’s eligible products. */
+                        lowestRatePct: number;
+                        /** @description This lender’s cheapest eligible products by net cost, the chosen one first. */
+                        considered: {
+                            productId: string;
+                            name: string;
+                            ratePct: number;
+                            netCostEur: number;
+                        }[];
+                        /** @description What the customer would hold with this lender on this path, and what stays where it is. */
+                        bundle: {
+                            products: {
+                                /** @enum {string} */
+                                role: "linked_saver" | "regular_saver" | "mortgage" | "cashback";
+                                name: string;
+                                detail: string;
+                            }[];
+                            /** @description Whether the current account can stay where it is, or a product needs one with the lender. */
+                            currentAccount: string;
+                        };
                         /** @description The pathway in one sentence, as an option with its figures. */
                         line: string;
                     }[];

@@ -239,12 +239,17 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     }
 
     const actions = el('div', 'actions')
-    const button = el('button', 'save', 'Save to Saoi app')
+    // The customer chooses the save moment: the button is always there, its words grow with the plan.
+    const button = el('button', 'save', view.save.label)
     button.type = 'button'
     button.onclick = () => {
       void save(view, button)
     }
-    actions.append(button, status, el('p', 'small muted', view.app))
+    actions.append(button, status)
+    if (view.completeness !== null) actions.append(el('p', 'small muted-strong', view.completeness))
+    if (view.save.note !== '') actions.append(el('p', 'small muted', view.save.note))
+    actions.append(el('p', 'small muted', view.save.today === '' ? view.app : view.save.today))
+    if (view.save.coming !== null) actions.append(el('p', 'small muted', view.save.coming))
     root.append(actions)
 
     const folds = el('div', 'folds')

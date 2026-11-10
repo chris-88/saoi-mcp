@@ -10,7 +10,7 @@ import { planCardModel } from './planCardModel.js'
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong:
  * hosts may treat the URI as a cache key.
  */
-export const PLAN_CARD_URI = 'ui://saoi/plan-card-v9.html'
+export const PLAN_CARD_URI = 'ui://saoi/plan-card-v10.html'
 export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 
 /** On a tool: the card that renders its result. The flat key is the spec's legacy spelling. */
@@ -35,8 +35,11 @@ export const STYLE = `
   --muted-foreground: var(--color-text-secondary, light-dark(#71717a, #a1a1aa));
   --border: var(--color-border-tertiary, light-dark(#e4e4e7, #27272a));
   --input: light-dark(#e4e4e7, #3f3f46);
-  --primary: light-dark(#0f766e, #2dd4bf);
-  --primary-foreground: light-dark(#ffffff, #042f2e);
+  /* Fill: a calm teal in both themes, as shadcn's primary; text on it stays readable. */
+  --primary: light-dark(#0f766e, #0f766e);
+  --primary-foreground: light-dark(#ffffff, #f0fdfa);
+  /* Teal as text (links, the claim link) needs to be lighter on a dark background. */
+  --primary-text: light-dark(#0f766e, #5eead4);
   --radius: 8px;
   /* Older names the plan card's classes use. */
   --fg: var(--foreground); --fg2: var(--muted-foreground); --fg3: var(--muted-foreground);
@@ -115,7 +118,7 @@ summary:focus-visible, button:focus-visible, input:focus-visible, select:focus-v
 }
 .btn-ghost, .link {
   min-height: 44px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left;
-  color: var(--primary); font-weight: 500; justify-self: start;
+  color: var(--primary-text); font-weight: 500; justify-self: start;
 }
 .badge {
   display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px;
@@ -135,7 +138,7 @@ summary:focus-visible, button:focus-visible, input:focus-visible, select:focus-v
 .actions { border-top: 1px solid var(--border); padding: 16px; display: grid; gap: 8px; }
 .status { color: var(--muted-foreground); font-size: 12px; }
 .status:empty { display: none; }
-.claim { color: var(--primary); word-break: break-all; }
+.claim { color: var(--primary-text); word-break: break-all; }
 .scenarios { width: 100%; border-collapse: collapse; }
 .scenarios th { text-align: left; font-weight: 400; padding: 6px 0; }
 .scenarios td { text-align: right; padding: 6px 0 6px 12px; vertical-align: top; white-space: nowrap; }

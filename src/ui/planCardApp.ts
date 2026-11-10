@@ -195,7 +195,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
           head.setAttribute('aria-controls', body.id)
           body.hidden = true
           for (const [label, value] of [
-            ['Product', row.product],
+            ['Product', row.name],
             ['Monthly', row.monthly],
             ['Cost', row.cost],
             ['Keys', row.keys],
@@ -205,7 +205,12 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
             line.append(el('span', 'muted', label), el('span', 'num', value))
             body.append(line)
           }
-          for (const condition of row.conditions) body.append(el('p', 'small muted', condition))
+          const conditions = el('details', 'collapsible')
+          conditions.append(el('summary', '', 'Conditions'))
+          const conditionsBody = el('div', 'fold')
+          conditionsBody.append(el('p', 'small muted', `The lender’s name for it: ${row.product}.`))
+          for (const condition of row.conditions) conditionsBody.append(el('p', 'small muted', condition))
+          conditions.append(conditionsBody)
           if (!row.confirmed)
             body.append(
               el(
@@ -214,6 +219,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
                 'Unconfirmed: the incentives come from CCPC’s tables and are not confirmed on the lender’s own site.',
               ),
             )
+          body.append(conditions)
           head.onclick = () => {
             body.hidden = !body.hidden
             head.setAttribute('aria-expanded', String(!body.hidden))

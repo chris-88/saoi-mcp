@@ -35,6 +35,8 @@ export interface PlanCardView {
       driver: string
       confirmed: boolean
       product: string
+      /** "4-year fixed, BER C, loans €250k+". */
+      name: string
       rate: string
       conditions: string[]
     }[]
@@ -389,6 +391,23 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
             driver: pathway.drivers,
             confirmed: pathway.confirmed,
             product: pathway.mortgage.name,
+            name: (() => {
+              const parts = [
+                pathway.mortgage.fixedYears === null
+                  ? 'variable'
+                  : `${String(pathway.mortgage.fixedYears)}-year fixed`,
+              ]
+              if (/green/i.test(pathway.mortgage.name)) parts.push('green')
+              const ber = /\bBER\s*([A-G][0-9]?)\b/i.exec(pathway.mortgage.name)?.[1]
+              if (ber !== undefined) parts.push(`BER ${ber.toUpperCase()}`)
+              const text = pathway.conditions.join(' ')
+              const min = /for loans of €([\d,]+) or more/.exec(text)?.[1]
+              if (min !== undefined)
+                parts.push(`loans €${String(Math.round(Number(min.replaceAll(',', '')) / 1000))}k+`)
+              else if (/higher-value rate|\bHVM\b|higher value/i.test(`${pathway.mortgage.name} ${text}`))
+                parts.push('larger loans')
+              return parts.join(', ')
+            })(),
             rate: pct(pathway.mortgage.ratePct),
             conditions: pathway.conditions,
           })),

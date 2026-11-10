@@ -125,3 +125,38 @@ describe('one step at a time (round 2)', () => {
     expect(html).toMatch(/How we worked this out/)
   })
 })
+
+describe('round 3: the headline and the options agree', () => {
+  const home = recorded.planHome.home
+  if (home === null) throw new Error('recording has no home')
+  // The inputs the recording was made with: €25,000 saved, €800 a month, €90,000, €350,000.
+  const inputs = {
+    ...model.defaults('2026-11'),
+    depositSavedEur: 25_000,
+    monthlySavingEur: 800,
+    annualGrossIncomeEur: 90_000,
+    targetPriceEur: 350_000,
+    targetDate: '2028-11',
+  }
+  const figures = model.figures(inputs, live.rules, '2026-11')
+
+  it('never shows a keys month earlier than the deposit-ready month for the same inputs', () => {
+    const shown = model.headline(inputs, figures, home.keysOn)
+    const ready = /deposit ready around ([A-Z][a-z]{2} \d{4})/.exec(shown)?.[1]
+    expect(ready).toBe(model.month(home.keysOn))
+    for (const row of model.rows(home, 'keys_date')) {
+      const keys = home.pathways.find((option) => option.mortgage.name === row.product)?.keysOn ?? ''
+      expect(keys >= (home.keysOn ?? '')).toBe(true)
+    }
+  })
+
+  it('labels the card’s own estimate as before interest, which is never earlier than the options’ month', () => {
+    expect(model.headline(inputs, figures)).toMatch(/\(before interest\)/)
+    expect((figures.reachedOn ?? '') >= (home.keysOn ?? '')).toBe(true)
+  })
+
+  it('names each product in plain words and keeps the lender’s name for Conditions', () => {
+    const boi = model.rows(home, 'five_year_cost').find((row) => row.product === '4 Year Fixed HVM BER C')
+    expect(boi?.name).toBe('4-year fixed, BER C, loans €250k+')
+  })
+})

@@ -26,6 +26,8 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   let showAll = false
   let drawn = false
   let secondIncome = false
+  /** The inputs the shown comparison was run on. */
+  let comparedFor = ''
 
   const STATEMENT =
     'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.'
@@ -77,7 +79,12 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       return
     }
     const figures = model.figures(inputs, rules, asOf)
-    headline.textContent = model.headline(inputs, figures)
+    // Once options ran for these same inputs, the headline takes their keys month (interest
+    // counted), so the two never disagree; otherwise the card's estimate, before interest.
+    const same = comparison !== null && comparedFor === JSON.stringify(inputs)
+    headline.textContent = same
+      ? model.headline(inputs, figures, comparison?.home?.keysOn ?? null)
+      : model.headline(inputs, figures)
     breakdown.replaceChildren()
     const kv = (label: string, value: string): void => {
       const row = el('p', 'kv')
@@ -111,12 +118,13 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     const name = el('label', '', label)
     name.htmlFor = `in-${key}`
     const box = el('input', 'input')
-    box.type = 'number'
+    // Text, not number, so it can show 25,000; digits are what is read back.
+    box.type = 'text'
     box.inputMode = 'numeric'
-    box.min = '0'
-    box.step = String(step)
+    box.autocomplete = 'off'
     box.id = `in-${key}`
-    box.value = String(inputs[key])
+    const shown = (value: number): string => value.toLocaleString('en-IE', { maximumFractionDigits: 0 })
+    box.value = shown(inputs[key])
     const boxWrap = el('span', 'input-wrap')
     boxWrap.append(el('span', '', '€'), box)
     const slider = el('input', 'slider')
@@ -131,11 +139,13 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       refresh()
     }
     slider.oninput = () => {
-      box.value = slider.value
+      box.value = shown(Number(slider.value))
       set(Number(slider.value))
     }
     box.oninput = () => {
-      const value = Number(box.value)
+      const digits = box.value.replace(/[^0-9]/g, '')
+      const value = digits === '' ? 0 : Number(digits)
+      box.value = digits === '' ? '' : shown(value)
       if (value > Number(slider.max)) slider.max = String(value)
       slider.value = String(value)
       set(value)
@@ -363,12 +373,11 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       line.append(el('span', 'muted', label), el('span', 'num', value))
       body.append(line)
     }
-    kv('Product', row.product)
+    kv('Product', row.name)
     kv('Monthly', row.monthly)
     kv('Cost over 5 years', row.fiveYear)
     kv('Keys', row.keys)
     if (row.more !== null) kv('Cashback and bonus', row.more)
-    for (const note of row.notes) body.append(el('p', 'small muted', note))
     if (row.unconfirmed)
       body.append(
         el(
@@ -377,6 +386,12 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
           'Unconfirmed: the incentives come from CCPC’s tables and are not confirmed on the lender’s own site.',
         ),
       )
+    body.append(
+      collapsible('Conditions', (more) => {
+        more.append(el('p', 'small muted', `The lender’s name for it: ${row.product}.`))
+        for (const note of row.notes) more.append(el('p', 'small muted', note))
+      }),
+    )
     head.onclick = () => {
       body.hidden = !body.hidden
       head.setAttribute('aria-expanded', String(!body.hidden))
@@ -512,6 +527,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       return
     }
     comparison = content as unknown as BuildPlanResult
+    comparedFor = JSON.stringify(inputs)
     editing = false
     showAll = false
     draw()

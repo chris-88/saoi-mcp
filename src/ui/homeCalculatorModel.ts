@@ -61,6 +61,8 @@ export interface OptionRow {
   /** The figure the list is sorted by, shown large, and one other beside it. */
   lead: string
   second: string
+  /** "4-year fixed, BER C, loans €250k+": the product in plain words; `product` keeps the raw name. */
+  name: string
 }
 
 export interface HomeCalculatorModel {
@@ -71,7 +73,12 @@ export interface HomeCalculatorModel {
   contextText(inputs: HomeInputs, sortBy: HomeSort, count: number): string
   rows(home: NonNullable<BuildPlanResult['home']>, sortBy: HomeSort): OptionRow[]
   /** "You could borrow up to €360,000 · deposit ready around Jan 2028". */
-  headline(inputs: HomeInputs, figures: HomeFigures): string
+  /**
+   * With `keysOn` (saoi-api's month for these same inputs, savings interest counted) the headline
+   * uses it, so it never disagrees with the options; without, the card's own estimate, before
+   * interest, labelled so.
+   */
+  headline(inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string
   /** "€25k saved · €1,200/mo · €90k · €350k". */
   summary(inputs: HomeInputs): string
   /** The keys month every option shares, or null when they differ. */
@@ -281,6 +288,11 @@ export function homeCalculatorModel(): HomeCalculatorModel {
         more: option.drivers === 'the rate alone' ? null : option.drivers,
         notes: option.conditions,
         unconfirmed: !option.confirmed,
+        name: plainName(
+          fixed === null ? 'Variable' : `${String(fixed)}-year fixed`,
+          option.mortgage.name,
+          option.conditions,
+        ),
         lead:
           sortBy === 'monthly_repayment'
             ? `${eur(option.mortgage.monthlyRepayment)}/mo`
@@ -304,10 +316,30 @@ export function homeCalculatorModel(): HomeCalculatorModel {
         ? `€${String(Math.round(value / 100) / 10)}k`
         : eur(value)
 
-  const headline = (inputs: HomeInputs, figures: HomeFigures): string =>
-    `You could borrow up to ${eur(figures.maxLoanEur)} · deposit ready ${
-      figures.reachedOn === null ? 'not reached at this pace' : `around ${month(figures.reachedOn)}`
-    }${figures.targetMet === false ? ` (${String(monthsBetween(inputs.targetDate, figures.reachedOn ?? inputs.targetDate))} months after your date)` : ''}`
+  const headline = (inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string => {
+    const ready = keysOn === undefined ? figures.reachedOn : keysOn
+    const late = ready !== null && ready > inputs.targetDate
+    return `You could borrow up to ${eur(figures.maxLoanEur)} · deposit ready ${
+      ready === null ? 'not reached at this pace' : `around ${month(ready)}`
+    }${keysOn === undefined && ready !== null ? ' (before interest)' : ''}${late ? `, ${String(monthsBetween(inputs.targetDate, ready))} months after your date` : ''}`
+  }
+
+  /** The product in plain words, from its rate type, its name and its conditions. */
+  const plainName = (kind: string, raw: string, conditions: readonly string[]): string => {
+    const parts = [kind]
+    if (/green/i.test(raw)) parts.push('green')
+    const ber = /\bBER\s*([A-G][0-9]?)\b/i.exec(raw)?.[1]
+    if (ber !== undefined) parts.push(`BER ${ber.toUpperCase()}`)
+    const text = conditions.join(' ')
+    const min = /for loans of €([\d,]+) or more/.exec(text)?.[1]
+    if (min !== undefined) {
+      const value = Number(min.replaceAll(',', ''))
+      parts.push(`loans €${String(Math.round(value / 1000))}k+`)
+    } else if (/higher-value rate|high-value|\bHVM\b|higher value/i.test(`${raw} ${text}`)) {
+      parts.push('larger loans')
+    }
+    return parts.join(', ')
+  }
 
   const summary = (inputs: HomeInputs): string =>
     [

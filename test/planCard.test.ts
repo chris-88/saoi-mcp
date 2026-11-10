@@ -227,3 +227,21 @@ describe('plan card model: assumed repayments and alternatives (after test 5)', 
     expect(older.alternatives).toEqual([])
   })
 })
+
+describe('plan card model: pathways to a home', () => {
+  const view = planCardModel(recorded.planHome)
+
+  it('leads with the goal and gives up to three pathways, keys first, ranked by cost', () => {
+    expect(view.home?.headline).toMatch(/^Your home: keys around /)
+    expect(view.home?.rows.length).toBeGreaterThan(0)
+    expect(view.home?.rows.length).toBeLessThanOrEqual(3)
+    expect(view.home?.rows[0]?.cost).toMatch(/^lowest cost over /)
+    expect(view.home?.rows[1]?.cost).toMatch(/^\+€[\d,]+ over /)
+    expect(view.home?.rows[0]?.keys).toMatch(/^keys [A-Z][a-z]{2} \d{4}$/)
+    expect(view.home?.assumptions).toMatch(/^Assumed: first-time buyer/)
+  })
+
+  it('has none for a plan whose goal is not a home', () => {
+    expect(planCardModel(recorded.plan).home).toBeNull()
+  })
+})

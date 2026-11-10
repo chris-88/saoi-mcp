@@ -11,6 +11,15 @@ import type { BuildPlanResult } from '../saoiClient.js'
  */
 export interface PlanCardView {
   title: string
+  /**
+   * For a home goal (saoi-api `home`): "Your home: keys around <month>", the assumptions, and up
+   * to three pathways, ranked by cost, each with the keys month first. Null for other goals.
+   */
+  home: {
+    headline: string
+    assumptions: string
+    rows: { lender: string; keys: string; cost: string; driver: string; confirmed: boolean }[]
+  } | null
   /** `headline` is the figure; `note` the sentences after it (how money held is counted). */
   moneyFound: { headline: string; note: string | null; notCounted: string[] }
   /** The goals the plan saves towards (the buffer shows in the position instead). */
@@ -304,11 +313,41 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
     }
   })
 
+  // Pathways to a home (saoi-api, build-plan): optional at runtime, for older results.
+  const homeResult = (result as { home?: BuildPlanResult['home'] }).home ?? null
+  const period =
+    homeResult === null
+      ? ''
+      : homeResult.comparedOver.basis === 'term'
+        ? `over ${String(homeResult.comparedOver.years)} years`
+        : `over the ${String(homeResult.comparedOver.years)}-year fixed period`
+  const home: PlanCardView['home'] =
+    homeResult === null
+      ? null
+      : {
+          headline: homeResult.headline,
+          assumptions: homeResult.assumptions.join(' '),
+          rows: homeResult.pathways.slice(0, 3).map((pathway) => ({
+            lender: pathway.lenderName,
+            keys:
+              pathway.keysOn === null
+                ? 'keys not in reach'
+                : `keys ${month(pathway.keysOn) ?? pathway.keysOn}`,
+            cost:
+              pathway.vsCheapestEur <= 0
+                ? `lowest cost ${period}`
+                : `+${eur(Math.round(pathway.vsCheapestEur))} ${period}`,
+            driver: pathway.drivers,
+            confirmed: pathway.confirmed,
+          })),
+        }
+
   // "Money found: about €X a year after DIRT (parts). How money held is counted." Bold the first.
   const lead = /^(Money found: .*?\)\.)\s+(.+)$/.exec(result.moneyFound.headline)
 
   return {
     title: plan.title,
+    home,
     moneyFound: {
       headline: lead?.[1] ?? result.moneyFound.headline,
       note: lead?.[2] ?? null,

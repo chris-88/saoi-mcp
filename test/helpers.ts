@@ -37,6 +37,8 @@ export const recorded = {
   planPresented: recording('plan-presented') as BuildPlanResult,
   /** The fourth-test scenario from the branch engine: an assumed repayment and one alternative. */
   planAlternatives: recording('plan-alternatives') as BuildPlanResult,
+  /** A first home (live, 2026-11-10): pathways per lender. */
+  planHome: recording('plan-home') as BuildPlanResult,
   reviewPresented: recording('review-presented') as ReviewResult,
   firstHomePresented: recording('first-home-presented') as FirstHomeResult,
   ranking: recording('ranking') as About,

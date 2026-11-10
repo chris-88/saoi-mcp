@@ -216,7 +216,8 @@ describe('plan card model: assumed repayments and alternatives (after test 5)', 
     const row = view.alternatives[0]
     expect(row?.name).toBe('Keep €6,000 aside, keep the loan')
     expect(row?.changes).toBe('the car loan kept, a €6,000 emergency buffer')
-    expect(row?.total).toMatch(/^€[\d,]+ at Nov 2028$/)
+    expect(row?.total).toMatch(/^€[\d,]+ towards the goal at Nov 2028$/)
+    expect(row?.held).toMatch(/^€[\d,]+ held in all$/)
     expect(row?.difference).toMatch(/^€[\d,]+ (more|less)$/)
   })
 

@@ -28,7 +28,17 @@ export interface PlanCardView {
   /** "Assumed: …" for each debt whose repayment was not given; shown under the position. */
   assumed: string[]
   /** One compact row per alternative worked out in the same call, under the position. */
-  alternatives: { name: string; changes: string; total: string; difference: string | null }[]
+  /**
+   * `total` is what goes towards the goal (options are compared by it, Chris 2026-11-10); `held`
+   * the total held in all, secondary.
+   */
+  alternatives: {
+    name: string
+    changes: string
+    total: string
+    held: string
+    difference: string | null
+  }[]
   products: {
     name: string
     provider: string
@@ -284,12 +294,13 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
     return {
       name: alternative.name,
       changes: alternative.changes.join(', '),
-      total: `${eur(Math.round(alternative.position.total))} at ${month(alternative.position.at) ?? alternative.position.at}`,
+      total: `${eur(Math.round(alternative.position.towardsGoal))} towards the goal at ${month(alternative.position.at) ?? alternative.position.at}`,
+      held: `${eur(Math.round(alternative.position.total))} held in all`,
       difference: !sameDate
         ? null
-        : alternative.differenceEur >= 0
-          ? `${eur(Math.round(alternative.differenceEur))} more`
-          : `${eur(Math.round(-alternative.differenceEur))} less`,
+        : alternative.towardsGoalDifferenceEur >= 0
+          ? `${eur(Math.round(alternative.towardsGoalDifferenceEur))} more`
+          : `${eur(Math.round(-alternative.towardsGoalDifferenceEur))} less`,
     }
   })
 

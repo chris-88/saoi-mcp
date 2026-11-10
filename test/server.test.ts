@@ -80,6 +80,8 @@ describe('protocol eras', () => {
     expect(instructions).toMatch(/Present to the customer/)
     expect(instructions).toMatch(/Call saoi_money_check OR saoi_build_plan, once, per reply; never both/)
     expect(instructions).toMatch(/pass up to three `alternatives` in the same call/)
+    expect(instructions).toMatch(/buffer is modelled only when the customer raises one/)
+    expect(instructions).not.toMatch(/bigger buffer|another buffer/)
     expect(instructions).toMatch(
       /not "Clear the €9,000 car loan", but "Clearing the €9,000 car loan from savings leaves/,
     )

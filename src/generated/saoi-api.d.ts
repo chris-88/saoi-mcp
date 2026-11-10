@@ -3365,7 +3365,7 @@ export interface paths {
         put?: never;
         /**
          * The fastest combination of products for the customer’s goals, as a plan
-         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, and takes the one leaving more; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. For a follow-up once saoi_money_check has run; one call per reply, never alongside saoi_money_check. To compare options (another buffer, a debt kept or cleared, another monthly amount or date), pass up to three `alternatives` in the same call: each comes back with its own net figure. Call again only when the customer changes their situation in a later message, never to adjust figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, and takes the one leaving more; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. For a follow-up once saoi_money_check has run; one call per reply, never alongside saoi_money_check. To compare options (a debt kept or cleared, another monthly amount or date), pass up to three `alternatives` in the same call: each comes back with its own net figure. Call again only when the customer changes their situation in a later message, never to adjust figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -9965,6 +9965,8 @@ export interface components {
                 };
                 /** @description Its total less the main plan’s total, at the same date where the date is the same. */
                 differenceEur: number;
+                /** @description What goes towards the main goal less the main plan’s, at the same date: the figure options are compared by. A buffer moves money out of the goal without changing the total held. */
+                towardsGoalDifferenceEur: number;
                 goalReachedOn: string | null;
                 moneyFoundAnnualEur: number;
                 /** @description The comparison in one sentence, for the presentation and the card. */
@@ -10330,7 +10332,7 @@ export interface components {
                 targetDate?: string;
                 priority?: number;
             }[];
-            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To compare a different buffer, pass it as an alternative. */
+            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. Only when the customer raises a buffer: never add one unasked. */
             emergencyBufferEur?: number;
             /** @description An emergency buffer sized as months of outgoings (`situation.outgoings`, rent plus other). Used when `emergencyBufferEur` is absent. Without either field the buffer comes from an `emergency_fund` goal (its `targetAmount`, else 3 months of outgoings); with neither, none is held. */
             emergencyBufferMonths?: number;
@@ -10355,11 +10357,11 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
-            /** @description Up to three named variations to compare with the main plan in this same call (a different buffer, a debt kept or cleared, another monthly amount or date). Each comes back with its net figure. Use this to compare options rather than calling again. */
+            /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
                 name: string;
-                /** @description A different emergency buffer, in euro. */
+                /** @description A different emergency buffer, in euro: only when the customer raised one. */
                 emergencyBufferEur?: number;
                 /** @description Everything in instant access (true), or terms allowed (false). */
                 keepAccessible?: boolean;
@@ -10464,6 +10466,8 @@ export interface components {
                     };
                     /** @description Its total less the main plan’s total, at the same date where the date is the same. */
                     differenceEur: number;
+                    /** @description What goes towards the main goal less the main plan’s, at the same date: the figure options are compared by. A buffer moves money out of the goal without changing the total held. */
+                    towardsGoalDifferenceEur: number;
                     goalReachedOn: string | null;
                     moneyFoundAnnualEur: number;
                     /** @description The comparison in one sentence, for the presentation and the card. */
@@ -10774,7 +10778,7 @@ export interface components {
             planGoalAssumed: string | null;
         };
         MoneyCheck: {
-            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To compare a different buffer, pass it as an alternative. */
+            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. Only when the customer raises a buffer: never add one unasked. */
             emergencyBufferEur?: number;
             /** @description An emergency buffer sized as months of outgoings (`situation.outgoings`, rent plus other). Used when `emergencyBufferEur` is absent. Without either field the buffer comes from an `emergency_fund` goal (its `targetAmount`, else 3 months of outgoings); with neither, none is held. */
             emergencyBufferMonths?: number;
@@ -10799,11 +10803,11 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
-            /** @description Up to three named variations to compare with the main plan in this same call (a different buffer, a debt kept or cleared, another monthly amount or date). Each comes back with its net figure. Use this to compare options rather than calling again. */
+            /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
                 name: string;
-                /** @description A different emergency buffer, in euro. */
+                /** @description A different emergency buffer, in euro: only when the customer raised one. */
                 emergencyBufferEur?: number;
                 /** @description Everything in instant access (true), or terms allowed (false). */
                 keepAccessible?: boolean;
@@ -10878,7 +10882,7 @@ export interface components {
                 firstTimeBuyer?: boolean;
             };
             /**
-             * @description What the money is for, if they said: a house, a car, a buffer. Empty is fine.
+             * @description What the money is for, if they said: a house, a car. Empty is fine.
              * @default []
              */
             goals: {

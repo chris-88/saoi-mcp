@@ -182,16 +182,18 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
         const name = el('span', '')
         name.append(el('span', 'strong', alternative.name))
         if (alternative.changes !== '') name.append(el('span', 'muted', ` (${alternative.changes})`))
-        item.append(
-          name,
+        const figures = el('span', 'num')
+        figures.append(
           el(
             'span',
-            'num',
+            '',
             alternative.difference === null
               ? alternative.total
               : `${alternative.total} · ${alternative.difference}`,
           ),
+          el('span', 'muted', ` (${alternative.held})`),
         )
+        item.append(name, figures)
         compare.append(item)
       }
       summary.append(compare)

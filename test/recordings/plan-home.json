@@ -7,7 +7,7 @@
       "towardsGoalEur": 45332.63,
       "differenceEur": 54.38,
       "goalReachedOn": null,
-      "line": "Next under the same rule, without MoCo EasySaver: €25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account; €45,332.63 towards the goal at November 2028, €54.38 more."
+      "line": "Another split, without MoCo EasySaver: €25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account; €45,332.63 towards the goal at November 2028, €54.38 more."
     },
     {
       "without": "Online Saver",
@@ -15,7 +15,7 @@
       "towardsGoalEur": 45212.69,
       "differenceEur": -65.56,
       "goalReachedOn": null,
-      "line": "Next under the same rule, without Online Saver: €25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account; €45,212.69 towards the goal at November 2028, €65.56 less."
+      "line": "Another split, without Online Saver: €25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account; €45,212.69 towards the goal at November 2028, €65.56 less."
     }
   ],
   "nextQuestion": {
@@ -2570,14 +2570,14 @@
     "Warning: if you do not meet the repayments on your loan, your account will go into arrears.",
     "No money found that the figures given support yet; see what is not counted.",
     "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given).",
-    "Under the rule \"most towards the goal by November 2028\", this split comes first: €25,000 in MoCo EasySaver; €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account.",
+    "One worked split, for the most towards the goal by November 2028 (a fixed term only where it adds enough): €25,000 in MoCo EasySaver; €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account.",
     "A fixed term would add €54.38 by November 2028 and lock the money until then; this combination uses instant access.",
     "Each extra €100 a month adds about €2,438.03 by November 2028.",
     "Help to Buy: not available here. Help to Buy is for new builds and self-builds, not a second-hand home. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
-    "Next under the same rule, without MoCo EasySaver: €25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account; €45,332.63 towards the goal at November 2028, €54.38 more.",
-    "Next under the same rule, without Online Saver: €25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account; €45,212.69 towards the goal at November 2028, €65.56 less.",
+    "Another split, without MoCo EasySaver: €25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account; €45,332.63 towards the goal at November 2028, €54.38 more.",
+    "Another split, without Online Saver: €25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account; €45,212.69 towards the goal at November 2028, €65.56 less.",
     "These are options with their figures, for the inputs given; the customer decides. Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.",
-    "Save this comparison to the Saoi app: https://app.saoi.ie/#/plan/VJrEo5B5dk7Vinc_lBjbgg (held for 24 hours, then deleted unless opened).",
+    "Save this comparison to the Saoi app: https://app.saoi.ie/#/plan/lwd2AuvpSgl5UYSkPyP7Hw (held for 24 hours, then deleted unless opened).",
     "Answer this one and the plan gets sharper: Which bank holds the current account? Some products need an account with the same bank; none of the options shown does, so it changes no figure here."
   ],
   "questions": ["Which bank holds the current account?"],
@@ -2592,8 +2592,8 @@
     "line": "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given)."
   },
   "saveLink": {
-    "url": "https://app.saoi.ie/#/plan/VJrEo5B5dk7Vinc_lBjbgg",
-    "expiresAt": "2026-11-11T15:00:36.728Z"
+    "url": "https://app.saoi.ie/#/plan/lwd2AuvpSgl5UYSkPyP7Hw",
+    "expiresAt": "2026-11-11T15:19:21.929Z"
   },
   "helpToBuy": {
     "status": "not_available",
@@ -2755,7 +2755,7 @@
       "owed": 0,
       "line": "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given)."
     },
-    "createdAt": "2026-11-10T15:00:36.728Z",
+    "createdAt": "2026-11-10T15:19:21.929Z",
     "dataCheckedAt": "2026-11-09T16:15:23.051Z"
   },
   "horizonMonths": 24,

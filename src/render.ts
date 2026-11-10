@@ -464,9 +464,38 @@ function renderHomeOptions(home: BuildPlanResult['home'] | undefined): string[] 
   ]
 }
 
+type HomeRoute = HomeCalculatorResult['routes'][number]
+
+const ROUTE_STATUS: Record<HomeRoute['status'], string> = {
+  potential: 'potential',
+  needs_one_detail: 'needs one detail',
+  not_applicable: 'not applicable',
+}
+
+/**
+ * Every route to a home, in saoi-api's order, for questions: the presentation block already
+ * carries the first three lines and "More routes: N". Facts only; none is picked.
+ */
+function renderRoutes(routes: readonly HomeRoute[] | undefined): string[] {
+  // Optional at runtime: results from before saoi-api carried routes have none.
+  if (routes === undefined || routes.length === 0) return []
+  return [
+    '',
+    'Every route to a home, in the order given (facts; the customer chooses between them):',
+    ...routes.flatMap((route) => [
+      `- ${route.line} (${ROUTE_STATUS[route.status]})`,
+      ...(route.reason === null ? [] : [`  ${route.reason}`]),
+      ...(route.missing === null ? [] : [`  Still to know: ${route.missing}`]),
+      ...(route.confirmed ? [] : ['  Not every rule here is read from a primary page yet.']),
+      ...route.sources.slice(0, 1).map((source) => `  Source: ${source.url} (checked ${source.checkedOn})`),
+    ]),
+  ]
+}
+
 /** The home calculator: the figures that move with the inputs, and what is still to ask. */
 export function renderHomeCalculator(result: HomeCalculatorResult): string {
   const f = result.figures
+  const extra = result as Partial<Pick<HomeCalculatorResult, 'routes'>>
   return [
     ...present(result.presentation),
     'Figures:',
@@ -481,7 +510,13 @@ export function renderHomeCalculator(result: HomeCalculatorResult): string {
       : [`- Mortgage: ${eur(f.loanEur)}${f.ltvPct === null ? '' : ` (${pct(f.ltvPct)} of the price)`}`]),
     ...(f.depositNeededEur === null ? [] : [`- Deposit: ${eur(f.depositNeededEur)}`]),
     ...(f.neededAtKeysEur === null ? [] : [`- Needed at the keys: ${eur(f.neededAtKeysEur)}`]),
+    ...(f.helpToBuyConditional
+      ? [`- Help to Buy: not counted above; up to ${eur(f.helpToBuyEur)}, limited by tax paid (not given)`]
+      : f.helpToBuyEur > 0
+        ? [`- Help to Buy counted: ${eur(f.helpToBuyEur)}`]
+        : []),
     ...(f.depositReachedOn === null ? [] : [`- Saved by: ${f.depositReachedOn} (before interest)`]),
+    ...renderRoutes(extra.routes),
     ...(result.questions.length === 0
       ? []
       : [
@@ -498,6 +533,7 @@ export function renderHomeCalculator(result: HomeCalculatorResult): string {
 export function renderFirstHome(result: FirstHomeResult): string {
   const { helpToBuy: htb, lending } = result
   const price = lending.forPrice
+  const extra = result as Partial<Pick<FirstHomeResult, 'routes' | 'rentVsRepayment'>>
   return [
     ...present(result.presentation),
     `Help to Buy: ${htb.status.replace('_', ' ')}${htb.amountEur === null ? `, up to ${eur(htb.upToEur)}` : `, ${eur(htb.amountEur)}`}.`,
@@ -523,6 +559,8 @@ export function renderFirstHome(result: FirstHomeResult): string {
     ...result.options.flatMap((option, index) =>
       productLines(`${String(index + 1)}.`, option.product, figuresLine(option.figures), option.flags),
     ),
+    ...(extra.rentVsRepayment ?? []),
+    ...renderRoutes(extra.routes),
     ...footer(result),
     '',
     `Next: ${result.next}`,

@@ -42,7 +42,7 @@ describe('home calculator model', () => {
     expect(figures.targetMet).toBe(live.figures.targetDateMet)
   })
 
-  it('caps the loan by joint income and adds Help to Buy for a new build', () => {
+  it('caps the loan by joint income and counts Help to Buy for a new build once tax paid is given', () => {
     const base = model.defaults('2026-11')
     const capped = model.figures(
       { ...base, annualGrossIncomeEur: 50_000, secondIncomeEur: 20_000, targetPriceEur: 350_000 },
@@ -52,7 +52,13 @@ describe('home calculator model', () => {
     expect(capped.maxLoanEur).toBe(280_000)
     expect(capped.depositNeededEur).toBe(70_000)
     const built = model.figures(
-      { ...base, annualGrossIncomeEur: 100_000, targetPriceEur: 400_000, propertyKind: 'new_build' },
+      {
+        ...base,
+        annualGrossIncomeEur: 100_000,
+        targetPriceEur: 400_000,
+        propertyKind: 'new_build',
+        taxPaidLastFourYearsEur: 50_000,
+      },
       live.rules,
       '2026-11',
     )
@@ -158,5 +164,107 @@ describe('round 3: the headline and the options agree', () => {
   it('names each product in plain words and keeps the lender’s name for Conditions', () => {
     const boi = model.rows(home, 'five_year_cost').find((row) => row.product === '4 Year Fixed HVM BER C')
     expect(boi?.name).toBe('4-year fixed, BER C, loans €250k+')
+  })
+})
+
+describe('round 4: routes, the conditional Help to Buy and rent (card v4)', () => {
+  const secondHand = recorded.homeCalculatorSecondHand
+  const newBuild = recorded.homeCalculatorNewBuild
+
+  it('keeps the card’s figures equal to saoi-api’s for both recorded examples', () => {
+    for (const live of [secondHand, newBuild]) {
+      const inputs = model.fromArguments(live.inputs, '2026-11')
+      const figures = model.figures(inputs, live.rules, '2026-11')
+      expect(figures.maxLoanEur).toBe(live.figures.maxLoanEur)
+      expect(figures.loanEur).toBe(live.figures.loanEur)
+      expect(figures.depositNeededEur).toBe(live.figures.depositNeededEur)
+      expect(figures.stampDutyEur).toBe(live.figures.stampDutyEur)
+      expect(figures.helpToBuyEur).toBe(live.figures.helpToBuyEur)
+      expect(figures.helpToBuyConditional).toBe(live.figures.helpToBuyConditional)
+      expect(figures.neededAtKeysEur).toBe(live.figures.neededAtKeysEur)
+      expect(figures.reachedOn).toBe(live.figures.depositReachedOn)
+      expect(figures.targetMet).toBe(live.figures.targetDateMet)
+    }
+  })
+
+  it('leaves a conditional Help to Buy out of the headline, even beside the options’ month', () => {
+    const inputs = model.fromArguments(newBuild.inputs, '2026-11')
+    const figures = model.figures(inputs, newBuild.rules, '2026-11')
+    expect(figures.helpToBuyConditional).toBe(true)
+    expect(figures.neededAtKeysEur).toBe(47_000)
+    // saoi_build_plan counts Help to Buy at its most; the headline must not take that month.
+    const shown = model.headline(inputs, figures, '2026-12')
+    expect(shown).toMatch(/deposit ready around Apr 2028 \(before interest\)/)
+    expect(shown).not.toMatch(/Dec 2026/)
+    const counted = model.figures({ ...inputs, taxPaidLastFourYearsEur: 20_000 }, newBuild.rules, '2026-11')
+    expect(counted.helpToBuyConditional).toBe(false)
+    expect(counted.helpToBuyEur).toBe(20_000)
+    expect(counted.neededAtKeysEur).toBe(27_000)
+  })
+
+  it('starts folded only when the host gave deposit, monthly saving, income and price', () => {
+    expect(model.startsFolded(secondHand.inputs)).toBe(true)
+    expect(model.startsFolded({ depositSavedEur: 30_000, targetPriceEur: 400_000 })).toBe(false)
+    expect(model.startsFolded(null)).toBe(false)
+  })
+
+  it('asks only the facts still missing, rent last', () => {
+    expect(model.missingFacts(model.given(secondHand.inputs))).toEqual(['firstTimeBuyer', 'monthlyRentEur'])
+    expect(model.missingFacts([])).toEqual(['firstTimeBuyer', 'propertyKind', 'monthlyRentEur'])
+  })
+
+  it('sends county and rent to saoi_home_calculator and leaves unanswered facts for it to ask', () => {
+    const inputs = {
+      ...model.fromArguments(secondHand.inputs, '2026-11'),
+      county: 'fingal',
+      monthlyRentEur: 1_800,
+    }
+    const body = model.homeCalculatorBody(inputs, model.given(secondHand.inputs))
+    expect(body).toMatchObject({
+      depositSavedEur: 30_000,
+      secondIncomeEur: 40_000,
+      propertyKind: 'second_hand',
+      county: 'fingal',
+      monthlyRentEur: 1_800,
+      currentBank: 'Bank of Ireland',
+    })
+    expect(body).not.toHaveProperty('firstTimeBuyer')
+    expect(model.counties()).toHaveLength(30)
+    expect(model.fromArguments({ county: 'atlantis' }, '2026-11').county).toBe('')
+  })
+
+  it('shows three routes in saoi-api’s order and keeps the rest behind More routes', () => {
+    const { shown, more } = model.splitRoutes(secondHand.routes)
+    expect(shown.map((route) => route.line)).toEqual(secondHand.routes.slice(0, 3).map((route) => route.line))
+    expect(more).toHaveLength(3)
+    expect(secondHand.presentation).toContain('More routes: 3')
+  })
+
+  it('matches each missing question to the one control that answers it', () => {
+    const missing = new Map(newBuild.routes.map((route) => [route.id, route.missing ?? '']))
+    expect(model.controlFor(missing.get('first_home_scheme') ?? '')).toBe('county')
+    expect(model.controlFor(missing.get('new_build_help_to_buy') ?? '')).toBe('taxPaid')
+    expect(
+      model.controlFor('Is anyone buying with you? The income ceiling is €80,000 single, €85,000 joint.'),
+    ).toBe('joint')
+    expect(model.controlFor('Which part of Galway is the home in? (city or county)')).toBe('county')
+    expect(
+      model.controlFor('What is the gross income a year, before tax? If buying with someone, theirs too.'),
+    ).toBeNull()
+  })
+
+  it('sets rent beside the repayments shown, in saoi-api’s wording', () => {
+    expect(model.rentLine(1_800, [1_634.2, 1_654.1, 1_634])).toBe(
+      'Rent €1,800 a month against a €1,634 to €1,654 repayment',
+    )
+    expect(model.rentLine(1_800, [1_620])).toBe('Rent €1,800 a month against a €1,620 repayment')
+    expect(model.rentLine(null, [1_620])).toBeNull()
+  })
+
+  it('never words a route as a pick', () => {
+    for (const route of [...secondHand.routes, ...newBuild.routes]) {
+      expect(model.statusWord(route.status)).not.toMatch(/best|faster|recommended/i)
+      expect(route.line).not.toMatch(/best|faster|recommended/i)
+    }
   })
 })

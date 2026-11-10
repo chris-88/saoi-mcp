@@ -11,6 +11,11 @@ import type { BuildPlanResult, HomeCalculatorResult } from '../saoiClient.js'
  */
 
 export type HomeRules = HomeCalculatorResult['rules']
+export type HomeRoute = HomeCalculatorResult['routes'][number]
+
+/** A fact the card can ask for with one control, from a chip. */
+export type HomeControl =
+  'county' | 'firstTimeBuyer' | 'propertyKind' | 'joint' | 'taxPaid' | 'monthlyRentEur'
 
 export interface HomeInputs {
   depositSavedEur: number
@@ -29,6 +34,12 @@ export interface HomeInputs {
   rateType: 'either' | 'fixed' | 'variable'
   green: boolean
   openToCurrentAccountSwitch: boolean
+  /** One of saoi-api's 30 slugs, or '' when not given. */
+  county: string
+  /** Rent paid a month, or null when not given. It changes no figure. */
+  monthlyRentEur: number | null
+  /** Income Tax and DIRT paid over the last four tax years, or null: Help to Buy is then not counted. */
+  taxPaidLastFourYearsEur: number | null
 }
 
 export type HomeSort = 'five_year_cost' | 'keys_date' | 'monthly_repayment'
@@ -39,7 +50,10 @@ export interface HomeFigures {
   ltvPct: number
   depositNeededEur: number
   stampDutyEur: number
+  /** Counted in `neededAtKeysEur`; with `helpToBuyConditional`, what it could be, not counted. */
   helpToBuyEur: number
+  /** A new build with tax paid not given: the headline is without Help to Buy (saoi-api's rule). */
+  helpToBuyConditional: boolean
   neededAtKeysEur: number
   /** "YYYY-MM", or null when it is not reached (nothing saved a month). */
   reachedOn: string | null
@@ -53,6 +67,7 @@ export interface OptionRow {
   product: string
   rate: string
   monthly: string
+  monthlyEur: number
   fiveYear: string
   keys: string
   more: string | null
@@ -72,17 +87,38 @@ export interface HomeCalculatorModel {
   buildPlanBody(inputs: HomeInputs, sortBy: HomeSort): Record<string, unknown>
   contextText(inputs: HomeInputs, sortBy: HomeSort, count: number): string
   rows(home: NonNullable<BuildPlanResult['home']>, sortBy: HomeSort): OptionRow[]
-  /** "You could borrow up to €360,000 · deposit ready around Jan 2028". */
   /**
+   * "You could borrow up to €360,000 · deposit ready around Jan 2028".
    * With `keysOn` (saoi-api's month for these same inputs, savings interest counted) the headline
    * uses it, so it never disagrees with the options; without, the card's own estimate, before
-   * interest, labelled so.
+   * interest, labelled so. With `helpToBuyConditional` it is always the card's own: the options'
+   * month counts Help to Buy, and the headline must not.
    */
   headline(inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string
   /** "€25k saved · €1,200/mo · €90k · €350k". */
   summary(inputs: HomeInputs): string
   /** The keys month every option shares, or null when they differ. */
   sharedKeys(home: NonNullable<BuildPlanResult['home']>): string | null
+  /** The facts the arguments carried, by their request keys. */
+  given(args: Record<string, unknown> | null): string[]
+  /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
+  startsFolded(args: Record<string, unknown> | null): boolean
+  /** The facts still to ask, as chips: first home, the kind of property, then rent (optional) last. */
+  missingFacts(given: readonly string[]): HomeControl[]
+  /** The saoi_home_calculator request for these inputs; facts not given are left for it to ask. */
+  homeCalculatorBody(inputs: HomeInputs, given: readonly string[]): Record<string, unknown>
+  /** The control that answers a route's `missing` question, or null when the card has none. */
+  controlFor(missing: string): HomeControl | null
+  /** The chip's short question. */
+  chipText(control: HomeControl): string
+  /** The route's status as one small muted word. */
+  statusWord(status: HomeRoute['status']): string
+  /** The first three routes in the order given, and the rest behind "More routes (N)". */
+  splitRoutes(routes: readonly HomeRoute[]): { shown: HomeRoute[]; more: HomeRoute[] }
+  /** "Rent €1,800 a month against a €1,634 repayment", over the options shown; null without rent. */
+  rentLine(rent: number | null, monthlies: readonly number[]): string | null
+  /** saoi-api's county slugs with their names, in the order of the select. */
+  counties(): (readonly [string, string])[]
   eur(value: number): string
   month(yyyyMm: string | null): string
   addMonths(asOf: string, months: number): string
@@ -127,7 +163,45 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     rateType: 'either',
     green: false,
     openToCurrentAccountSwitch: true,
+    county: '',
+    monthlyRentEur: null,
+    taxPaidLastFourYearsEur: null,
   })
+
+  const COUNTIES: (readonly [string, string])[] = [
+    ['carlow', 'Carlow'],
+    ['cavan', 'Cavan'],
+    ['clare', 'Clare'],
+    ['cork', 'Cork'],
+    ['donegal', 'Donegal'],
+    ['dublin', 'Dublin (area not known)'],
+    ['dublin_city', 'Dublin City'],
+    ['dun_laoghaire_rathdown', 'Dún Laoghaire-Rathdown'],
+    ['fingal', 'Fingal'],
+    ['south_dublin', 'South Dublin'],
+    ['galway', 'Galway'],
+    ['kerry', 'Kerry'],
+    ['kildare', 'Kildare'],
+    ['kilkenny', 'Kilkenny'],
+    ['laois', 'Laois'],
+    ['leitrim', 'Leitrim'],
+    ['limerick', 'Limerick'],
+    ['longford', 'Longford'],
+    ['louth', 'Louth'],
+    ['mayo', 'Mayo'],
+    ['meath', 'Meath'],
+    ['monaghan', 'Monaghan'],
+    ['offaly', 'Offaly'],
+    ['roscommon', 'Roscommon'],
+    ['sligo', 'Sligo'],
+    ['tipperary', 'Tipperary'],
+    ['waterford', 'Waterford'],
+    ['westmeath', 'Westmeath'],
+    ['wexford', 'Wexford'],
+    ['wicklow', 'Wicklow'],
+  ]
+  const optional = (value: unknown): number | null =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null
 
   /** The tool's arguments (or the result's echo of them) over the defaults. */
   const fromArguments = (args: Record<string, unknown> | null, asOf: string): HomeInputs => {
@@ -137,6 +211,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     const kind = args['propertyKind']
     const rate = args['rateType']
     const bank = args['currentBank']
+    const county = args['county']
     return {
       depositSavedEur: num(args['depositSavedEur'], base.depositSavedEur),
       monthlySavingEur: num(args['monthlySavingEur'], base.monthlySavingEur),
@@ -152,6 +227,9 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       rateType: rate === 'fixed' || rate === 'variable' ? rate : 'either',
       green: args['green'] === true,
       openToCurrentAccountSwitch: args['openToCurrentAccountSwitch'] !== false,
+      county: typeof county === 'string' && COUNTIES.some(([slug]) => slug === county) ? county : '',
+      monthlyRentEur: optional(args['monthlyRentEur']),
+      taxPaidLastFourYearsEur: optional(args['taxPaidLastFourYearsEur']),
     }
   }
 
@@ -162,10 +240,16 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     const income = inputs.annualGrossIncomeEur + inputs.secondIncomeEur
     const maxLoan = round2(income * measures.loanToIncome)
     const price = inputs.targetPriceEur
-    const htb =
-      inputs.firstTimeBuyer && inputs.propertyKind === 'new_build' && price <= rules.helpToBuy.maxPriceEur
+    // Help to Buy counts towards the cash at the keys only when tax paid, which limits it, was
+    // given; without it the figure is what it could be, and the headline leaves it out.
+    const htbApplies = inputs.firstTimeBuyer && inputs.propertyKind === 'new_build'
+    const htbUpTo =
+      htbApplies && price <= rules.helpToBuy.maxPriceEur
         ? round2(Math.min(price * rules.helpToBuy.shareOfPrice, rules.helpToBuy.capEur))
         : 0
+    const taxPaid = inputs.taxPaidLastFourYearsEur
+    const htb = htbApplies && taxPaid !== null ? round2(Math.min(htbUpTo, taxPaid)) : 0
+    const conditional = htbApplies && taxPaid === null && htbUpTo > 0
     const loan = round2(Math.min(price * ltv, maxLoan))
     const deposit = round2(price - loan)
     const stamp = round2((price * rules.stampDutyPct) / 100)
@@ -184,7 +268,12 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       loan < price * ltv
         ? `The loan is capped by income at ${eur(loan)}, so the deposit is ${eur(deposit)}.`
         : `A ${eur(loan)} mortgage (${String(measures.maxLtvPct)}%) and a ${eur(deposit)} deposit.`,
-      `Needed at the keys: ${eur(needed)}${htb > 0 ? `, after ${eur(htb)} Help to Buy (at its most)` : ''}.`,
+      `Needed at the keys: ${eur(needed)}${htb > 0 ? `, after ${eur(htb)} Help to Buy` : ''}.`,
+      ...(conditional
+        ? [
+            `Help to Buy is not counted: up to ${eur(htbUpTo)}, it is limited by the Income Tax and DIRT paid over the last four tax years.`,
+          ]
+        : []),
       reachedOn === null
         ? 'Not reached with nothing saved a month.'
         : saved >= needed
@@ -202,7 +291,8 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       ltvPct: price > 0 ? round2((loan / price) * 100) : 0,
       depositNeededEur: deposit,
       stampDutyEur: stamp,
-      helpToBuyEur: htb,
+      helpToBuyEur: conditional ? htbUpTo : htb,
+      helpToBuyConditional: conditional,
       neededAtKeysEur: needed,
       reachedOn,
       targetMet,
@@ -236,6 +326,9 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     ],
     homePrice: inputs.targetPriceEur,
     propertyKind: inputs.propertyKind,
+    ...(inputs.taxPaidLastFourYearsEur === null
+      ? {}
+      : { taxPaidLastFourYearsEur: inputs.taxPaidLastFourYearsEur }),
     homePreferences: {
       ...(inputs.currentBank === '' ? {} : { currentBank: inputs.currentBank }),
       stayWithBank: inputs.currentBank !== '' && inputs.stayWithBank,
@@ -261,7 +354,9 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       `price ${eur(inputs.targetPriceEur)}; existing repayments ${eur(inputs.monthlyDebtRepaymentsEur)} a month; keys wanted by ${month(inputs.targetDate)};`,
       `${inputs.firstTimeBuyer ? 'first-time buyer' : 'not a first-time buyer'}; ${inputs.propertyKind === 'new_build' ? 'new build' : 'second-hand'};`,
       `${inputs.currentBank === '' ? 'bank not given' : `banks with ${inputs.currentBank}${inputs.stayWithBank ? ', wants to see only their options' : ''}`};`,
-      `rates: ${inputs.rateType}; green home: ${inputs.green ? 'yes' : 'no'}; open to switching current account: ${inputs.openToCurrentAccountSwitch ? 'yes' : 'no'}.`,
+      `rates: ${inputs.rateType}; green home: ${inputs.green ? 'yes' : 'no'}; open to switching current account: ${inputs.openToCurrentAccountSwitch ? 'yes' : 'no'};`,
+      `county: ${COUNTIES.find(([slug]) => slug === inputs.county)?.[1] ?? 'not given'}; rent: ${inputs.monthlyRentEur === null ? 'not given' : `${eur(inputs.monthlyRentEur)} a month`}; tax paid over the last four years: ${inputs.taxPaidLastFourYearsEur === null ? 'not given' : eur(inputs.taxPaidLastFourYearsEur)}.`,
+      'The card lists every route to a home as facts, in the order saoi-api gave; relay them as given and never call one the best.',
       `The card shows ${String(count)} options sorted by ${SORTS[sortBy]}. Talk them through as a comparison if asked;`,
       'do not pick one for the customer or say which to take. Use these inputs in any later saoi_build_plan call.',
     ].join(' ')
@@ -283,6 +378,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
         product: option.mortgage.name,
         rate: `${String(Math.round(option.mortgage.ratePct * 100) / 100)}%`,
         monthly: eur(option.mortgage.monthlyRepayment),
+        monthlyEur: option.mortgage.monthlyRepayment,
         fiveYear: eur(option.netCostEur),
         keys: month(option.keysOn),
         more: option.drivers === 'the rate alone' ? null : option.drivers,
@@ -317,11 +413,14 @@ export function homeCalculatorModel(): HomeCalculatorModel {
         : eur(value)
 
   const headline = (inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string => {
-    const ready = keysOn === undefined ? figures.reachedOn : keysOn
+    // The options' month counts Help to Buy at its most; a conditional Help to Buy stays out of
+    // the headline, so the card's own month (without it) is shown instead.
+    const own = keysOn === undefined || figures.helpToBuyConditional
+    const ready = own ? figures.reachedOn : keysOn
     const late = ready !== null && ready > inputs.targetDate
     return `You could borrow up to ${eur(figures.maxLoanEur)} · deposit ready ${
       ready === null ? 'not reached at this pace' : `around ${month(ready)}`
-    }${keysOn === undefined && ready !== null ? ' (before interest)' : ''}${late ? `, ${String(monthsBetween(inputs.targetDate, ready))} months after your date` : ''}`
+    }${own && ready !== null ? ' (before interest)' : ''}${late ? `, ${String(monthsBetween(inputs.targetDate, ready))} months after your date` : ''}`
   }
 
   /** The product in plain words, from its rate type, its name and its conditions. */
@@ -355,9 +454,92 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     return keys.size === 1 && only !== undefined && only !== 'none' ? month(only) : null
   }
 
+  const given = (args: Record<string, unknown> | null): string[] =>
+    args === null ? [] : Object.keys(args).filter((key) => args[key] !== undefined && args[key] !== null)
+
+  const startsFolded = (args: Record<string, unknown> | null): boolean =>
+    args !== null &&
+    ['depositSavedEur', 'monthlySavingEur', 'annualGrossIncomeEur', 'targetPriceEur'].every(
+      (key) => optional(args[key]) !== null,
+    )
+
+  const missingFacts = (known: readonly string[]): HomeControl[] =>
+    (['firstTimeBuyer', 'propertyKind', 'monthlyRentEur'] as const).filter((key) => !known.includes(key))
+
+  const homeCalculatorBody = (inputs: HomeInputs, known: readonly string[]): Record<string, unknown> => ({
+    depositSavedEur: inputs.depositSavedEur,
+    monthlySavingEur: inputs.monthlySavingEur,
+    annualGrossIncomeEur: inputs.annualGrossIncomeEur,
+    ...(inputs.secondIncomeEur > 0 ? { secondIncomeEur: inputs.secondIncomeEur } : {}),
+    targetPriceEur: inputs.targetPriceEur,
+    ...(inputs.monthlyDebtRepaymentsEur > 0
+      ? { monthlyDebtRepaymentsEur: inputs.monthlyDebtRepaymentsEur }
+      : {}),
+    targetDate: inputs.targetDate,
+    ...(known.includes('firstTimeBuyer') ? { firstTimeBuyer: inputs.firstTimeBuyer } : {}),
+    ...(known.includes('propertyKind') ? { propertyKind: inputs.propertyKind } : {}),
+    ...(inputs.taxPaidLastFourYearsEur === null
+      ? {}
+      : { taxPaidLastFourYearsEur: inputs.taxPaidLastFourYearsEur }),
+    ...(inputs.county === '' ? {} : { county: inputs.county }),
+    ...(inputs.monthlyRentEur === null ? {} : { monthlyRentEur: inputs.monthlyRentEur }),
+    ...(inputs.currentBank === '' ? {} : { currentBank: inputs.currentBank }),
+    stayWithBank: inputs.currentBank !== '' && inputs.stayWithBank,
+    rateType: inputs.rateType,
+    green: inputs.green,
+    openToCurrentAccountSwitch: inputs.openToCurrentAccountSwitch,
+  })
+
+  const controlFor = (missing: string): HomeControl | null => {
+    if (/county|part of .+ is the home in/i.test(missing)) return 'county'
+    if (/income tax|tax paid/i.test(missing)) return 'taxPaid'
+    if (/^what is the gross income/i.test(missing)) return null
+    if (/buying with you|with someone|joint/i.test(missing)) return 'joint'
+    if (/first home|owned one/i.test(missing)) return 'firstTimeBuyer'
+    if (/new build or second-hand/i.test(missing)) return 'propertyKind'
+    return null
+  }
+
+  const CHIPS: Record<HomeControl, string> = {
+    county: 'Which county?',
+    firstTimeBuyer: 'First home?',
+    propertyKind: 'New build or second-hand?',
+    joint: 'Buying with someone?',
+    taxPaid: 'Tax paid, last 4 years?',
+    monthlyRentEur: 'Rent a month? (optional)',
+  }
+
+  const STATUS: Record<HomeRoute['status'], string> = {
+    potential: 'Potential',
+    needs_one_detail: 'One detail',
+    not_applicable: 'Not applicable',
+  }
+
+  const splitRoutes = (routes: readonly HomeRoute[]): { shown: HomeRoute[]; more: HomeRoute[] } => ({
+    shown: routes.slice(0, 3),
+    more: routes.slice(3),
+  })
+
+  const rentLine = (rent: number | null, monthlies: readonly number[]): string | null => {
+    if (rent === null || monthlies.length === 0) return null
+    const low = Math.round(Math.min(...monthlies))
+    const high = Math.round(Math.max(...monthlies))
+    return `Rent ${eur(rent)} a month against a ${low === high ? eur(low) : `${eur(low)} to ${eur(high)}`} repayment`
+  }
+
   return {
     defaults,
     fromArguments,
+    given,
+    startsFolded,
+    missingFacts,
+    homeCalculatorBody,
+    controlFor,
+    chipText: (control) => CHIPS[control],
+    statusWord: (status) => STATUS[status],
+    splitRoutes,
+    rentLine,
+    counties: () => COUNTIES,
     figures,
     buildPlanBody,
     contextText,

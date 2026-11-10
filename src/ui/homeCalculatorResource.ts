@@ -7,12 +7,13 @@ import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardRes
 /**
  * The home calculator card (decision 2026-11-10: Saoi compares; the customer sets the filters):
  * an MCP Apps UI resource that hosts which support it render with `saoi_home_calculator`.
- * Sliders with typed boxes, live figures, the customer's filters, and "Show my options", which
- * runs saoi_build_plan through the host and lists every option that fits, sortable.
+ * Sliders with typed boxes, live figures, the customer's filters, every route to a home as facts
+ * (decision 2026-11-10, every route on one screen), "Show my options", which runs saoi_build_plan
+ * through the host and lists every option that fits, sortable, and "Open in Saoi".
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v3.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v4.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },
@@ -49,6 +50,22 @@ select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto;
 .choice-field > p { font-weight: 500; }
 .headline { font-weight: 600; font-size: 15px; }
 .summary-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.grid { display: grid; gap: 8px; }
+.btn-outline.wide { width: 100%; min-height: 44px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  min-height: 36px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--background); color: var(--foreground); font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.chip[aria-expanded='true'] { border-color: var(--foreground); }
+.control { display: grid; gap: 8px; padding-top: 4px; }
+.control .btn-outline { justify-self: end; }
+.route-head {
+  width: 100%; min-height: 44px; padding: 10px 0; border: 0; background: none; cursor: pointer; text-align: left;
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+}
+.nowrap { white-space: nowrap; }
+.link.muted-link { color: var(--muted-foreground); }
 `
 
 /** The card's document: markup, style and script all inline. */
@@ -90,7 +107,7 @@ export function registerHomeCalculatorCard(server: McpServer): void {
     {
       title: 'Saoi home calculator',
       description:
-        'The interactive calculator hosts show with saoi_home_calculator: sliders, live figures, the customer’s filters, and every option that fits, sortable.',
+        'The interactive calculator hosts show with saoi_home_calculator: the customer’s figures, live figures, every route to a home as facts, and every option that fits, sortable, with Open in Saoi.',
       mimeType: MCP_APP_MIME_TYPE,
       _meta: PLAN_CARD_RESOURCE_META,
     },

@@ -1,6 +1,7 @@
 import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SaoiError } from '../src/saoiClient.js'
+import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
 import { legacyPost, mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
 type Rpc = { result?: Record<string, unknown>; error?: { code: number } }
@@ -20,7 +21,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.6.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.7.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -76,7 +77,10 @@ describe('protocol eras', () => {
     const body = await asRpc(res)
     expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoi' })
     const instructions = String(body.result?.['instructions'])
-    expect(instructions).toMatch(/Present options with their figures; the customer decides/)
+    expect(instructions).toMatch(/Never present a single option as right for the customer/)
+    expect(instructions).toMatch(/Saoi is not regulated by the Central/)
+    expect(instructions).toMatch(/call saoi_home_calculator/)
+    expect(instructions).not.toMatch(/recommendation into an option|only €24/)
     expect(instructions).toMatch(/Present to the customer/)
     expect(instructions).toMatch(/Call saoi_money_check OR saoi_build_plan, once, per reply; never both/)
     expect(instructions).toMatch(/pass up to three `alternatives` in the same call/)
@@ -111,6 +115,7 @@ describe('tools/list', () => {
     'saoi_build_plan',
     'saoi_debt',
     'saoi_first_home',
+    'saoi_home_calculator',
     'saoi_money_check',
     'saoi_mortgage',
     'saoi_product',
@@ -123,7 +128,7 @@ describe('tools/list', () => {
   it.each([
     ['modern', () => modernPost(srv.url, 'tools/list')],
     ['legacy', () => legacyPost(srv.url, { jsonrpc: '2.0', id: 1, method: 'tools/list' })],
-  ])('lists the ten saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
+  ])('lists the eleven saoi tools with object schemas from the OpenAPI document (%s)', async (_era, call) => {
     const body = await asRpc(await call())
     const tools = body.result?.['tools'] as {
       name: string
@@ -157,7 +162,12 @@ describe('resources and prompts', () => {
   it('lists and reads how Saoi ranks and earns', async () => {
     const list = await asRpc(await modernPost(srv.url, 'resources/list'))
     const uris = (list.result?.['resources'] as { uri: string }[]).map((r) => r.uri).sort()
-    expect(uris).toEqual(['saoi://about/earnings', 'saoi://about/ranking', 'ui://saoi/plan-card-v7.html'])
+    expect(uris).toEqual([
+      'saoi://about/earnings',
+      'saoi://about/ranking',
+      'ui://saoi/home-calculator-v1.html',
+      'ui://saoi/plan-card-v8.html',
+    ])
     const read = await asRpc(
       await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),
     )
@@ -265,6 +275,16 @@ describe('tools/call', () => {
     expect(plan).toMatch(/House deposit by November 2028/)
     expect(plan).toMatch(/^Present to the customer:\n- Money found: /)
     expect(plan).toMatch(/Save this plan to the Saoi app: https:\/\/app\.saoi\.ie\/#\/plan\//)
+    expect(plan).toMatch(/Saoi is not regulated by the Central Bank of Ireland and does not give advice/)
+    saoi.buildPlan.mockResolvedValueOnce(recorded.planHome)
+    const comparison = text(await call('saoi_build_plan', { situation: {}, goals: [GOAL] }))
+    expect(comparison).toMatch(/Home options: 49 options that fit, sorted by cost over the first 5 years/)
+    expect(comparison).toMatch(/Warning: if you do not keep up your repayments you may lose your home\./)
+    expect(comparison).toMatch(/Save this comparison to the Saoi app/)
+    expect(comparison).toMatch(/Other splits, each without one product of the first:/)
+    expect(comparison).not.toMatch(
+      /recommend|your path|Your home: keys|make this plan happen|fastest combination/i,
+    )
     expect(plan).toMatch(/€[\d,]+ in all at November 2028: /)
     expect(plan).toMatch(/Locked or accessible: /)
     expect(plan).toMatch(/What if:\n- /)
@@ -288,6 +308,35 @@ describe('tools/call', () => {
     ] as const) {
       expect(text(await call(name, args))).toMatch(/^Present to the customer:\n/)
     }
+  })
+
+  it('saoi_home_calculator passes what was said and asks for the rest in plain questions', async () => {
+    const body = await call('saoi_home_calculator', { depositSavedEur: 25000, targetPriceEur: 350000 })
+    expect(saoi.homeCalculator).toHaveBeenCalledWith(
+      { depositSavedEur: 25000, targetPriceEur: 350000 },
+      undefined,
+    )
+    const said = text(body)
+    expect(said).toMatch(/^Present to the customer:\n/)
+    expect(said).toMatch(/Needed at the keys: €41,500/)
+    expect(said).toMatch(/Warning: the cost of your monthly repayments may increase\./)
+    expect(said).toMatch(/Saoi is not regulated by the Central Bank of Ireland/)
+    expect(said).toMatch(/Show my options/)
+    expect(body.result?.['structuredContent']).toEqual(recorded.homeCalculator)
+  })
+
+  it('accepts the calculator card’s comparison body for saoi_build_plan', async () => {
+    const model = homeCalculatorModel()
+    const inputs = { ...model.defaults('2026-11'), currentBank: 'Bank of Ireland', stayWithBank: true }
+    const args = model.buildPlanBody(inputs, 'keys_date')
+    const body = await call('saoi_build_plan', args)
+    expect(body.result?.['isError']).toBeUndefined()
+    expect(saoi.buildPlan).toHaveBeenCalledWith(args, undefined)
+    expect(args['homePreferences']).toMatchObject({
+      currentBank: 'Bank of Ireland',
+      stayWithBank: true,
+      sortBy: 'keys_date',
+    })
   })
 
   it('saoi_save_plan returns a 24-hour link', async () => {

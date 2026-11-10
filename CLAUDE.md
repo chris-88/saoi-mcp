@@ -4,7 +4,7 @@ Guidance for the development agent working on this project. Read this fully befo
 
 ## What this is
 
-`saoi-mcp`: a small Node 24 + TypeScript MCP server at `https://mcp.saoi.ie/mcp` for Saoi's comparison of Irish money products: eight `saoi_*` tools, two resources (how Saoi ranks, how Saoi earns), the plan card (an MCP Apps UI resource, `src/ui/`) and the `money-check-up` prompt, over saoi-api's public routes (`SAOI_API_URL`, default `http://saoi-api:3000`; `/api/market/*`, `/api/calc/*`, `POST /api/plans`). Tool input schemas, descriptions and response types are generated from saoi-api's OpenAPI document: `npm run gen`. The engine lives in `chris-88/saoi` (`_shared/domain/market/`); this repo adds nothing to the arithmetic. Design: vault `+/fleeting/baz/2026-11-09-saoi-mcp-tools-design.md`.
+`saoi-mcp`: a small Node 24 + TypeScript MCP server at `https://mcp.saoi.ie/mcp` for Saoi's comparison of Irish money products: eleven `saoi_*` tools, two resources (how Saoi ranks, how Saoi earns), two MCP Apps UI resources in `src/ui/` (the plan card and the home calculator card, sharing `bridge.ts`) and the `money-check-up` prompt, over saoi-api's public routes (`SAOI_API_URL`, default `http://saoi-api:3000`; `/api/market/*`, `/api/calc/*`, `POST /api/plans`). Tool input schemas, descriptions and response types are generated from saoi-api's OpenAPI document: `npm run gen`. The engine lives in `chris-88/saoi` (`_shared/domain/market/`); this repo adds nothing to the arithmetic. Design: vault `+/fleeting/baz/2026-11-09-saoi-mcp-tools-design.md`.
 
 **Stack:** `@modelcontextprotocol/server` + `@modelcontextprotocol/node` (SDK v2, `createMcpHandler`) · Zod 4 · plain `node:http` · Vitest · ESLint (typescript-eslint strict) + Prettier · Docker (Node 24 alpine) · hosted by `~/code/infra/stacks/mcp` behind the Cloudflare Tunnel.
 
@@ -17,7 +17,7 @@ Keep the surface lean (no speculative features or dependencies); keep the floor 
 - [ ] `npm run typecheck`, `npm run lint`, `npm run format:check`, `npm test` and `npm run build` pass.
 - [ ] New or changed behaviour has tests; the saoi-api client is mocked (recorded responses in `test/recordings`), never the real stack.
 - [ ] Tool input schemas come from the OpenAPI document (`npm run gen`), never hand-written; a missing field description is fixed in saoi's contracts. Tool descriptions say when to use the tool.
-- [ ] Nothing returned reads as advice: results state their ranking basis; no "you should".
+- [ ] Nothing returned reads as advice: results state their ranking basis; no "you should". No result contains a single recommended product, lender or combination; ranking is by a stated, changeable objective (decision 2026-11-10).
 - [ ] External input is validated at the boundary; failures become `isError` results, not thrown errors.
 - [ ] Customer figures and addresses are never logged.
 - [ ] Env changes are reflected in `.env.example`, the README table, and `~/code/infra/stacks/mcp`.

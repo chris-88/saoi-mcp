@@ -30,6 +30,7 @@ const OPERATIONS = {
   saoi_debt: { method: 'post', path: '/api/calc/debt' },
   saoi_build_plan: { method: 'post', path: '/api/calc/build-plan' },
   saoi_first_home: { method: 'post', path: '/api/calc/first-home' },
+  saoi_home_calculator: { method: 'post', path: '/api/calc/home' },
   saoi_save_plan: { method: 'post', path: '/api/plans', omit: ['client'] },
   about: { method: 'get', path: '/api/market/about/{topic}' },
 }

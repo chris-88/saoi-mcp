@@ -10,7 +10,7 @@ import { planCardModel } from './planCardModel.js'
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong:
  * hosts may treat the URI as a cache key.
  */
-export const PLAN_CARD_URI = 'ui://saoi/plan-card-v7.html'
+export const PLAN_CARD_URI = 'ui://saoi/plan-card-v8.html'
 export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 
 /** On a tool: the card that renders its result. The flat key is the spec's legacy spelling. */
@@ -25,7 +25,8 @@ export const PLAN_CARD_RESOURCE_META = {
   ui: { prefersBorder: false, csp: { connectDomains: [], resourceDomains: ['https://assets.claude.ai'] } },
 }
 
-const STYLE = `
+/** The cards' shared style: Claude's variables where the host sends them, Saoi's colours otherwise. */
+export const STYLE = `
 :root {
   color-scheme: light dark;
   --saoi: light-dark(#00736f, oklch(0.76 0.1 190));
@@ -101,6 +102,8 @@ p, h2, h3, ul, ol { margin: 0; }
 .scenarios th { text-align: left; font-weight: 400; padding: 4px 0; }
 .scenarios td { text-align: right; padding: 4px 0 4px 12px; vertical-align: top; white-space: nowrap; }
 .scenarios tr + tr th, .scenarios tr + tr td { border-top: 1px dashed var(--line); }
+button.badge { cursor: pointer; background: transparent; min-height: 32px; font: inherit; font-size: 12px; font-weight: 600; margin: 0 6px 0 0; }
+button.badge[aria-pressed='true'] { background: var(--saoi); color: var(--saoi-ink); }
 .badge {
   display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 999px;
   font-size: 11px; font-weight: 600; color: var(--saoi); border: 1px solid var(--saoi); vertical-align: 1px;

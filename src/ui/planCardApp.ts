@@ -78,7 +78,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
 
   const save = async (view: PlanCardView, button: HTMLButtonElement): Promise<void> => {
     button.disabled = true
-    status.textContent = view.draftUrl === null ? 'Saving the plan to Saoi…' : 'Opening the Saoi app…'
+    status.textContent = view.draftUrl === null ? 'Saving the comparison to Saoi…' : 'Opening the Saoi app…'
     let url = view.draftUrl
     if (url === null) {
       try {
@@ -96,7 +96,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
             content: [
               {
                 type: 'text',
-                text: `The customer saved this plan to the Saoi app from the plan card. Their one-time link (valid seven days): ${claim}. Do not call saoi_save_plan again for this plan.`,
+                text: `The customer saved this comparison to the Saoi app from the card. Their one-time link (valid seven days): ${claim}. Do not call saoi_save_plan again for this plan.`,
               },
             ],
           })
@@ -104,7 +104,8 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
           // A host without model context still has the link on the card.
         }
       } catch {
-        status.textContent = 'The plan could not be saved from the card. Ask in the chat to save it instead.'
+        status.textContent =
+          'The comparison could not be saved from the card. Ask in the chat to save it instead.'
         button.disabled = false
         return
       }
@@ -112,8 +113,8 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     const opened = await openLink(url)
     const lead = view.draftUrl === null ? 'Saved. ' : ''
     status.textContent = opened
-      ? `${lead}The plan opens in the Saoi app; the link works once.`
-      : `${lead}Open the plan in the Saoi app (the link works once):`
+      ? `${lead}The comparison opens in the Saoi app; the link works once.`
+      : `${lead}Open the comparison in the Saoi app (the link works once):`
     if (!opened) showLink(url)
     button.textContent = 'Open in Saoi app again'
     button.disabled = false
@@ -142,28 +143,78 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     root.removeAttribute('aria-busy')
 
     const header = el('header', 'header')
-    header.append(el('p', 'eyebrow', 'Saoi plan'), el('h2', 'title', view.title))
+    header.append(el('p', 'eyebrow', 'Saoi comparison'), el('h2', 'title', view.title))
     root.append(header)
 
     if (view.home !== null) {
-      // The goal leads: the keys month, then up to three pathways ranked by cost.
+      // Every option that fits, in the order the customer picks; nothing is picked for them.
+      const home = view.home
       const goal = el('section', 'found')
-      goal.append(el('p', 'found-headline', view.home.headline))
-      const routes = el('ul', 'rows position')
-      routes.setAttribute('aria-label', 'Pathways to your home')
-      for (const row of view.home.rows) {
-        const item = el('li', 'row small')
-        // The keys month first, since that is the goal; the cost beside it; what drives it after.
-        const name = el('span', '')
-        name.append(
-          el('span', 'strong num', row.keys),
-          el('span', '', ` · ${row.lender}`),
-          el('span', 'muted', ` · ${row.driver}${row.confirmed ? '' : ' (unconfirmed)'}`),
+      goal.append(el('p', 'found-headline', home.headline))
+      for (const filter of home.filters) goal.append(el('p', 'small strong', filter))
+      let sortBy = home.sortBy
+      let all = false
+      const sorts = el('div', 'rows')
+      const routes = el('ol', 'rows position')
+      routes.setAttribute('aria-label', 'Mortgage options, in the order chosen')
+      const fill = (): void => {
+        const rows = [...home.rows].sort((a, b) =>
+          sortBy === 'monthly_repayment'
+            ? a.monthlyEur - b.monthlyEur || a.costEur - b.costEur
+            : sortBy === 'keys_date'
+              ? a.keysOn.localeCompare(b.keysOn) || a.costEur - b.costEur
+              : a.costEur - b.costEur || a.monthlyEur - b.monthlyEur,
         )
-        item.append(name, el('span', 'num', row.cost))
-        routes.append(item)
+        routes.replaceChildren()
+        for (const row of all ? rows : rows.slice(0, 6)) {
+          const item = el('li', 'row small')
+          const name = el('span', '')
+          name.append(
+            el('span', 'strong', `${row.lender} · ${row.kind}`),
+            el(
+              'span',
+              'muted block',
+              `${row.keys} · ${row.monthly}${row.driver === 'the rate alone' ? '' : ` · ${row.driver}`}${row.confirmed ? '' : ' (unconfirmed)'}`,
+            ),
+          )
+          item.append(name, el('span', 'num', row.cost))
+          routes.append(item)
+        }
+        if (!all && rows.length > 6) {
+          const more = el('button', 'save', `Show all ${String(rows.length)} options`)
+          more.type = 'button'
+          more.onclick = () => {
+            all = true
+            fill()
+          }
+          const li = el('li', '')
+          li.append(more)
+          routes.append(li)
+        }
       }
-      goal.append(routes, el('p', 'small muted', view.home.assumptions))
+      const label = el('p', 'label', `${String(home.rows.length)} options · sort by`)
+      sorts.append(label)
+      const buttons = el('p', 'row')
+      for (const [value, text] of [
+        ['five_year_cost', 'cost'],
+        ['keys_date', 'keys date'],
+        ['monthly_repayment', 'monthly'],
+      ] as const) {
+        const button = el('button', 'badge', text)
+        button.type = 'button'
+        button.setAttribute('aria-pressed', String(value === sortBy))
+        button.onclick = () => {
+          sortBy = value
+          for (const other of Array.from(buttons.children)) other.setAttribute('aria-pressed', 'false')
+          button.setAttribute('aria-pressed', 'true')
+          fill()
+        }
+        buttons.append(button)
+      }
+      sorts.append(buttons)
+      fill()
+      goal.append(sorts, routes, el('p', 'small muted', `Cost ${home.period}. ${home.assumptions}`))
+      for (const warning of home.warnings) goal.append(el('p', 'small muted-strong', warning))
       root.append(goal)
     }
 
@@ -221,6 +272,12 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
       summary.append(compare)
     }
     root.append(summary)
+
+    if (view.runnersUp.length > 0) {
+      const next = section('Other splits, each without one product of the first')
+      for (const line of view.runnersUp) next.append(el('p', 'small', line))
+      root.append(next)
+    }
 
     if (view.products.length > 0) {
       const products = el('ol', 'products section')
@@ -291,7 +348,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
               const tr = el('tr', row.inPlan ? 'in-plan' : '')
               const label = el('th', '', row.label)
               label.scope = 'row'
-              if (row.inPlan) label.append(el('span', 'badge', 'in this plan'))
+              if (row.inPlan) label.append(el('span', 'badge', 'in this combination'))
               if (row.note !== null) label.append(el('span', 'muted small block', row.note))
               tr.append(label, el('td', 'num strong', row.net))
               tbody.append(tr)
@@ -320,6 +377,11 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     const foot = el('footer', 'footer')
     foot.append(
       el('p', 'small muted', 'Information, not advice: options with their figures, for you to decide.'),
+      el(
+        'p',
+        'small muted',
+        'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.',
+      ),
     )
     for (const line of view.attributions) foot.append(el('p', 'small muted', line))
     root.append(foot)
@@ -370,6 +432,11 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     const foot = el('footer', 'footer')
     foot.append(
       el('p', 'small muted', 'Information, not advice: options with their figures, for you to decide.'),
+      el(
+        'p',
+        'small muted',
+        'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.',
+      ),
     )
     for (const line of strings(review?.['attributions'])) foot.append(el('p', 'small muted', line))
     root.append(foot)

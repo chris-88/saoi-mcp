@@ -2800,7 +2800,7 @@ export interface paths {
         put?: never;
         /**
          * Search and rank Irish financial products for the customer’s own figures
-         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), its deposit guarantee, and eligibility to check. Providers that operate in Ireland only. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), its deposit guarantee, and eligibility to check. Providers that operate in Ireland only. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3015,7 +3015,7 @@ export interface paths {
         put?: never;
         /**
          * Deterministic findings on a customer’s situation, with euro figures
-         * @description Given income, outgoings, savings (with what they earn) and debts (with rates and terms), returns findings with the figures behind each: money earning little against the best instant-access rate, no emergency fund (three months of outgoings), a debt costing more than savings earn, a fixed term ending within three months, a goal short at the current pace. Also the goals the findings suggest. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Given income, outgoings, savings (with what they earn) and debts (with rates and terms), returns findings with the figures behind each: money earning little against the best instant-access rate, no emergency fund (three months of outgoings), a debt costing more than savings earn, a fixed term ending within three months, a goal short at the current pace. Also the goals the findings suggest. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3085,7 +3085,7 @@ export interface paths {
         put?: never;
         /**
          * Savings month by month, net of DIRT, within caps and tiers
-         * @description Projects named products and amounts (`lines`, product ids from search) or, with no lines, the best available split of `lumpSum` and `monthly` across the market. Month by month, after DIRT, honouring monthly caps and balance tiers. A line stops at the end of a known period (a fixed term’s maturity, an introductory rate with no stated reversion) and says so; the totals run only as far as every line is known. With `targetAmount`, reports the month the goal is reached. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Projects named products and amounts (`lines`, product ids from search) or, with no lines, the best available split of `lumpSum` and `monthly` across the market. Month by month, after DIRT, honouring monthly caps and balance tiers. A line stops at the end of a known period (a fixed term’s maturity, an introductory rate with no stated reversion) and says so; the totals run only as far as every line is known. With `targetAmount`, reports the month the goal is reached. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3155,7 +3155,7 @@ export interface paths {
         put?: never;
         /**
          * Mortgage affordability under the Central Bank limits, or a switch against the market
-         * @description `mode: affordability`: the Central Bank of Ireland limits (loan to income 4 times for first-time buyers, 3.5 for second and subsequent buyers; loan to value 90%), the most the income and deposit allow, the deposit a price needs, and the matching mortgages ranked by total cost. `mode: switch`: the current mortgage against switcher rates: monthly and lifetime saving, cashback, fees as stated, and break-even on any switching costs given. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description `mode: affordability`: the Central Bank of Ireland limits (loan to income 4 times for first-time buyers, 3.5 for second and subsequent buyers; loan to value 90%), the most the income and deposit allow, the deposit a price needs, and the matching mortgages ranked by total cost. `mode: switch`: the current mortgage against switcher rates: monthly and lifetime saving, cashback, fees as stated, and break-even on any switching costs given. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3225,7 +3225,7 @@ export interface paths {
         put?: never;
         /**
          * What debts cost, the payoff order, overpay versus save, refinance rates
-         * @description For each debt: months to clear and interest still to pay at the current repayment. The payoff order (highest rate first). With `extraMonthly` or `lumpSum`: interest saved by overpaying the top debt against interest earned saving the same money. The market’s loans and cards for the same balance, with the saving. Nothing is arranged. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description For each debt: months to clear and interest still to pay at the current repayment. The payoff order (highest rate first). With `extraMonthly` or `lumpSum`: interest saved by overpaying the top debt against interest earned saving the same money. The market’s loans and cards for the same balance, with the saving. Nothing is arranged. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3284,6 +3284,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/calc/home": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * The home calculator: what the limits allow, the deposit, and when it is saved
+         * @description For a customer who raises buying a home. Takes whatever they have said, however partial (deposit saved, monthly saving, gross income and a second income, the price in mind, existing repayments, the date they would like the keys, first-time buyer, new build or second-hand, their bank and whether to stay with it, fixed or variable, a green home, open to switching current account) and returns the figures that move with them: what the Central Bank limits allow, the deposit and cash needed at the keys, the month that is saved at this pace, and the inputs still missing as plain questions. `rules` lets a calculator card recompute the figures as sliders move. No products: the options, every eligible one filtered and sorted as the customer chooses, come from build-plan with a house_deposit goal and `homePreferences`. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["HomeCalculator"];
+                };
+            };
+            responses: {
+                /** @description The figures. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["HomeCalculatorResult"];
+                    };
+                };
+                /** @description The request is not valid. `details` says where. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description The body is larger than 32 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests from this address. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/calc/first-home": {
         parameters: {
             query?: never;
@@ -3295,7 +3365,7 @@ export interface paths {
         put?: never;
         /**
          * A first home: Help to Buy, the Central Bank limits with it, green rates, the mortgages that fit
-         * @description For a first-time buyer: Help to Buy (Revenue: new builds and self-builds up to €500,000; the lesser of 10% of the price, €35,000 and Income Tax and DIRT paid over the last four tax years; a mortgage of at least 70%; bought by 31 December 2029), what is available, not available, or depends on something not given; the Central Bank limits (loan to income 4 times, loan to value 90%, the 15% allowances, the exemptions) with Help to Buy counted towards the deposit; for a price, the deposit needed, the shortfall and whether the loan is within the income limit; green rates from the market data (no rule sets them; lenders do); the First Home shared equity scheme only as far as it is confirmed; and the mortgages that fit, ranked by total cost. Every rule carries its source page and the day it was read. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description For a first-time buyer: Help to Buy (Revenue: new builds and self-builds up to €500,000; the lesser of 10% of the price, €35,000 and Income Tax and DIRT paid over the last four tax years; a mortgage of at least 70%; bought by 31 December 2029), what is available, not available, or depends on something not given; the Central Bank limits (loan to income 4 times, loan to value 90%, the 15% allowances, the exemptions) with Help to Buy counted towards the deposit; for a price, the deposit needed, the shortfall and whether the loan is within the income limit; green rates from the market data (no rule sets them; lenders do); the First Home shared equity scheme only as far as it is confirmed; and the mortgages that fit, ranked by total cost. Every rule carries its source page and the day it was read. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3364,8 +3434,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * The fastest combination of products for the customer’s goals, as a plan
-         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, and takes the one leaving more; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. For a follow-up once saoi_money_check has run; one call per reply, never alongside saoi_money_check. To compare options (a debt kept or cleared, another monthly amount or date), pass up to three `alternatives` in the same call: each comes back with its own net figure. Call again only when the customer changes their situation in a later message, never to adjust figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * Compare the options for the customer’s goals: a worked combination under the rule they chose, with runners-up, and for a home every eligible option, filtered and sorted
+         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, the combination worked out with the larger; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits and every eligible mortgage option (each lender’s cheapest per rate type and fixed period), filtered by `homePreferences` (stay with my bank, fixed or variable, green) and sorted by the metric the customer picks; the filters applied are stated. `runnersUp` are the next splits under the same rule. No single option is picked for the customer. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. For a follow-up once saoi_money_check has run; one call per reply, never alongside saoi_money_check. To compare options (a debt kept or cleared, another monthly amount or date), pass up to three `alternatives` in the same call: each comes back with its own net figure. Call again only when the customer changes their situation in a later message, never to adjust figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3435,7 +3505,7 @@ export interface paths {
         put?: never;
         /**
          * Start here: a money check on whatever the customer has said so far
-         * @description Call this as soon as the customer talks about their own money in Ireland: money sitting in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Takes whatever has been said so far, however partial, and returns in one result: what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, the two or three questions that would sharpen it, the presentation to lead with, and a link that holds the plan for 24 hours so it can be opened in the Saoi app (the only thing stored). One call per reply: call it first, not alongside saoi_build_plan, and pass up to three `alternatives` to compare options in the same call. Call it again only when the customer says more about their situation in a later message. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Call this as soon as the customer talks about their own money in Ireland: money sitting in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Takes whatever has been said so far, however partial, and returns in one result: what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, the two or three questions that would sharpen it, the presentation to lead with, and a link that holds the plan for 24 hours so it can be opened in the Saoi app (the only thing stored). One call per reply: call it first, not alongside saoi_build_plan, and pass up to three `alternatives` to compare options in the same call. Call it again only when the customer says more about their situation in a later message. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -7558,7 +7628,7 @@ export interface components {
                     targetDate?: string;
                     priority?: number;
                 }[];
-                recommendation: {
+                combination: {
                     products: {
                         /** @enum {string} */
                         role: "regular_saver" | "lump_sum" | "emergency_fund" | "mortgage" | "refinance" | "current_account" | "other";
@@ -9589,6 +9659,159 @@ export interface components {
             /** @description Savings that could clear debt, to compare clearing against saving. */
             lumpSum?: number;
         };
+        HomeCalculatorResult: {
+            /** @description The inputs as received, for the calculator card to start from. */
+            inputs: {
+                /** @description What is saved towards the deposit today. */
+                depositSavedEur?: number;
+                /** @description What can be put aside each month. */
+                monthlySavingEur?: number;
+                /** @description Gross income a year, before tax: the first (or only) applicant. */
+                annualGrossIncomeEur?: number;
+                /** @description A second applicant’s gross income a year, for a joint mortgage. */
+                secondIncomeEur?: number;
+                /** @description The price in mind for the home. */
+                targetPriceEur?: number;
+                /** @description Existing loan and card repayments a month (not rent). */
+                monthlyDebtRepaymentsEur?: number;
+                /** @description When the customer would like the keys: "YYYY-MM". */
+                targetDate?: string;
+                /** @description Default true. */
+                firstTimeBuyer?: boolean;
+                /**
+                 * @description `new_build`, `self_build` or `second_hand`. Help to Buy is for the first two.
+                 * @enum {string}
+                 */
+                propertyKind?: "new_build" | "self_build" | "second_hand";
+                /** @description Income Tax and DIRT paid over the last four tax years: the most Help to Buy can be. */
+                taxPaidLastFourYearsEur?: number;
+                /** @description Who the customer banks with now, as they said it: "Bank of Ireland", "AIB". */
+                currentBank?: string;
+                /** @description True: show only `currentBank`’s options, because the customer asked to stay with their bank. A filter they chose, and the result says so. */
+                stayWithBank?: boolean;
+                /**
+                 * @description Fixed or variable rates only, as the customer chose. Default either.
+                 * @enum {string}
+                 */
+                rateType?: "fixed" | "variable" | "either";
+                /** @description True: the home is BER B3 or better, so green rates count. A new build is taken as BER A either way. */
+                green?: boolean;
+                /** @description False: leave out options that need a current account with the lender. Default true. */
+                openToCurrentAccountSwitch?: boolean;
+                /**
+                 * @description What the options are sorted by, as the customer chose: `five_year_cost` (default: interest and fees less cashback and bonuses over the first 5 years), `keys_date` (soonest first), `monthly_repayment` (lowest first).
+                 * @enum {string}
+                 */
+                sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+            };
+            /** @description The rules the figures use, so the card can recompute them as inputs move. */
+            rules: {
+                /** @description Times gross income: 4 for first-time buyers, 3.5 for others. */
+                loanToIncome: number;
+                maxLtvPct: number;
+                stampDutyPct: number;
+                /** @description Legal fees and a survey: an estimate. */
+                legalAndSurveyEur: number;
+                helpToBuy: {
+                    shareOfPrice: number;
+                    capEur: number;
+                    maxPriceEur: number;
+                };
+                firstTimeBuyer: {
+                    loanToIncome: number;
+                    maxLtvPct: number;
+                };
+                otherBuyer: {
+                    loanToIncome: number;
+                    maxLtvPct: number;
+                };
+                sources: string[];
+            };
+            figures: {
+                /** @description Gross income counted: both applicants together. */
+                incomeEur: number | null;
+                /** @description What the Central Bank income limit allows. Null: no income given. */
+                maxLoanEur: number | null;
+                priceEur: number | null;
+                /**
+                 * @description `given`, or `limits`: the most the deposit by the date and the income limit allow.
+                 * @enum {string|null}
+                 */
+                priceFrom: "given" | "limits" | null;
+                loanEur: number | null;
+                ltvPct: number | null;
+                depositNeededEur: number | null;
+                stampDutyEur: number | null;
+                legalAndSurveyEur: number;
+                helpToBuyEur: number;
+                /** @description Deposit plus stamp duty and fees, less Help to Buy. */
+                neededAtKeysEur: number | null;
+                /** @description YYYY-MM the money needed at the keys is saved, at this pace, before interest. */
+                depositReachedOn: string | null;
+                targetDateMet: boolean | null;
+                monthlyCommitmentsNote: string | null;
+            };
+            /** @description The figures in words, as options and facts. */
+            lines: string[];
+            /** @description The inputs not given yet, as plain questions, most useful first. */
+            questions: {
+                /** @enum {string} */
+                key: "depositSavedEur" | "monthlySavingEur" | "annualGrossIncomeEur" | "targetPriceEur" | "targetDate" | "firstTimeBuyer" | "propertyKind" | "currentBank" | "rateType";
+                question: string;
+            }[];
+            /** @description How to see the options: the card’s "Show my options" button, or saoi_build_plan with these inputs. */
+            next: string;
+            /** @description Present to the customer, in this order. */
+            presentation: string[];
+            /** @description The statutory mortgage warnings. */
+            warnings: string[];
+            /** @description Saoi is not regulated and does not give advice. */
+            statement: string;
+        };
+        /** @description Whatever the customer has said about buying a home, however partial. Every field is optional; what is missing comes back as a plain question. */
+        HomeCalculator: {
+            /** @description What is saved towards the deposit today. */
+            depositSavedEur?: number;
+            /** @description What can be put aside each month. */
+            monthlySavingEur?: number;
+            /** @description Gross income a year, before tax: the first (or only) applicant. */
+            annualGrossIncomeEur?: number;
+            /** @description A second applicant’s gross income a year, for a joint mortgage. */
+            secondIncomeEur?: number;
+            /** @description The price in mind for the home. */
+            targetPriceEur?: number;
+            /** @description Existing loan and card repayments a month (not rent). */
+            monthlyDebtRepaymentsEur?: number;
+            /** @description When the customer would like the keys: "YYYY-MM". */
+            targetDate?: string;
+            /** @description Default true. */
+            firstTimeBuyer?: boolean;
+            /**
+             * @description `new_build`, `self_build` or `second_hand`. Help to Buy is for the first two.
+             * @enum {string}
+             */
+            propertyKind?: "new_build" | "self_build" | "second_hand";
+            /** @description Income Tax and DIRT paid over the last four tax years: the most Help to Buy can be. */
+            taxPaidLastFourYearsEur?: number;
+            /** @description Who the customer banks with now, as they said it: "Bank of Ireland", "AIB". */
+            currentBank?: string;
+            /** @description True: show only `currentBank`’s options, because the customer asked to stay with their bank. A filter they chose, and the result says so. */
+            stayWithBank?: boolean;
+            /**
+             * @description Fixed or variable rates only, as the customer chose. Default either.
+             * @enum {string}
+             */
+            rateType?: "fixed" | "variable" | "either";
+            /** @description True: the home is BER B3 or better, so green rates count. A new build is taken as BER A either way. */
+            green?: boolean;
+            /** @description False: leave out options that need a current account with the lender. Default true. */
+            openToCurrentAccountSwitch?: boolean;
+            /**
+             * @description What the options are sorted by, as the customer chose: `five_year_cost` (default: interest and fees less cashback and bonuses over the first 5 years), `keys_date` (soonest first), `monthly_repayment` (lowest first).
+             * @enum {string}
+             */
+            sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+        };
         FirstHomeResult: {
             /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
             presentation: string[];
@@ -9953,6 +10176,20 @@ export interface components {
             limit?: number;
         };
         BuildPlanResult: {
+            /** @description Other splits, each worked out without one product of the first, with how much more or less each holds towards the goal: shown beside it, so there is no single answer. */
+            runnersUp: {
+                /** @description The product left out to find this split: "AIB Online Saver". */
+                without: string;
+                /** @description The split, in words. */
+                split: string;
+                /** @description Towards the main goal at the same date, after DIRT. */
+                towardsGoalEur: number;
+                /** @description Towards the goal less the worked combination’s, at the same date (negative: less). */
+                differenceEur: number;
+                goalReachedOn: string | null;
+                /** @description The runner-up in one sentence, with what differs. */
+                line: string;
+            }[];
             /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
             nextQuestion: {
                 /** @enum {string} */
@@ -10013,7 +10250,7 @@ export interface components {
             };
             /** @description Pathways to a home, when the main goal is a house deposit. Null otherwise. */
             home: {
-                /** @description "Your home: keys around <month>". */
+                /** @description "At these figures, the deposit and buying costs are in place around <month>": a date, not an outcome. */
                 headline: string;
                 /** @description Each one stated and correctable. */
                 assumptions: string[];
@@ -10037,12 +10274,24 @@ export interface components {
                     basis: "term" | "fixed_period" | "first_years";
                     years: number;
                 };
+                /**
+                 * @description What `pathways` is sorted by, as the customer chose.
+                 * @enum {string}
+                 */
+                sortBy: "five_year_cost" | "keys_date" | "monthly_repayment";
+                /** @description The sort order in words, for the presentation. */
+                sortedBy: string;
+                /** @description Each filter applied, in words, naming the customer’s own choices ("Showing Bank of Ireland options, as you asked."). */
+                filters: string[];
+                /** @description Every eligible option that fits the filters (each lender’s cheapest product per rate type and fixed period), sorted by `sortBy`. No single pick. */
                 pathways: {
                     lender: string;
                     lenderName: string;
                     mortgage: {
                         productId: string;
                         name: string;
+                        /** @enum {string|null} */
+                        rateType: "fixed" | "variable" | null;
                         ratePct: number;
                         fixedYears: number | null;
                         followOnRatePct: number | null;
@@ -10064,9 +10313,9 @@ export interface components {
                     thirtyYearNetEur: number | null;
                     /** @description A fix shorter than 5 years with no stated follow-on rate: the fixed rate carried on, unconfirmed. */
                     followOnAssumed: boolean;
-                    /** @description Net cost less the cheapest pathway’s. 0 for the cheapest. */
+                    /** @description Net cost less the lowest net cost shown. 0 for the lowest; a fact, not a pick. */
                     vsCheapestEur: number;
-                    /** @description What makes this pathway differ, in a few words. */
+                    /** @description What makes this option differ, in a few words. */
                     drivers: string;
                     conditions: string[];
                     /** @description True when every incentive counted was read from the lender’s own site. */
@@ -10075,14 +10324,14 @@ export interface components {
                     sources: string[];
                     /** @description The lowest initial rate among this lender’s eligible products. */
                     lowestRatePct: number;
-                    /** @description This lender’s cheapest eligible products by net cost, the chosen one first. */
+                    /** @description Runners-up: this lender’s other eligible products of the same rate type and fixed period, by net cost, this one first. */
                     considered: {
                         productId: string;
                         name: string;
                         ratePct: number;
                         netCostEur: number;
                     }[];
-                    /** @description What the customer would hold with this lender on this path, and what stays where it is. */
+                    /** @description What would be held with this lender for this option, and what stays where it is. */
                     bundle: {
                         products: {
                             /** @enum {string} */
@@ -10090,13 +10339,15 @@ export interface components {
                             name: string;
                             detail: string;
                         }[];
-                        /** @description Whether the current account can stay where it is, or a product needs one with the lender. */
+                        /** @description Whether any product here needs a current account with the lender, as a fact. */
                         currentAccount: string;
                     };
-                    /** @description The pathway in one sentence, as an option with its figures. */
+                    /** @description The option in one sentence, with its figures. */
                     line: string;
                 }[];
                 leftOut: string[];
+                /** @description The statutory mortgage warnings, shown with every mortgage result. */
+                warnings: string[];
             } | null;
             /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
             alternatives: {
@@ -10253,7 +10504,7 @@ export interface components {
                     targetDate?: string;
                     priority?: number;
                 }[];
-                recommendation: {
+                combination: {
                     products: {
                         /** @enum {string} */
                         role: "regular_saver" | "lump_sum" | "emergency_fund" | "mortgage" | "refinance" | "current_account" | "other";
@@ -10516,6 +10767,27 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
+            /** @description For a home: the customer’s own filters and sort order. Each is a choice the customer made; the result states every filter applied. */
+            homePreferences?: {
+                /** @description Who the customer banks with now, as they said it: "Bank of Ireland", "AIB". */
+                currentBank?: string;
+                /** @description True: show only `currentBank`’s options, because the customer asked to stay with their bank. A filter they chose, and the result says so. */
+                stayWithBank?: boolean;
+                /**
+                 * @description Fixed or variable rates only, as the customer chose. Default either.
+                 * @enum {string}
+                 */
+                rateType?: "fixed" | "variable" | "either";
+                /** @description True: the home is BER B3 or better, so green rates count. A new build is taken as BER A either way. */
+                green?: boolean;
+                /** @description False: leave out options that need a current account with the lender. Default true. */
+                openToCurrentAccountSwitch?: boolean;
+                /**
+                 * @description What the options are sorted by, as the customer chose: `five_year_cost` (default: interest and fees less cashback and bonuses over the first 5 years), `keys_date` (soonest first), `monthly_repayment` (lowest first).
+                 * @enum {string}
+                 */
+                sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+            };
             /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
@@ -10599,6 +10871,20 @@ export interface components {
             };
             /** @description A plan, when there was enough to build one (money to place, or a debt to weigh). Null otherwise. */
             plan: {
+                /** @description Other splits, each worked out without one product of the first, with how much more or less each holds towards the goal: shown beside it, so there is no single answer. */
+                runnersUp: {
+                    /** @description The product left out to find this split: "AIB Online Saver". */
+                    without: string;
+                    /** @description The split, in words. */
+                    split: string;
+                    /** @description Towards the main goal at the same date, after DIRT. */
+                    towardsGoalEur: number;
+                    /** @description Towards the goal less the worked combination’s, at the same date (negative: less). */
+                    differenceEur: number;
+                    goalReachedOn: string | null;
+                    /** @description The runner-up in one sentence, with what differs. */
+                    line: string;
+                }[];
                 /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
                 nextQuestion: {
                     /** @enum {string} */
@@ -10659,7 +10945,7 @@ export interface components {
                 };
                 /** @description Pathways to a home, when the main goal is a house deposit. Null otherwise. */
                 home: {
-                    /** @description "Your home: keys around <month>". */
+                    /** @description "At these figures, the deposit and buying costs are in place around <month>": a date, not an outcome. */
                     headline: string;
                     /** @description Each one stated and correctable. */
                     assumptions: string[];
@@ -10683,12 +10969,24 @@ export interface components {
                         basis: "term" | "fixed_period" | "first_years";
                         years: number;
                     };
+                    /**
+                     * @description What `pathways` is sorted by, as the customer chose.
+                     * @enum {string}
+                     */
+                    sortBy: "five_year_cost" | "keys_date" | "monthly_repayment";
+                    /** @description The sort order in words, for the presentation. */
+                    sortedBy: string;
+                    /** @description Each filter applied, in words, naming the customer’s own choices ("Showing Bank of Ireland options, as you asked."). */
+                    filters: string[];
+                    /** @description Every eligible option that fits the filters (each lender’s cheapest product per rate type and fixed period), sorted by `sortBy`. No single pick. */
                     pathways: {
                         lender: string;
                         lenderName: string;
                         mortgage: {
                             productId: string;
                             name: string;
+                            /** @enum {string|null} */
+                            rateType: "fixed" | "variable" | null;
                             ratePct: number;
                             fixedYears: number | null;
                             followOnRatePct: number | null;
@@ -10710,9 +11008,9 @@ export interface components {
                         thirtyYearNetEur: number | null;
                         /** @description A fix shorter than 5 years with no stated follow-on rate: the fixed rate carried on, unconfirmed. */
                         followOnAssumed: boolean;
-                        /** @description Net cost less the cheapest pathway’s. 0 for the cheapest. */
+                        /** @description Net cost less the lowest net cost shown. 0 for the lowest; a fact, not a pick. */
                         vsCheapestEur: number;
-                        /** @description What makes this pathway differ, in a few words. */
+                        /** @description What makes this option differ, in a few words. */
                         drivers: string;
                         conditions: string[];
                         /** @description True when every incentive counted was read from the lender’s own site. */
@@ -10721,14 +11019,14 @@ export interface components {
                         sources: string[];
                         /** @description The lowest initial rate among this lender’s eligible products. */
                         lowestRatePct: number;
-                        /** @description This lender’s cheapest eligible products by net cost, the chosen one first. */
+                        /** @description Runners-up: this lender’s other eligible products of the same rate type and fixed period, by net cost, this one first. */
                         considered: {
                             productId: string;
                             name: string;
                             ratePct: number;
                             netCostEur: number;
                         }[];
-                        /** @description What the customer would hold with this lender on this path, and what stays where it is. */
+                        /** @description What would be held with this lender for this option, and what stays where it is. */
                         bundle: {
                             products: {
                                 /** @enum {string} */
@@ -10736,13 +11034,15 @@ export interface components {
                                 name: string;
                                 detail: string;
                             }[];
-                            /** @description Whether the current account can stay where it is, or a product needs one with the lender. */
+                            /** @description Whether any product here needs a current account with the lender, as a fact. */
                             currentAccount: string;
                         };
-                        /** @description The pathway in one sentence, as an option with its figures. */
+                        /** @description The option in one sentence, with its figures. */
                         line: string;
                     }[];
                     leftOut: string[];
+                    /** @description The statutory mortgage warnings, shown with every mortgage result. */
+                    warnings: string[];
                 } | null;
                 /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
                 alternatives: {
@@ -10899,7 +11199,7 @@ export interface components {
                         targetDate?: string;
                         priority?: number;
                     }[];
-                    recommendation: {
+                    combination: {
                         products: {
                             /** @enum {string} */
                             role: "regular_saver" | "lump_sum" | "emergency_fund" | "mortgage" | "refinance" | "current_account" | "other";
@@ -11107,6 +11407,27 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
+            /** @description For a home: the customer’s own filters and sort order. Each is a choice the customer made; the result states every filter applied. */
+            homePreferences?: {
+                /** @description Who the customer banks with now, as they said it: "Bank of Ireland", "AIB". */
+                currentBank?: string;
+                /** @description True: show only `currentBank`’s options, because the customer asked to stay with their bank. A filter they chose, and the result says so. */
+                stayWithBank?: boolean;
+                /**
+                 * @description Fixed or variable rates only, as the customer chose. Default either.
+                 * @enum {string}
+                 */
+                rateType?: "fixed" | "variable" | "either";
+                /** @description True: the home is BER B3 or better, so green rates count. A new build is taken as BER A either way. */
+                green?: boolean;
+                /** @description False: leave out options that need a current account with the lender. Default true. */
+                openToCurrentAccountSwitch?: boolean;
+                /**
+                 * @description What the options are sorted by, as the customer chose: `five_year_cost` (default: interest and fees less cashback and bonuses over the first 5 years), `keys_date` (soonest first), `monthly_repayment` (lowest first).
+                 * @enum {string}
+                 */
+                sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+            };
             /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */

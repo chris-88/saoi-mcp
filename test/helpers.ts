@@ -40,8 +40,17 @@ export const recorded = {
   planAlternatives: recording('plan-alternatives') as BuildPlanResult,
   /** A first home (live, 2026-11-10, after the comparison change): every option, filtered and sorted. */
   planHome: recording('plan-home') as BuildPlanResult,
-  /** The home calculator (live, 2026-11-10). */
+  /** The home calculator (live, 2026-11-10), from before it carried routes. */
   homeCalculator: recording('home-calculator') as HomeCalculatorResult,
+  /**
+   * The home calculator with routes (live, 2026-11-10, saoi 4674fda): €400,000 second-hand, €30,000
+   * saved, €1,000 a month, €60,000 and €40,000, keys by 2028-06, Bank of Ireland.
+   */
+  homeCalculatorSecondHand: recording('home-calculator-second-hand') as HomeCalculatorResult,
+  /** The same as a new build, no tax paid given: Help to Buy is conditional. */
+  homeCalculatorNewBuild: recording('home-calculator-new-build') as HomeCalculatorResult,
+  /** saoi_first_home with routes and rent (live, 2026-11-10): joint, Dublin City, €1,800 rent. */
+  firstHomeRoutes: recording('first-home-routes') as FirstHomeResult,
   reviewPresented: recording('review-presented') as ReviewResult,
   firstHomePresented: recording('first-home-presented') as FirstHomeResult,
   ranking: recording('ranking') as About,

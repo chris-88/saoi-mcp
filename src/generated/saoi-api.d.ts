@@ -9939,6 +9939,67 @@ export interface components {
             limit?: number;
         };
         BuildPlanResult: {
+            /** @description Pathways to a home, when the main goal is a house deposit. Null otherwise. */
+            home: {
+                /** @description "Your home: keys around <month>". */
+                headline: string;
+                /** @description Each one stated and correctable. */
+                assumptions: string[];
+                price: number;
+                /** @enum {string} */
+                priceFrom: "given" | "savings";
+                /** @enum {string} */
+                bindingLimit: "deposit" | "income" | "income_not_given" | "price_given";
+                loan: number;
+                ltvPct: number;
+                depositEur: number;
+                stampDutyEur: number;
+                legalAndSurveyEur: number;
+                helpToBuyEur: number;
+                /** @description Deposit plus stamp duty and fees, less Help to Buy. */
+                neededAtKeysEur: number;
+                keysOn: string | null;
+                /** @description The period every pathway is costed over, the same for all. */
+                comparedOver: {
+                    /** @enum {string} */
+                    basis: "term" | "fixed_period";
+                    years: number;
+                };
+                pathways: {
+                    lender: string;
+                    lenderName: string;
+                    mortgage: {
+                        productId: string;
+                        name: string;
+                        ratePct: number;
+                        fixedYears: number | null;
+                        followOnRatePct: number | null;
+                        monthlyRepayment: number;
+                    };
+                    /** @description YYYY-MM the money for the deposit and buying costs is in place. */
+                    keysOn: string | null;
+                    /** @description Interest over the period compared (the term, or the fixed period). */
+                    interestEur: number;
+                    /** @description Cashback counted: at drawdown, plus a later payment where it falls in the period. */
+                    cashbackEur: number;
+                    /** @description Savings bonuses tied to this lender’s mortgage, net of DIRT. */
+                    bonusEur: number;
+                    /** @description Interest less cashback and bonuses over the period compared. */
+                    netCostEur: number;
+                    /** @description Net cost less the cheapest pathway’s. 0 for the cheapest. */
+                    vsCheapestEur: number;
+                    /** @description What makes this pathway differ, in a few words. */
+                    drivers: string;
+                    conditions: string[];
+                    /** @description True when every incentive counted was read from the lender’s own site. */
+                    confirmed: boolean;
+                    greenNote: string | null;
+                    sources: string[];
+                    /** @description The pathway in one sentence, as an option with its figures. */
+                    line: string;
+                }[];
+                leftOut: string[];
+            } | null;
             /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
             alternatives: {
                 name: string;
@@ -10440,6 +10501,67 @@ export interface components {
             };
             /** @description A plan, when there was enough to build one (money to place, or a debt to weigh). Null otherwise. */
             plan: {
+                /** @description Pathways to a home, when the main goal is a house deposit. Null otherwise. */
+                home: {
+                    /** @description "Your home: keys around <month>". */
+                    headline: string;
+                    /** @description Each one stated and correctable. */
+                    assumptions: string[];
+                    price: number;
+                    /** @enum {string} */
+                    priceFrom: "given" | "savings";
+                    /** @enum {string} */
+                    bindingLimit: "deposit" | "income" | "income_not_given" | "price_given";
+                    loan: number;
+                    ltvPct: number;
+                    depositEur: number;
+                    stampDutyEur: number;
+                    legalAndSurveyEur: number;
+                    helpToBuyEur: number;
+                    /** @description Deposit plus stamp duty and fees, less Help to Buy. */
+                    neededAtKeysEur: number;
+                    keysOn: string | null;
+                    /** @description The period every pathway is costed over, the same for all. */
+                    comparedOver: {
+                        /** @enum {string} */
+                        basis: "term" | "fixed_period";
+                        years: number;
+                    };
+                    pathways: {
+                        lender: string;
+                        lenderName: string;
+                        mortgage: {
+                            productId: string;
+                            name: string;
+                            ratePct: number;
+                            fixedYears: number | null;
+                            followOnRatePct: number | null;
+                            monthlyRepayment: number;
+                        };
+                        /** @description YYYY-MM the money for the deposit and buying costs is in place. */
+                        keysOn: string | null;
+                        /** @description Interest over the period compared (the term, or the fixed period). */
+                        interestEur: number;
+                        /** @description Cashback counted: at drawdown, plus a later payment where it falls in the period. */
+                        cashbackEur: number;
+                        /** @description Savings bonuses tied to this lender’s mortgage, net of DIRT. */
+                        bonusEur: number;
+                        /** @description Interest less cashback and bonuses over the period compared. */
+                        netCostEur: number;
+                        /** @description Net cost less the cheapest pathway’s. 0 for the cheapest. */
+                        vsCheapestEur: number;
+                        /** @description What makes this pathway differ, in a few words. */
+                        drivers: string;
+                        conditions: string[];
+                        /** @description True when every incentive counted was read from the lender’s own site. */
+                        confirmed: boolean;
+                        greenNote: string | null;
+                        sources: string[];
+                        /** @description The pathway in one sentence, as an option with its figures. */
+                        line: string;
+                    }[];
+                    leftOut: string[];
+                } | null;
                 /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
                 alternatives: {
                     name: string;

@@ -145,6 +145,28 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     header.append(el('p', 'eyebrow', 'Saoi plan'), el('h2', 'title', view.title))
     root.append(header)
 
+    if (view.home !== null) {
+      // The goal leads: the keys month, then up to three pathways ranked by cost.
+      const goal = el('section', 'found')
+      goal.append(el('p', 'found-headline', view.home.headline))
+      const routes = el('ul', 'rows position')
+      routes.setAttribute('aria-label', 'Pathways to your home')
+      for (const row of view.home.rows) {
+        const item = el('li', 'row small')
+        // The keys month first, since that is the goal; the cost beside it; what drives it after.
+        const name = el('span', '')
+        name.append(
+          el('span', 'strong num', row.keys),
+          el('span', '', ` · ${row.lender}`),
+          el('span', 'muted', ` · ${row.driver}${row.confirmed ? '' : ' (unconfirmed)'}`),
+        )
+        item.append(name, el('span', 'num', row.cost))
+        routes.append(item)
+      }
+      goal.append(routes, el('p', 'small muted', view.home.assumptions))
+      root.append(goal)
+    }
+
     const found = el('div', 'found')
     found.append(el('p', 'found-headline', view.moneyFound.headline))
     if (view.moneyFound.note !== null) found.append(el('p', 'small muted-strong', view.moneyFound.note))

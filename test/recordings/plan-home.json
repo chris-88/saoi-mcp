@@ -1,0 +1,469 @@
+{
+  "alternatives": [],
+  "home": {
+    "headline": "Your home: keys around July 2027.",
+    "assumptions": [
+      "Assumed: first-time buyer; a 30-year mortgage with a €35,000 deposit (10%); a €350,000 home, as given; not a new build, so no Help to Buy and standard rates (a BER C where a lender prices by BER); stamp duty of €3,500 (1%) and €3,000 for legal fees and a survey (an estimate); costs compared over 30 years for every lender, at each lender’s stated follow-on rate after the fixed period."
+    ],
+    "price": 350000,
+    "priceFrom": "given",
+    "bindingLimit": "price_given",
+    "loan": 315000,
+    "ltvPct": 90,
+    "depositEur": 35000,
+    "stampDutyEur": 3500,
+    "legalAndSurveyEur": 3000,
+    "helpToBuyEur": 0,
+    "neededAtKeysEur": 41500,
+    "keysOn": "2027-07",
+    "comparedOver": { "basis": "term", "years": 30 },
+    "pathways": [
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c2165",
+          "name": "Up to 30 year fixed >80% <=90%",
+          "ratePct": 3.8,
+          "fixedYears": 30,
+          "followOnRatePct": 3.8,
+          "monthlyRepayment": 1467.77
+        },
+        "keysOn": "2027-07",
+        "interestEur": 213395.64,
+        "cashbackEur": 3150,
+        "bonusEur": 0,
+        "netCostEur": 210245.64,
+        "vsCheapestEur": 0,
+        "drivers": "€3,150 cashback at drawdown",
+        "conditions": [
+          "1% or 2% at drawdown, by product (CCPC’s words; avantmoney.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "greenNote": null,
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.avantmoney.ie/"
+        ],
+        "line": "With Avant Money: keys around July 2027; Up to 30 year fixed >80% <=90% at 3.8% (€1,467.77 a month), €3,150 cashback at drawdown; the lowest cost over 30 years (incentives from CCPC’s tables, not confirmed on the lender’s site)."
+      },
+      {
+        "lender": "credit_union_mortgages",
+        "lenderName": "Credit Union Mortgages",
+        "mortgage": {
+          "productId": "credit_union_mortgages:mortgage.c8714",
+          "name": "Capped Variable Rate Mortgage - Capped at 4.40% (APRC 4.50%)* for first 3 years.",
+          "ratePct": 3.85,
+          "fixedYears": null,
+          "followOnRatePct": 3.85,
+          "monthlyRepayment": 1476.75
+        },
+        "keysOn": "2027-07",
+        "interestEur": 216628.54,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "netCostEur": 216628.54,
+        "vsCheapestEur": 6382.9,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "greenNote": null,
+        "sources": ["https://www.creditunionmortgages.com/"],
+        "line": "With Credit Union Mortgages: keys around July 2027; Capped Variable Rate Mortgage - Capped at 4.40% (APRC 4.50%)* for first 3 years. at 3.85% (€1,476.75 a month), no cashback or bonus; about €6,383 more over 30 years than the lowest."
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c6177",
+          "name": "5 Year Fixed BER C",
+          "ratePct": 4,
+          "fixedYears": 5,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1503.86
+        },
+        "keysOn": "2027-07",
+        "interestEur": 233498.1,
+        "cashbackEur": 9450,
+        "bonusEur": 1340,
+        "netCostEur": 222708.1,
+        "vsCheapestEur": 12462.46,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, €3,150 more after 5 years",
+        "conditions": [
+          "2% within 45 days of drawdown; 1% more after 5 years if every repayment is made in full and on time. Fixed rates only, not High Value Mortgage rates.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/borrow/mortgages/offers/cashback/",
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "With Bank of Ireland: keys around July 2027; 5 Year Fixed BER C at 4% (€1,503.86 a month), MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, €3,150 more after 5 years; about €12,462 more over 30 years than the lowest."
+      },
+      {
+        "lender": "ebs",
+        "lenderName": "EBS d.a.c",
+        "mortgage": {
+          "productId": "ebs:mortgage.c521",
+          "name": "2 Year fixed rate mortgage",
+          "ratePct": 3.9,
+          "fixedYears": 2,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1485.75
+        },
+        "keysOn": "2027-07",
+        "interestEur": 234344.98,
+        "cashbackEur": 9450,
+        "bonusEur": 0,
+        "netCostEur": 224894.98,
+        "vsCheapestEur": 14649.34,
+        "drivers": "€6,300 cashback at drawdown, €3,150 more after 5 years",
+        "conditions": [
+          "2% within 2 months of drawdown and 1% in five years if the mortgage account remains open (CCPC’s words; ebs.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "greenNote": "If the home is BER B3 or better: Green 4 year fixed rate mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.ebs.ie/mortgages/first-mortgage.html"
+        ],
+        "line": "With EBS d.a.c: keys around July 2027; 2 Year fixed rate mortgage at 3.9% (€1,485.75 a month), €6,300 cashback at drawdown, €3,150 more after 5 years; about €14,649 more over 30 years than the lowest (incentives from CCPC’s tables, not confirmed on the lender’s site)."
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c455",
+          "name": "5 year fixed rate mortgage",
+          "ratePct": 3.9,
+          "fixedYears": 5,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1485.75
+        },
+        "keysOn": "2027-07",
+        "interestEur": 231667.74,
+        "cashbackEur": 5000,
+        "bonusEur": 0,
+        "netCostEur": 226667.74,
+        "vsCheapestEur": 16422.1,
+        "drivers": "€5,000 cashback at drawdown",
+        "conditions": [
+          "€5,000 when €250,000 or more is drawn down on a fixed rate, by December 2027 (CCPC’s words; havenmortgages.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.havenmortgages.ie/"
+        ],
+        "line": "With Haven Mortgages Limited: keys around July 2027; 5 year fixed rate mortgage at 3.9% (€1,485.75 a month), €5,000 cashback at drawdown; about €16,422 more over 30 years than the lowest (incentives from CCPC’s tables, not confirmed on the lender’s site)."
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c276",
+          "name": "4 year fixed, LTV over 80%",
+          "ratePct": 3.75,
+          "fixedYears": 4,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1458.81
+        },
+        "keysOn": "2027-07",
+        "interestEur": 230309.47,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "netCostEur": 230309.47,
+        "vsCheapestEur": 20063.83,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "With AIB: keys around July 2027; 4 year fixed, LTV over 80% at 3.75% (€1,458.81 a month), no cashback or bonus; about €20,064 more over 30 years than the lowest."
+      }
+    ],
+    "leftOut": []
+  },
+  "assumedRepayments": [],
+  "presentation": [
+    "Your home: keys around July 2027.",
+    "Assumed: first-time buyer; a 30-year mortgage with a €35,000 deposit (10%); a €350,000 home, as given; not a new build, so no Help to Buy and standard rates (a BER C where a lender prices by BER); stamp duty of €3,500 (1%) and €3,000 for legal fees and a survey (an estimate); costs compared over 30 years for every lender, at each lender’s stated follow-on rate after the fixed period.",
+    "With Avant Money: keys around July 2027; Up to 30 year fixed >80% <=90% at 3.8% (€1,467.77 a month), €3,150 cashback at drawdown; the lowest cost over 30 years (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+    "With Credit Union Mortgages: keys around July 2027; Capped Variable Rate Mortgage - Capped at 4.40% (APRC 4.50%)* for first 3 years. at 3.85% (€1,476.75 a month), no cashback or bonus; about €6,383 more over 30 years than the lowest.",
+    "With Bank of Ireland: keys around July 2027; 5 Year Fixed BER C at 4% (€1,503.86 a month), MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, €3,150 more after 5 years; about €12,462 more over 30 years than the lowest.",
+    "Money found: about €258 a year after DIRT (€35,000 in MoCo EasySaver, €258).",
+    "€45,197 in all at November 2027: €45,197 towards the first home (no debts given).",
+    "The split this plan uses: €35,000 in MoCo EasySaver; €675 a month in Bank of Ireland SuperSaver Account; €100 a month in EBS d.a.c Family Savings Account (Fixed); €25 a month in AIB Online Saver.",
+    "Everything stays in instant access: a fixed term would add only €70.35 by November 2027.",
+    "Each extra €100 a month adds about €1,213.06 by November 2027.",
+    "Help to Buy: depends, up to €35,000 on €350,000: the lesser of 10% of a new build’s price (up to €500,000), €35,000 (applications from 2026-10-07) and the Income Tax and DIRT paid over the last four years, for homes bought or built by 2029-12-31. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Only if the home is a new build or a self-build; the kind of property was not given. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
+    "To sharpen this, the customer could say: (1) Roughly what price, and is it a new build? Help to Buy and green rates apply to new builds; the price sets the keys date.",
+    "This plan can be opened in the Saoi app: https://app.saoi.ie/#/plan/99aOrER3w7s12Jy0DFTWEw (held for 24 hours, then deleted unless opened).",
+    "These are options with their figures, for the inputs given; the customer decides."
+  ],
+  "questions": [
+    "Roughly what price, and is it a new build? Help to Buy and green rates apply to new builds; the price sets the keys date."
+  ],
+  "position": {
+    "at": "2027-11",
+    "total": 45196.98,
+    "towardsGoal": 45196.98,
+    "buffer": 0,
+    "owed": 0,
+    "owedIsCeiling": false,
+    "debtsGiven": false,
+    "line": "€45,197 in all at November 2027: €45,197 towards the first home (no debts given)."
+  },
+  "saveLink": {
+    "url": "https://app.saoi.ie/#/plan/99aOrER3w7s12Jy0DFTWEw",
+    "expiresAt": "2026-11-11T12:46:01.386Z"
+  },
+  "helpToBuy": {
+    "status": "depends",
+    "amountEur": null,
+    "upToEur": 35000,
+    "note": "Help to Buy: depends, up to €35,000 on €350,000: the lesser of 10% of a new build’s price (up to €500,000), €35,000 (applications from 2026-10-07) and the Income Tax and DIRT paid over the last four years, for homes bought or built by 2029-12-31. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Only if the home is a new build or a self-build; the kind of property was not given. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
+    "sourceUrl": "https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx",
+    "checkedOn": "2026-11-09"
+  },
+  "moneyFound": {
+    "annualEur": 258,
+    "headline": "Money found: about €258 a year after DIRT (€35,000 in MoCo EasySaver, €258).",
+    "parts": [
+      {
+        "kind": "idle_cash",
+        "label": "€35,000 in MoCo EasySaver",
+        "annualEur": 258,
+        "detail": "€492.45 a year after DIRT in MoCo EasySaver, against what the money earns now (0.67% after DIRT).",
+        "source": "MoCo’s own site",
+        "sourceUrl": "https://www.moco.ie/moco/savings",
+        "checkedAt": "2026-11-09T16:47:20.560Z"
+      }
+    ],
+    "notCounted": [],
+    "basis": "A year’s figures, after DIRT at 33%: idle cash against the best confirmed instant-access rate (only where its current rate was given), debt interest not paid in the next twelve months less what the same money would earn, and a mortgage switch’s lower repayment. Bonuses, cashback and rates resting on CCPC’s one figure are not counted. In a plan, debt figures are the plan’s own net positions, spread over its 12 months."
+  },
+  "plan": {
+    "version": 1,
+    "title": "First home by November 2027",
+    "situation": {
+      "summary": "Holds €35,000 in savings. Can save €800 a month. Gross income €90,000 a year.",
+      "income": { "annualGross": 90000 },
+      "monthlySaving": 800,
+      "savings": [{ "label": "savings", "balance": 35000, "aerPct": 1 }],
+      "debts": []
+    },
+    "goals": [{ "id": "home", "kind": "house_deposit", "label": "First home", "targetDate": "2027-11" }],
+    "recommendation": {
+      "products": [
+        {
+          "role": "lump_sum",
+          "goalIds": ["home"],
+          "provider": "moco",
+          "providerName": "MoCo",
+          "source": "bank",
+          "category": "savings",
+          "productId": "savings.moco_easysaver",
+          "productName": "MoCo EasySaver",
+          "amount": 35000,
+          "ratePct": 2.1,
+          "projected": { "horizonMonths": 12, "balance": 35492.45, "netInterest": 492.45 },
+          "why": "€35,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+          "unknowns": [],
+          "checks": [
+            "Protected by the Austrian deposit guarantee (Einlagensicherung AUSTRIA) up to €100,000, not the Irish scheme.",
+            "Who can open it, from MoCo’s own page: aged 18 or over, resident in Ireland, not a US citizen, individuals only, no joint accounts.",
+            "2.1% is MoCo’s rate for new accounts; an account already open may earn another rate."
+          ],
+          "depositGuarantee": {
+            "scheme": "Austrian deposit guarantee (Einlagensicherung AUSTRIA)",
+            "country": "Austria",
+            "coverEur": 100000,
+            "note": "MoCo is a trading name of BAWAG P.S.K. (Irish branch); the €100,000 is shared across BAWAG’s brands.",
+            "sourceUrl": "https://www.moco.ie/resource/blob/107468/bedec0b9ce4be4800c611c57f4114991/moco-depositor-information-sheet-july-2025-data.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:47:20.560Z"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["home"],
+          "provider": "boi",
+          "providerName": "Bank of Ireland",
+          "source": "bank",
+          "category": "savings",
+          "productId": "savings.supersaver",
+          "productName": "SuperSaver Account",
+          "monthlyAmount": 675,
+          "ratePct": 3,
+          "projected": { "horizonMonths": 12, "balance": 8188.19, "netInterest": 88.19 },
+          "why": "€675 a month in Bank of Ireland SuperSaver Account: the most known interest after DIRT for this part of the money.",
+          "unknowns": [],
+          "checks": [
+            "Minimum age 16.",
+            "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."
+          ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": null,
+            "sourceUrl": "https://personalbanking.bankofireland.com/?p=27570",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:15:23.051Z"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["home"],
+          "provider": "ebs",
+          "providerName": "EBS d.a.c",
+          "source": "ccpc",
+          "category": "savings",
+          "productId": "savings.c122",
+          "productName": "Family Savings Account (Fixed)",
+          "monthlyAmount": 100,
+          "ratePct": 3,
+          "projected": { "horizonMonths": 12, "balance": 1213.07, "netInterest": 13.07 },
+          "why": "€100 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
+          "unknowns": [
+            "the minimum age to open it",
+            "whether it takes a lump sum",
+            "the rate paid on a lump sum",
+            "the rate after the introductory or fixed period"
+          ],
+          "checks": [
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
+            "Check eligibility with EBS d.a.c: CCPC does not record who can open it (for example, whether an account with EBS d.a.c is needed first)."
+          ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": "EBS d.a.c. holds its own banking licence (Central Bank register), so its €100,000 is separate from AIB’s.",
+            "sourceUrl": "https://registers.centralbank.ie/prerenderedreports/2.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:15:23.051Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "url": "https://www.ebs.ie/regular-savings.html"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["home"],
+          "provider": "aib",
+          "providerName": "AIB",
+          "source": "ccpc",
+          "category": "savings",
+          "productId": "savings.c396",
+          "productName": "Online Saver",
+          "monthlyAmount": 25,
+          "ratePct": 3,
+          "projected": { "horizonMonths": 12, "balance": 303.27, "netInterest": 3.27 },
+          "why": "€25 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
+          "unknowns": [
+            "the minimum age to open it",
+            "whether it takes a lump sum",
+            "whether the rate is fixed or variable",
+            "the rate paid on a lump sum"
+          ],
+          "checks": [
+            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
+            "Check eligibility with AIB: CCPC does not record who can open it (for example, whether an account with AIB is needed first)."
+          ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": null,
+            "sourceUrl": "https://www.aib.ie/content/dam/aib/personal/docs/help-and-guidance/aib-depositor-information-sheet.pdf",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:15:23.051Z",
+          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
+          "url": "https://personal.aib.ie/our-products/savings-and-deposits/online-saver"
+        }
+      ],
+      "totals": { "monthly": 800, "lumpSum": 35000, "netInterest": 596.98 }
+    },
+    "debts": [],
+    "ranking": {
+      "objective": "highest_net_return",
+      "basis": "The split that earns the most interest after DIRT that can be known over 12 months on €35,000 placed and €800 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 12."
+    },
+    "assumptions": [
+      "€45,197 in all at November 2027: €45,197 towards the first home (no debts given).",
+      "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
+      "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
+      "Variable rates are assumed to stay as published today; they can change.",
+      "Bonuses are not counted as interest.",
+      "Every other euro of savings held is treated as available to place.",
+      "Locking €35,000 in Bank of Ireland Advantage Fixed Term Deposit Account for 12 months would leave only €70.35 more (0.20% a year on the money locked): €45,267.33 against €45,196.98 in instant access (everything held less what is still owed, at November 2027). A lock has to earn at least €100 and 0.…",
+      "A €45,196.98 deposit and €90,000 gross income support a price up to €405,196.98 under the Central Bank limits (the income limit binds)."
+    ],
+    "position": {
+      "at": "2027-11",
+      "total": 45196.98,
+      "towardsGoal": 45196.98,
+      "buffer": 0,
+      "owed": 0,
+      "line": "€45,197 in all at November 2027: €45,197 towards the first home (no debts given)."
+    },
+    "createdAt": "2026-11-10T12:46:01.386Z",
+    "dataCheckedAt": "2026-11-09T16:15:23.051Z"
+  },
+  "horizonMonths": 12,
+  "knownThroughMonth": 12,
+  "goalReachedOn": null,
+  "reasoning": [
+    "€35,000 held and €800 a month to place, over 12 months.",
+    "Locking €35,000 in Bank of Ireland Advantage Fixed Term Deposit Account for 12 months would leave only €70.35 more (0.20% a year on the money locked): €45,267.33 against €45,196.98 in instant access (everything held less what is still owed, at November 2027). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "€35,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+    "€675 a month in Bank of Ireland SuperSaver Account: the most known interest after DIRT for this part of the money.",
+    "€100 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
+    "€25 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
+    "€45,197 in all at November 2027: €45,197 towards the first home (no debts given).",
+    "A €45,196.98 deposit and €90,000 gross income support a price up to €405,196.98 under the Central Bank limits (the income limit binds).",
+    "For a new build or self-build, Help to Buy (up to €35,000 at that price: 10% of it, at most €35,000, and no more than the Income Tax and DIRT paid over the last four years, not given) counted towards the deposit lifts that to €440,196.98."
+  ],
+  "debtScenarios": [],
+  "affordability": {
+    "deposit": 45196.98,
+    "maxPrice": 405196.98,
+    "maxLoanByIncome": 360000,
+    "bindingLimit": "income",
+    "note": "A €45,196.98 deposit and €90,000 gross income support a price up to €405,196.98 under the Central Bank limits (the income limit binds).",
+    "helpToBuy": {
+      "upToEur": 35000,
+      "maxPriceWithHelpToBuy": 440196.98,
+      "note": "For a new build or self-build, Help to Buy (up to €35,000 at that price: 10% of it, at most €35,000, and no more than the Income Tax and DIRT paid over the last four years, not given) counted towards the deposit lifts that to €440,196.98.",
+      "sourceUrl": "https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx",
+      "checkedOn": "2026-11-09"
+    }
+  },
+  "unplaced": { "lumpSum": 0, "monthly": 0 },
+  "liquidity": {
+    "decision": "instant_access",
+    "why": "Locking €35,000 in Bank of Ireland Advantage Fixed Term Deposit Account for 12 months would leave only €70.35 more (0.20% a year on the money locked): €45,267.33 against €45,196.98 in instant access (everything held less what is still owed, at November 2027). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "lockedNetPosition": 45267.33,
+    "instantNetPosition": 45196.98,
+    "gainEur": 70.35,
+    "gainPctPerYear": 0.2,
+    "thresholdEur": 100,
+    "thresholdPctPerYear": 0.25
+  },
+  "whatIf": {
+    "extraMonthly": { "extra": 100, "addsAtHorizon": 1213.06, "goalReachedOn": null },
+    "goalReachedAtCurrentPace": null,
+    "lines": [
+      "What if the lump sum were locked in a fixed term anyway (minLockGainEur: 0 and minLockGainPctPerYear: 0, in a later call): €45,267.33 at November 2027 (everything held less what is still owed), €70.35 more than this plan, with the money tied up.",
+      "Each extra €100 a month adds about €1,213.06 by November 2027, after DIRT.",
+      "With a target amount for the goal, the month it is reached is worked out: an alternative with targetAmount, or the amount in a later call."
+    ]
+  },
+  "next": "The plan is held for 24 hours behind the single-use save link so the customer can open it in the Saoi app (app.saoi.ie), then deleted unless opened; nothing else is stored. Offer the link. In the app the plan opens as a card, and Saoirse, Saoi’s assistant, knows it and can talk it through; signing in with an email address keeps it across devices, including the installed app. Alerts when a chosen product’s rate changes and reminders as the goal date nears are coming, not built yet. To compare options (a debt kept or cleared, another monthly amount or date), pass them as `alternatives` in one saoi_build_plan call; call it again only when the customer changes their situation in a later message."
+}

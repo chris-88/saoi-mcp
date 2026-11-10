@@ -71,6 +71,10 @@ export interface PlanCardView {
   footer: string[]
   /** What the Saoi app adds today, beside the button. Only what is built. */
   app: string
+  /** The save button's label and note, growing with the plan (saoi-api `saveCall`). */
+  save: { label: string; note: string; today: string; coming: string | null }
+  /** "Plan based on 4 of 6 answers", or null for older results. */
+  completeness: string | null
   attributions: string[]
   /** The plan exactly as the engine returned it, for `saoi_save_plan`. */
   plan: BuildPlanResult['plan']
@@ -313,6 +317,12 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
     }
   })
 
+  // The save call and completeness (saoi-api, build-plan): optional at runtime, for older results.
+  const { saveCall, completeness } = result as {
+    saveCall?: BuildPlanResult['saveCall']
+    completeness?: BuildPlanResult['completeness']
+  }
+
   // Pathways to a home (saoi-api, build-plan): optional at runtime, for older results.
   const homeResult = (result as { home?: BuildPlanResult['home'] }).home ?? null
   const period =
@@ -368,6 +378,17 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
     ],
     attributions,
     app: 'In the Saoi app the plan opens as a card, Saoirse knows it and can talk it through, and signing in with an email keeps it across your devices.',
+    save:
+      saveCall === undefined
+        ? { label: 'Save to Saoi app', note: '', today: '', coming: null }
+        : {
+            label: saveCall.label,
+            note: saveCall.note,
+            today: `Today the app ${saveCall.appToday.join(', ')}.`,
+            coming:
+              saveCall.ready && saveCall.coming.length > 0 ? `Coming: ${saveCall.coming.join(', ')}.` : null,
+          },
+    completeness: completeness?.line ?? null,
     plan,
     draftUrl,
   }

@@ -330,7 +330,9 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
       ? ''
       : homeResult.comparedOver.basis === 'term'
         ? `over ${String(homeResult.comparedOver.years)} years`
-        : `over the ${String(homeResult.comparedOver.years)}-year fixed period`
+        : homeResult.comparedOver.basis === 'first_years'
+          ? `over the first ${String(homeResult.comparedOver.years)} years`
+          : `over the ${String(homeResult.comparedOver.years)}-year fixed period`
   const home: PlanCardView['home'] =
     homeResult === null
       ? null
@@ -345,8 +347,8 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
                 : `keys ${month(pathway.keysOn) ?? pathway.keysOn}`,
             cost:
               pathway.vsCheapestEur <= 0
-                ? `lowest cost ${period}`
-                : `+${eur(Math.round(pathway.vsCheapestEur))} ${period}`,
+                ? `cheapest ${period}`
+                : `about ${eur(Math.round(pathway.vsCheapestEur))} more ${period}`,
             driver: pathway.drivers,
             confirmed: pathway.confirmed,
           })),

@@ -17,7 +17,7 @@ describe('home calculator card document', () => {
     expect(script).not.toMatch(/\bimport\b|\bexport\b/)
     expect(() => new Script(script)).not.toThrow()
     expect(html).not.toMatch(/<script[^>]+src=/)
-    expect(html).toMatch(/type="month"|'month'/)
+    expect(html).toMatch(/["']month["']/)
   })
 
   it('names the statement and the three mortgage warnings', () => {
@@ -88,5 +88,40 @@ describe('home calculator model', () => {
     const text = model.contextText(model.defaults('2026-11'), 'keys_date', 49)
     expect(text).toMatch(/49 options sorted by keys date/)
     expect(text).toMatch(/do not pick one for the customer/)
+  })
+})
+
+describe('one step at a time (round 2)', () => {
+  it('gives one headline line and a one-line summary of the inputs', () => {
+    const inputs = {
+      ...model.defaults('2026-11'),
+      depositSavedEur: 25_000,
+      monthlySavingEur: 1_200,
+      annualGrossIncomeEur: 90_000,
+      targetPriceEur: 350_000,
+    }
+    const figures = model.figures(inputs, live.rules, '2026-11')
+    expect(model.headline(inputs, figures)).toMatch(
+      /^You could borrow up to €360,000 · deposit ready around [A-Z][a-z]{2} \d{4}/,
+    )
+    expect(model.summary(inputs)).toBe('€25k saved · €1,200/mo · €90k · €350k')
+  })
+
+  it('leads each row with the figure it is sorted by, and says when every keys date is the same', () => {
+    const home = recorded.planHome.home
+    if (home === null) throw new Error('recording has no home')
+    expect(model.rows(home, 'monthly_repayment')[0]?.lead).toMatch(/^€[\d,]+\/mo$/)
+    expect(model.rows(home, 'five_year_cost')[0]?.second).toMatch(/^€[\d,]+\/mo$/)
+    expect(model.rows(home, 'keys_date')[0]?.lead).toMatch(/^[A-Z][a-z]{2} \d{4}$/)
+    expect(model.sharedKeys(home)).toMatch(/^[A-Z][a-z]{2} \d{4}$/)
+  })
+
+  it('keeps the warnings and the statement in the card, outside any expander', () => {
+    const html = homeCalculatorHtml()
+    expect(html).toMatch(/ui:\/\/saoi|Saoi/)
+    expect(html).toMatch(/See the breakdown/)
+    expect(html).toMatch(/More details/)
+    expect(html).toMatch(/More filters/)
+    expect(html).toMatch(/How we worked this out/)
   })
 })

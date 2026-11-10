@@ -7,11 +7,11 @@ import type { HomeCalculatorModel, HomeInputs, HomeRules, HomeSort } from './hom
  * The home calculator card's browser side. Runs inside the host's sandboxed frame as this
  * function's own source, with the bridge and the model handed in.
  *
- * Inputs are sliders, each paired with a typed number box (phones). The figures move as they
- * do, worked out in the card from the rules saoi-api sent. "Show my options" calls
- * saoi_build_plan through the host (tools/call) and tells the model what was entered
- * (ui/update-model-context), then shows every option that fits, sortable by the customer. No
- * option is picked or highlighted for them. Every string goes in with `textContent`.
+ * One step at a time (Chris, 2026-11-10: "too much information at once"): the must-have figures,
+ * then preferences, one live headline line, and "Show my options". Everything else sits behind an
+ * expander. Once the options run, the inputs fold to one summary line with Edit. Results show
+ * the top three in the order the customer picks, each row expanding for its detail. No option
+ * is picked or highlighted for them. Every string goes in with `textContent`.
  */
 export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalculatorModel): void {
   const doc = win.document
@@ -22,11 +22,18 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   let rules: HomeRules | null = null
   let sortBy: HomeSort = 'five_year_cost'
   let comparison: BuildPlanResult | null = null
+  let editing = true
   let showAll = false
   let drawn = false
+  let secondIncome = false
 
   const STATEMENT =
     'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.'
+  const WARNINGS = [
+    'Warning: if you do not keep up your repayments you may lose your home.',
+    'Warning: the cost of your monthly repayments may increase.',
+    'Warning: if you do not meet the repayments on your loan, your account will go into arrears.',
+  ]
 
   const el = <K extends keyof HTMLElementTagNameMap>(
     tag: K,
@@ -38,73 +45,80 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (text !== undefined && text !== null) node.textContent = text
     return node
   }
+  const button = (className: string, text: string, onClick: () => void): HTMLButtonElement => {
+    const node = el('button', className, text)
+    node.type = 'button'
+    node.onclick = onClick
+    return node
+  }
+  /** A Collapsible: the summary is the 44px tap target. */
+  const collapsible = (
+    title: string,
+    fill: (body: HTMLElement) => void,
+    open = false,
+  ): HTMLDetailsElement => {
+    const details = el('details', 'collapsible')
+    details.open = open
+    details.append(el('summary', '', title))
+    const body = el('div', 'fold')
+    fill(body)
+    details.append(body)
+    return details
+  }
 
-  // ---- inputs ----------------------------------------------------------------------------------
+  // ---- live headline ---------------------------------------------------------------------------
 
-  const live = el('section', 'found')
-  live.setAttribute('aria-live', 'polite')
-  const results = el('div', '')
-  const status = el('p', 'status')
-  status.setAttribute('role', 'status')
-
+  const headline = el('p', 'headline')
+  headline.setAttribute('aria-live', 'polite')
+  const breakdown = el('div', 'rows')
   const refresh = (): void => {
-    live.replaceChildren()
     if (rules === null) {
-      live.append(el('p', 'small muted', 'Working out the figures…'))
+      headline.textContent = 'Working out your figures…'
       return
     }
     const figures = model.figures(inputs, rules, asOf)
-    const top = el('p', 'row')
-    top.append(
-      el('span', 'label', 'Deposit and costs saved'),
-      el('span', 'total num', figures.reachedOn === null ? 'not reached' : model.month(figures.reachedOn)),
-    )
-    live.append(top)
-    const grid = el('ul', 'rows')
-    const row = (label: string, value: string): void => {
-      const item = el('li', 'row small')
-      item.append(el('span', 'muted', label), el('span', 'num strong', value))
-      grid.append(item)
+    headline.textContent = model.headline(inputs, figures)
+    breakdown.replaceChildren()
+    const kv = (label: string, value: string): void => {
+      const row = el('p', 'kv')
+      row.append(el('span', 'muted', label), el('span', 'num medium', value))
+      breakdown.append(row)
     }
-    row('Most you can borrow (Central Bank limit)', model.eur(figures.maxLoanEur))
-    row('Mortgage at this price', model.eur(figures.loanEur))
-    row('Deposit needed', model.eur(figures.depositNeededEur))
-    row('Needed at the keys', model.eur(figures.neededAtKeysEur))
-    live.append(grid)
-    // The grid shows the limit, the mortgage, the deposit and the cash; the words add the rest.
-    for (const line of figures.lines.slice(3)) live.append(el('p', 'small muted-strong', line))
-    if (
-      figures.loanEur < inputs.targetPriceEur * (rules.firstTimeBuyer.maxLtvPct / 100) &&
-      inputs.firstTimeBuyer
+    kv('Mortgage at this price', model.eur(figures.loanEur))
+    kv('Deposit needed', model.eur(figures.depositNeededEur))
+    kv('Stamp duty', model.eur(figures.stampDutyEur))
+    if (figures.helpToBuyEur > 0) kv('Help to Buy (at most)', `−${model.eur(figures.helpToBuyEur)}`)
+    kv('Needed at the keys', model.eur(figures.neededAtKeysEur))
+    breakdown.append(
+      el('p', 'small muted', 'Before interest. Lenders decide within the Central Bank limits.'),
     )
-      live.append(el('p', 'small muted-strong', figures.lines[1] ?? ''))
   }
 
-  /** A slider and a number box that move together. */
-  const numberInput = (
-    key:
-      | 'depositSavedEur'
-      | 'monthlySavingEur'
-      | 'annualGrossIncomeEur'
-      | 'secondIncomeEur'
-      | 'targetPriceEur'
-      | 'monthlyDebtRepaymentsEur',
-    label: string,
-    max: number,
-    step: number,
-  ): HTMLElement => {
+  // ---- inputs ----------------------------------------------------------------------------------
+
+  type MoneyKey =
+    | 'depositSavedEur'
+    | 'monthlySavingEur'
+    | 'annualGrossIncomeEur'
+    | 'secondIncomeEur'
+    | 'targetPriceEur'
+    | 'monthlyDebtRepaymentsEur'
+
+  /** Slider + Input, moving together. */
+  const money = (key: MoneyKey, label: string, max: number, step: number): HTMLElement => {
     const wrap = el('div', 'field')
-    const id = `in-${key}`
-    const head = el('div', 'row')
-    const name = el('label', 'small strong', label)
-    name.htmlFor = id
-    const box = el('input', 'box num')
+    const head = el('div', 'field-head')
+    const name = el('label', '', label)
+    name.htmlFor = `in-${key}`
+    const box = el('input', 'input')
     box.type = 'number'
     box.inputMode = 'numeric'
     box.min = '0'
     box.step = String(step)
-    box.id = id
+    box.id = `in-${key}`
     box.value = String(inputs[key])
+    const boxWrap = el('span', 'input-wrap')
+    boxWrap.append(el('span', '', '€'), box)
     const slider = el('input', 'slider')
     slider.type = 'range'
     slider.min = '0'
@@ -126,20 +140,17 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       slider.value = String(value)
       set(value)
     }
-    const prefix = el('span', 'muted small', '€')
-    const boxWrap = el('span', 'boxwrap')
-    boxWrap.append(prefix, box)
     head.append(name, boxWrap)
     wrap.append(head, slider)
     return wrap
   }
 
-  const dateInput = (): HTMLElement => {
+  const keysDate = (): HTMLElement => {
     const wrap = el('div', 'field')
-    const head = el('div', 'row')
-    const name = el('label', 'small strong', 'Keys wanted by')
+    const head = el('div', 'field-head')
+    const name = el('label', '', 'Keys wanted by')
     name.htmlFor = 'in-targetDate'
-    const box = el('input', 'box num')
+    const box = el('input', 'input plain')
     box.type = 'month'
     box.id = 'in-targetDate'
     box.value = inputs.targetDate
@@ -147,7 +158,6 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     slider.type = 'range'
     slider.min = '0'
     slider.max = '120'
-    slider.step = '1'
     slider.value = String(model.monthsBetween(asOf, inputs.targetDate))
     slider.setAttribute('aria-label', 'Months until the keys')
     slider.oninput = () => {
@@ -166,46 +176,51 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     return wrap
   }
 
-  const choice = <T extends string>(
+  /** ToggleGroup in the segmented style. */
+  const toggle = <T extends string>(
     label: string,
     options: readonly (readonly [T, string])[],
     current: T,
     onPick: (value: T) => void,
   ): HTMLElement => {
-    const group = el('fieldset', 'choice')
-    group.append(el('legend', 'small strong', label))
-    const row = el('div', 'segments')
+    const field = el('div', 'choice-field')
+    field.append(el('p', '', label))
+    const group = el('div', 'segmented')
+    group.setAttribute('role', 'group')
+    group.setAttribute('aria-label', label)
     for (const [value, text] of options) {
-      const button = el('button', value === current ? 'segment on' : 'segment', text)
-      button.type = 'button'
-      button.setAttribute('aria-pressed', String(value === current))
-      button.onclick = () => {
-        for (const other of Array.from(row.children)) {
-          other.className = 'segment'
-          other.setAttribute('aria-pressed', 'false')
-        }
-        button.className = 'segment on'
-        button.setAttribute('aria-pressed', 'true')
+      const item = button('', text, () => {
+        for (const other of Array.from(group.children)) other.setAttribute('aria-pressed', 'false')
+        item.setAttribute('aria-pressed', 'true')
         onPick(value)
         refresh()
-      }
-      row.append(button)
+      })
+      item.setAttribute('aria-pressed', String(value === current))
+      group.append(item)
     }
-    group.append(row)
-    return group
+    field.append(group)
+    return field
   }
 
-  const check = (label: string, value: boolean, onChange: (value: boolean) => void): HTMLElement => {
-    const wrap = el('label', 'check small')
-    const box = el('input')
-    box.type = 'checkbox'
-    box.checked = value
-    box.onchange = () => {
-      onChange(box.checked)
+  const switchRow = (label: string, value: boolean, onChange: (value: boolean) => void): HTMLElement => {
+    const row = el('div', 'switch-row')
+    const id = `sw-${String(Math.random()).slice(2, 8)}`
+    const name = el('label', '', label)
+    name.htmlFor = id
+    const control = el('button')
+    control.type = 'button'
+    control.id = id
+    control.setAttribute('role', 'switch')
+    control.setAttribute('aria-checked', String(value))
+    control.append(el('span'))
+    control.onclick = () => {
+      const next = control.getAttribute('aria-checked') !== 'true'
+      control.setAttribute('aria-checked', String(next))
+      onChange(next)
       refresh()
     }
-    wrap.append(box, el('span', '', label))
-    return wrap
+    row.append(name, control)
+    return row
   }
 
   const BANKS = [
@@ -220,206 +235,45 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     'Credit union',
   ]
 
-  // ---- results ---------------------------------------------------------------------------------
-
-  const renderResults = (): void => {
-    results.replaceChildren()
-    const home = comparison?.home ?? null
-    if (comparison === null) return
-    const block = el('section', 'section')
-    block.append(el('h3', 'label', 'Your options'))
-    if (home === null || home.pathways.length === 0) {
-      block.append(el('p', 'small', 'No mortgage in Saoi’s data fits these filters. Try fewer filters.'))
-      for (const line of home?.leftOut ?? []) block.append(el('p', 'small muted', line))
-      results.append(block)
-      return
-    }
-    block.append(el('p', 'small strong', home.headline))
-    for (const filter of home.filters) block.append(el('p', 'small filter', filter))
-    const sorter = choice<HomeSort>(
-      `${String(home.pathways.length)} options. Sort by`,
-      [
-        ['five_year_cost', 'Cost over 5 years'],
-        ['keys_date', 'Keys date'],
-        ['monthly_repayment', 'Monthly'],
-      ],
-      sortBy,
-      (value) => {
-        sortBy = value
-        renderResults()
-      },
+  const figuresStep = (): HTMLElement => {
+    const step = el('section', 'section')
+    step.append(el('h3', 'label', 'Your figures'))
+    step.append(
+      money('depositSavedEur', 'Deposit saved', 100_000, 500),
+      money('monthlySavingEur', 'Saving a month', 5_000, 50),
+      money('annualGrossIncomeEur', 'Income a year (gross)', 250_000, 1_000),
     )
-    block.append(sorter)
-    const rows = model.rows(home, sortBy)
-    const shown = showAll ? rows : rows.slice(0, 8)
-    const list = el('ol', 'options')
-    list.setAttribute('aria-label', 'Mortgage options, in the order chosen')
-    for (const row of shown) {
-      const item = el('li', 'option')
-      const head = el('p', 'row')
-      head.append(el('span', 'strong', `${row.lender} · ${row.kind}`), el('span', 'strong num', row.rate))
-      const figures = el('p', 'figs small num')
-      figures.append(
-        el('span', '', `${row.monthly}/month`),
-        el('span', '', `${row.fiveYear} over 5 yrs`),
-        el('span', '', `keys ${row.keys}`),
+    const second = el('div', '')
+    if (secondIncome || inputs.secondIncomeEur > 0) {
+      second.append(money('secondIncomeEur', 'Second income a year', 250_000, 1_000))
+    } else {
+      second.append(
+        button('link', '+ Add a second income', () => {
+          secondIncome = true
+          second.replaceChildren(money('secondIncomeEur', 'Second income a year', 250_000, 1_000))
+          second.querySelector('input')?.focus()
+        }),
       )
-      item.append(head, figures, el('p', 'small muted', row.product))
-      if (row.more !== null) item.append(el('p', 'small muted', row.more))
-      if (row.unconfirmed)
-        item.append(
-          el('p', 'small flag', 'Incentives from CCPC’s tables, not confirmed on the lender’s site'),
+    }
+    step.append(second, money('targetPriceEur', 'Price in mind', 1_000_000, 5_000))
+    step.append(
+      collapsible('More details', (body) => {
+        body.append(
+          money('monthlyDebtRepaymentsEur', 'Loan and card repayments a month', 3_000, 25),
+          keysDate(),
         )
-      list.append(item)
-    }
-    block.append(list)
-    if (rows.length > shown.length) {
-      const more = el('button', 'link', `Show all ${String(rows.length)} options`)
-      more.type = 'button'
-      more.onclick = () => {
-        showAll = true
-        renderResults()
-      }
-      block.append(more)
-    }
-    block.append(
-      el(
-        'p',
-        'small muted',
-        `5-year cost: ${home.comparedOver.years === 5 ? 'interest on a 30-year term and the valuation fee, less cashback and bonuses paid within the first 5 years' : 'over the period stated'}. ${home.assumptions.join(' ')}`,
-      ),
+      }),
     )
-    results.append(block)
-
-    const save = el('div', 'actions')
-    const button = el('button', 'save', 'Save this comparison')
-    button.type = 'button'
-    const saveStatus = el('p', 'status')
-    saveStatus.setAttribute('role', 'status')
-    button.onclick = () => {
-      void (async () => {
-        button.disabled = true
-        const held = bridge.record(bridge.record(comparison)?.['saveLink'])?.['url']
-        let url = typeof held === 'string' && held.startsWith('https://') ? held : null
-        if (url === null && comparison !== null) {
-          saveStatus.textContent = 'Saving to Saoi…'
-          const saved = await bridge.callTool('saoi_save_plan', { plan: comparison.plan })
-          const claim = bridge.record(saved?.['structuredContent'])?.['claimUrl']
-          url = typeof claim === 'string' && claim.startsWith('https://') ? claim : null
-        }
-        if (url === null) {
-          saveStatus.textContent = 'It could not be saved from the card. Ask in the chat to save it.'
-          button.disabled = false
-          return
-        }
-        const opened = await bridge.openLink(url)
-        saveStatus.textContent = opened
-          ? 'The comparison opens in the Saoi app; the link works once.'
-          : 'Open the comparison in the Saoi app (the link works once):'
-        if (!opened) {
-          const link = el('a', 'claim', url)
-          link.href = url
-          link.target = '_blank'
-          link.rel = 'noopener noreferrer'
-          saveStatus.append(' ', link)
-        }
-        button.disabled = false
-      })()
-    }
-    save.append(
-      button,
-      saveStatus,
-      el('p', 'small muted', 'Held for 24 hours behind a single-use link, then deleted unless opened.'),
-    )
-    results.append(save)
+    return step
   }
 
-  const showOptions = async (button: HTMLButtonElement): Promise<void> => {
-    button.disabled = true
-    status.textContent = 'Comparing every option that fits…'
-    const result = await bridge.callTool('saoi_build_plan', model.buildPlanBody(inputs, sortBy))
-    const content = bridge.record(result?.['structuredContent'])
-    if (content === null || bridge.record(content['plan']) === null) {
-      status.textContent = 'The options could not be fetched from the card. Ask in the chat instead.'
-      button.disabled = false
-      return
-    }
-    comparison = content as unknown as BuildPlanResult
-    showAll = false
-    status.textContent = ''
-    button.disabled = false
-    button.textContent = 'Update my options'
-    renderResults()
-    void bridge.updateContext(model.contextText(inputs, sortBy, comparison.home?.pathways.length ?? 0))
-  }
-
-  // ---- the card --------------------------------------------------------------------------------
-
-  const draw = (): void => {
-    drawn = true
-    root.replaceChildren()
-    root.removeAttribute('aria-busy')
-    const header = el('header', 'header')
-    header.append(
-      el('p', 'eyebrow', 'Saoi home calculator'),
-      el('h2', 'title', 'Buying a home: your figures'),
-    )
-    root.append(header, live)
-
-    const money = el('section', 'section')
-    money.append(
-      numberInput('depositSavedEur', 'Deposit saved', 100_000, 500),
-      numberInput('monthlySavingEur', 'Saving a month', 5_000, 50),
-      numberInput('annualGrossIncomeEur', 'Gross income a year', 250_000, 1_000),
-      numberInput('secondIncomeEur', 'Second income (joint, 0 if alone)', 250_000, 1_000),
-      numberInput('targetPriceEur', 'Price in mind', 1_000_000, 5_000),
-      numberInput('monthlyDebtRepaymentsEur', 'Loan and card repayments a month', 3_000, 25),
-      dateInput(),
-    )
-    root.append(money)
-
-    const prefs = el('section', 'section')
-    prefs.append(el('h3', 'label', 'Your filters'))
-    prefs.append(
-      choice(
-        'First home?',
-        [
-          ['yes', 'Yes'],
-          ['no', 'No'],
-        ] as const,
-        inputs.firstTimeBuyer ? 'yes' : 'no',
-        (v) => {
-          inputs = { ...inputs, firstTimeBuyer: v === 'yes' }
-        },
-      ),
-      choice(
-        'New build or second-hand?',
-        [
-          ['second_hand', 'Second-hand'],
-          ['new_build', 'New build (Help to Buy)'],
-        ] as const,
-        inputs.propertyKind,
-        (v) => {
-          inputs = { ...inputs, propertyKind: v }
-        },
-      ),
-      choice(
-        'Fixed or variable?',
-        [
-          ['either', 'Show both'],
-          ['fixed', 'Fixed'],
-          ['variable', 'Variable'],
-        ] as const,
-        inputs.rateType,
-        (v) => {
-          inputs = { ...inputs, rateType: v }
-        },
-      ),
-    )
-    const bankRow = el('div', 'field')
-    const bankLabel = el('label', 'small strong', 'Who you bank with now')
+  const preferencesStep = (): HTMLElement => {
+    const step = el('section', 'section')
+    step.append(el('h3', 'label', 'Your preferences'))
+    const bankField = el('div', 'choice-field')
+    const bankLabel = el('label', '', 'Who you bank with')
     bankLabel.htmlFor = 'in-bank'
-    const bank = el('select', 'box')
+    const bank = el('select', 'input')
     bank.id = 'in-bank'
     const banks = BANKS.includes(inputs.currentBank) ? BANKS : [...BANKS, inputs.currentBank]
     for (const name of banks) {
@@ -431,52 +285,285 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     bank.onchange = () => {
       inputs = { ...inputs, currentBank: bank.value }
     }
-    bankRow.append(bankLabel, bank)
-    prefs.append(
-      bankRow,
-      check('Only show my bank’s options', inputs.stayWithBank, (v) => {
+    bankField.append(bankLabel, bank)
+    step.append(
+      bankField,
+      switchRow('Only show my bank’s options', inputs.stayWithBank, (v) => {
         inputs = { ...inputs, stayWithBank: v }
       }),
-      check('The home is green (BER B3 or better)', inputs.green, (v) => {
-        inputs = { ...inputs, green: v }
-      }),
-      check('Open to switching current account', inputs.openToCurrentAccountSwitch, (v) => {
-        inputs = { ...inputs, openToCurrentAccountSwitch: v }
-      }),
-    )
-    root.append(prefs)
-
-    const actions = el('div', 'actions')
-    const button = el('button', 'save', 'Show my options')
-    button.type = 'button'
-    button.onclick = () => {
-      void showOptions(button)
-    }
-    actions.append(
-      button,
-      status,
-      el(
-        'p',
-        'small muted',
-        'Every lender’s options that fit your filters, in the order you choose. Nothing is picked for you.',
+      toggle(
+        'First home?',
+        [
+          ['yes', 'Yes'],
+          ['no', 'No'],
+        ] as const,
+        inputs.firstTimeBuyer ? 'yes' : 'no',
+        (v) => {
+          inputs = { ...inputs, firstTimeBuyer: v === 'yes' }
+        },
       ),
+      toggle(
+        'New build or second-hand?',
+        [
+          ['second_hand', 'Second-hand'],
+          ['new_build', 'New build'],
+        ] as const,
+        inputs.propertyKind,
+        (v) => {
+          inputs = { ...inputs, propertyKind: v }
+        },
+      ),
+      collapsible('More filters', (body) => {
+        body.append(
+          toggle(
+            'Rate type',
+            [
+              ['either', 'Both'],
+              ['fixed', 'Fixed'],
+              ['variable', 'Variable'],
+            ] as const,
+            inputs.rateType,
+            (v) => {
+              inputs = { ...inputs, rateType: v }
+            },
+          ),
+          switchRow('Green home (BER B3 or better)', inputs.green, (v) => {
+            inputs = { ...inputs, green: v }
+          }),
+          switchRow('Open to switching current account', inputs.openToCurrentAccountSwitch, (v) => {
+            inputs = { ...inputs, openToCurrentAccountSwitch: v }
+          }),
+        )
+      }),
     )
-    root.append(actions, results)
+    return step
+  }
+
+  // ---- results ---------------------------------------------------------------------------------
+
+  const optionRow = (row: ReturnType<HomeCalculatorModel['rows']>[number], index: number): HTMLElement => {
+    const item = el('li', '')
+    const head = el('button', 'option-head')
+    head.type = 'button'
+    head.setAttribute('aria-expanded', 'false')
+    const id = `opt-${String(index)}`
+    head.setAttribute('aria-controls', id)
+    const left = el('span', '')
+    const lender = el('span', 'medium block', row.lender)
+    if (row.unconfirmed) lender.append(el('span', 'badge', 'Unconfirmed'))
+    left.append(lender, el('span', 'small muted block', `${row.kind} · ${row.rate}`))
+    const right = el('span', 'right')
+    right.append(el('span', 'big num block', row.lead), el('span', 'small muted num block', row.second))
+    head.append(left, right)
+    const body = el('div', 'option-body')
+    body.id = id
+    body.hidden = true
+    const kv = (label: string, value: string): void => {
+      const line = el('p', 'kv small')
+      line.append(el('span', 'muted', label), el('span', 'num', value))
+      body.append(line)
+    }
+    kv('Product', row.product)
+    kv('Monthly', row.monthly)
+    kv('Cost over 5 years', row.fiveYear)
+    kv('Keys', row.keys)
+    if (row.more !== null) kv('Cashback and bonus', row.more)
+    for (const note of row.notes) body.append(el('p', 'small muted', note))
+    if (row.unconfirmed)
+      body.append(
+        el(
+          'p',
+          'small muted',
+          'Unconfirmed: the incentives come from CCPC’s tables and are not confirmed on the lender’s own site.',
+        ),
+      )
+    head.onclick = () => {
+      body.hidden = !body.hidden
+      head.setAttribute('aria-expanded', String(!body.hidden))
+    }
+    item.append(head, body)
+    return item
+  }
+
+  const resultsView = (): HTMLElement => {
+    const wrap = el('div', '')
+    const home = comparison?.home ?? null
+    const block = el('section', 'section')
+    if (home === null || home.pathways.length === 0) {
+      block.append(
+        el('h3', 'label', 'No options fit these filters'),
+        el('p', 'muted', 'Try fewer filters under Edit.'),
+      )
+      wrap.append(block)
+      return wrap
+    }
+    const rows = model.rows(home, sortBy)
+    const title = el('div', '')
+    title.append(el('h3', 'label', `${String(rows.length)} options`))
+    for (const filter of home.filters) title.append(el('p', 'small muted', filter))
+    block.append(title)
+    const sort = el('div', 'segmented')
+    sort.setAttribute('role', 'group')
+    sort.setAttribute('aria-label', 'Sort by')
+    for (const [value, text] of [
+      ['keys_date', 'Keys date'],
+      ['five_year_cost', '5-year cost'],
+      ['monthly_repayment', 'Monthly'],
+    ] as const) {
+      const item = button('', text, () => {
+        sortBy = value
+        draw()
+      })
+      item.setAttribute('aria-pressed', String(value === sortBy))
+      sort.append(item)
+    }
+    block.append(sort)
+    const shared = model.sharedKeys(home)
+    if (shared !== null && sortBy === 'keys_date') {
+      block.append(
+        el(
+          'p',
+          'small muted',
+          `Every option has the same keys date, ${shared}: the deposit needed is the same at each lender. Shown by 5-year cost.`,
+        ),
+      )
+    }
+    const list = el('ol', 'options')
+    list.setAttribute('aria-label', 'Options, in the order chosen')
+    const shown = showAll ? rows : rows.slice(0, 3)
+    shown.forEach((row, index) => {
+      list.append(optionRow(row, index))
+    })
+    block.append(list)
+    if (rows.length > shown.length) {
+      block.append(
+        button('link', `Show all ${String(rows.length)}`, () => {
+          showAll = true
+          draw()
+        }),
+      )
+    }
+    wrap.append(block)
+    const method = el('div', '')
+    method.style.padding = '0 16px'
+    method.append(
+      collapsible('How we worked this out', (body) => {
+        body.append(
+          el(
+            'p',
+            'small muted',
+            '5-year cost: interest on a 30-year term and the valuation fee, less cashback and bonuses paid within the first 5 years.',
+          ),
+          ...home.assumptions.map((line) => el('p', 'small muted', line)),
+        )
+      }),
+    )
+    wrap.append(method)
+
+    const save = el('div', 'actions')
+    const status = el('p', 'status')
+    status.setAttribute('role', 'status')
+    const saveButton = button('btn', 'Save this comparison', () => {
+      void (async () => {
+        saveButton.disabled = true
+        const held = bridge.record(bridge.record(comparison)?.['saveLink'])?.['url']
+        let url = typeof held === 'string' && held.startsWith('https://') ? held : null
+        if (url === null && comparison !== null) {
+          status.textContent = 'Saving to Saoi…'
+          const saved = await bridge.callTool('saoi_save_plan', { plan: comparison.plan })
+          const claim = bridge.record(saved?.['structuredContent'])?.['claimUrl']
+          url = typeof claim === 'string' && claim.startsWith('https://') ? claim : null
+        }
+        if (url === null) {
+          status.textContent = 'It could not be saved from the card. Ask in the chat to save it.'
+          saveButton.disabled = false
+          return
+        }
+        const opened = await bridge.openLink(url)
+        status.textContent = opened
+          ? 'Opens in the Saoi app; the link works once.'
+          : 'Open it in the Saoi app (the link works once):'
+        if (!opened) {
+          const link = el('a', 'claim', url)
+          link.href = url
+          link.target = '_blank'
+          link.rel = 'noopener noreferrer'
+          status.append(' ', link)
+        }
+        saveButton.disabled = false
+      })()
+    })
+    save.append(saveButton, status, el('p', 'small muted', 'Held for 24 hours, then deleted unless opened.'))
+    // The statutory warnings stay visible, small, at the foot of mortgage results.
+    for (const warning of home.warnings.length > 0 ? home.warnings : WARNINGS)
+      save.append(el('p', 'small muted', warning))
+    wrap.append(save)
+    return wrap
+  }
+
+  const showOptions = async (go: HTMLButtonElement, status: HTMLElement): Promise<void> => {
+    go.disabled = true
+    status.textContent = 'Comparing every option that fits…'
+    const result = await bridge.callTool('saoi_build_plan', model.buildPlanBody(inputs, sortBy))
+    const content = bridge.record(result?.['structuredContent'])
+    if (content === null || bridge.record(content['plan']) === null) {
+      status.textContent = 'The options could not be fetched from the card. Ask in the chat instead.'
+      go.disabled = false
+      return
+    }
+    comparison = content as unknown as BuildPlanResult
+    editing = false
+    showAll = false
+    draw()
+    void bridge.updateContext(model.contextText(inputs, sortBy, comparison.home?.pathways.length ?? 0))
+  }
+
+  // ---- the card --------------------------------------------------------------------------------
+
+  const draw = (): void => {
+    drawn = true
+    root.replaceChildren()
+    root.removeAttribute('aria-busy')
+    const header = el('header', 'header')
+    header.append(el('p', 'eyebrow', 'Saoi'), el('h2', 'title', 'Buying a home'))
+    root.append(header)
+
+    const live = el('section', 'section')
+    live.append(headline)
+    if (editing)
+      live.append(
+        collapsible('See the breakdown', (body) => {
+          body.append(breakdown)
+        }),
+      )
+    root.append(live)
+
+    if (editing) {
+      root.append(figuresStep(), preferencesStep())
+      const actions = el('div', 'actions')
+      const status = el('p', 'status')
+      status.setAttribute('role', 'status')
+      const go = button('btn', comparison === null ? 'Show my options' : 'Update my options', () => {
+        void showOptions(go, status)
+      })
+      actions.append(go, status)
+      root.append(actions)
+    } else {
+      const summary = el('section', 'section')
+      const line = el('div', 'summary-row')
+      line.append(
+        el('p', 'muted num', model.summary(inputs)),
+        button('btn-outline', 'Edit', () => {
+          editing = true
+          draw()
+        }),
+      )
+      summary.append(line)
+      root.append(summary, resultsView())
+    }
 
     const foot = el('footer', 'footer')
-    foot.append(
-      el('p', 'small muted', STATEMENT),
-      ...[
-        'Warning: if you do not keep up your repayments you may lose your home.',
-        'Warning: the cost of your monthly repayments may increase.',
-        'Warning: if you do not meet the repayments on your loan, your account will go into arrears.',
-      ].map((line) => el('p', 'small muted', line)),
-      el(
-        'p',
-        'small muted',
-        'Figures before interest; lenders decide within the Central Bank limits. Rates from CCPC and lenders’ sites.',
-      ),
-    )
+    foot.append(el('p', 'small', STATEMENT))
     root.append(foot)
     refresh()
   }

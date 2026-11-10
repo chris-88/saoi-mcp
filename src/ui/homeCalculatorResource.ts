@@ -12,7 +12,7 @@ import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardRes
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v1.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v2.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },
@@ -20,33 +20,35 @@ export const HOME_CALCULATOR_TOOL_META = {
 }
 
 const EXTRA_STYLE = `
-.field { display: grid; gap: 4px; padding: 4px 0; }
-.boxwrap { display: inline-flex; align-items: center; gap: 4px; }
-.box {
-  font: inherit; color: var(--fg); background: var(--surface);
-  border: 1px solid var(--line); border-radius: var(--border-radius-md, 8px);
-  min-height: 40px; padding: 4px 8px; width: 120px; text-align: right;
+.field { display: grid; gap: 6px; }
+.field-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.field-head label { font-weight: 500; }
+.input-wrap { position: relative; display: inline-flex; align-items: center; }
+.input-wrap > span { position: absolute; left: 10px; color: var(--muted-foreground); pointer-events: none; }
+.input {
+  height: 44px; width: 128px; padding: 0 10px 0 22px; border: 1px solid var(--input); border-radius: var(--radius);
+  background: transparent; text-align: right; font-variant-numeric: tabular-nums;
 }
-select.box { width: 100%; text-align: left; }
-input[type='month'].box { width: 150px; }
-.slider { width: 100%; min-height: 32px; accent-color: var(--saoi); margin: 0; }
-.choice { border: 0; padding: 4px 0; margin: 0; display: grid; gap: 6px; }
-.choice legend { padding: 0; margin-bottom: 6px; }
-.segments { display: flex; flex-wrap: wrap; gap: 6px; }
-.segment {
-  min-height: 40px; padding: 0 12px; font: inherit; cursor: pointer;
-  border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--fg);
+.input.plain { padding-left: 10px; width: 150px; }
+select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto; }
+.slider { width: 100%; height: 28px; margin: 0; accent-color: var(--primary); cursor: pointer; }
+.switch-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; }
+[role='switch'] {
+  flex: none; width: 44px; height: 44px; padding: 12px 4px; border: 0; background: none; cursor: pointer;
 }
-.segment.on { border-color: var(--saoi); background: var(--saoi-tint); font-weight: 600; }
-.segment:focus-visible, .box:focus-visible, .slider:focus-visible { outline: 2px solid var(--saoi); outline-offset: 2px; }
-.check { display: flex; gap: 8px; align-items: center; min-height: 40px; }
-.check input { width: 20px; height: 20px; accent-color: var(--saoi); }
-.options { list-style: none; padding: 0; margin: 0; display: grid; }
-.option { padding: 10px 0; display: grid; gap: 3px; }
-.option + .option { border-top: 1px solid var(--line); }
-.figs { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--fg2); }
-.filter { color: var(--saoi); font-weight: 600; }
-.link { background: none; border: 0; padding: 8px 0; color: var(--saoi); font: inherit; cursor: pointer; justify-self: start; min-height: 44px; }
+[role='switch'] > span {
+  display: block; width: 36px; height: 20px; border-radius: 999px; background: var(--input); position: relative; transition: background 0.15s;
+}
+[role='switch'] > span::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px;
+  background: var(--background); box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: transform 0.15s;
+}
+[role='switch'][aria-checked='true'] > span { background: var(--primary); }
+[role='switch'][aria-checked='true'] > span::after { transform: translateX(16px); }
+.choice-field { display: grid; gap: 6px; }
+.choice-field > p { font-weight: 500; }
+.headline { font-weight: 600; font-size: 15px; }
+.summary-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 `
 
 /** The card's document: markup, style and script all inline. */

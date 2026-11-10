@@ -35,6 +35,8 @@ export const recorded = {
   moneyCheck: recording('money-check') as MoneyCheckResult,
   /** The same calls after results gained `presentation` and the 24-hour `saveLink`. */
   planPresented: recording('plan-presented') as BuildPlanResult,
+  /** The fourth-test scenario from the branch engine: an assumed repayment and one alternative. */
+  planAlternatives: recording('plan-alternatives') as BuildPlanResult,
   reviewPresented: recording('review-presented') as ReviewResult,
   firstHomePresented: recording('first-home-presented') as FirstHomeResult,
   ranking: recording('ranking') as About,

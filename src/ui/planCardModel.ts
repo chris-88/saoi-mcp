@@ -25,6 +25,10 @@ export interface PlanCardView {
     parts: { label: string; value: string }[]
     note: string | null
   } | null
+  /** "Assumed: …" for each debt whose repayment was not given; shown under the position. */
+  assumed: string[]
+  /** One compact row per alternative worked out in the same call, under the position. */
+  alternatives: { name: string; changes: string; total: string; difference: string | null }[]
   products: {
     name: string
     provider: string
@@ -268,6 +272,27 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
                 : 'Nothing still owed on the debts given',
         }
 
+  // Assumed repayments and alternatives (saoi-api, build-plan): optional at runtime, as results
+  // from before saoi-api carried them have neither.
+  const extra = result as {
+    assumedRepayments?: BuildPlanResult['assumedRepayments']
+    alternatives?: BuildPlanResult['alternatives']
+  }
+  const assumed = (extra.assumedRepayments ?? []).map((item) => item.note)
+  const alternatives = (extra.alternatives ?? []).map((alternative) => {
+    const sameDate = held !== undefined && alternative.position.at === held.at
+    return {
+      name: alternative.name,
+      changes: alternative.changes.join(', '),
+      total: `${eur(Math.round(alternative.position.total))} at ${month(alternative.position.at) ?? alternative.position.at}`,
+      difference: !sameDate
+        ? null
+        : alternative.differenceEur >= 0
+          ? `${eur(Math.round(alternative.differenceEur))} more`
+          : `${eur(Math.round(-alternative.differenceEur))} less`,
+    }
+  })
+
   // "Money found: about €X a year after DIRT (parts). How money held is counted." Bold the first.
   const lead = /^(Money found: .*?\)\.)\s+(.+)$/.exec(result.moneyFound.headline)
 
@@ -283,6 +308,8 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
     },
     goals,
     position,
+    assumed,
+    alternatives,
     products,
     scenarios,
     basis: `Ranked by ${plan.ranking.objective.replaceAll('_', ' ')}: ${plan.ranking.basis}`,

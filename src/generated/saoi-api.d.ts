@@ -3365,7 +3365,7 @@ export interface paths {
         put?: never;
         /**
          * The fastest combination of products for the customer’s goals, as a plan
-         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, and takes the one leaving more; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. To change an assumption, call again with the new inputs rather than adjusting the figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, and takes the one leaving more; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. For a follow-up once saoi_money_check has run; one call per reply, never alongside saoi_money_check. To compare options (another buffer, a debt kept or cleared, another monthly amount or date), pass up to three `alternatives` in the same call: each comes back with its own net figure. Call again only when the customer changes their situation in a later message, never to adjust figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -3435,7 +3435,7 @@ export interface paths {
         put?: never;
         /**
          * Start here: a money check on whatever the customer has said so far
-         * @description Call this as soon as the customer talks about their own money in Ireland: money sitting in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Takes whatever has been said so far, however partial, and returns in one result: what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, the two or three questions that would sharpen it, the presentation to lead with, and a link that holds the plan for 24 hours so it can be opened in the Saoi app (the only thing stored). Call it again as the customer says more. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
+         * @description Call this as soon as the customer talks about their own money in Ireland: money sitting in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Takes whatever has been said so far, however partial, and returns in one result: what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, the two or three questions that would sharpen it, the presentation to lead with, and a link that holds the plan for 24 hours so it can be opened in the Saoi app (the only thing stored). One call per reply: call it first, not alongside saoi_build_plan, and pass up to three `alternatives` to compare options in the same call. Call it again only when the customer says more about their situation in a later message. Information, not advice: results are ranked by a stated objective, for the inputs given. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened.
          */
         post: {
             parameters: {
@@ -9939,9 +9939,52 @@ export interface components {
             limit?: number;
         };
         BuildPlanResult: {
+            /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
+            alternatives: {
+                name: string;
+                /** @description What differs from the main plan, in words. */
+                changes: string[];
+                /** @description The alternative’s own position, everything held less what is still owed. */
+                position: {
+                    /** @description YYYY-MM: the end of the months the plan covers. */
+                    at: string;
+                    /** @description Everything held then, after DIRT (towards the goal plus the buffer), less what is still owed on the debts given. */
+                    total: number;
+                    /** @description Savings towards the main goal then, after DIRT. */
+                    towardsGoal: number;
+                    /** @description The emergency buffer then, with its interest. 0 when none is held. */
+                    buffer: number;
+                    /** @description Still owed then on the debts given. 0 when none is owed or none given. */
+                    owed: number;
+                    /** @description True when a debt’s repayment was not given, so today’s balance is counted as owed: the most it can be, and `total` the least. */
+                    owedIsCeiling: boolean;
+                    /** @description False when the call had no debts: `total` is then savings only, not a net position against debts. */
+                    debtsGiven: boolean;
+                    /** @description The position in one sentence, with its parts named. */
+                    line: string;
+                };
+                /** @description Its total less the main plan’s total, at the same date where the date is the same. */
+                differenceEur: number;
+                goalReachedOn: string | null;
+                moneyFoundAnnualEur: number;
+                /** @description The comparison in one sentence, for the presentation and the card. */
+                line: string;
+            }[];
+            /** @description Debts whose repayment was assumed. Empty when every repayment was given. */
+            assumedRepayments: {
+                debtId: string;
+                label: string;
+                balance: number;
+                /** @description Repaid evenly over this many months: the plan’s horizon. */
+                months: number;
+                /** @description The level repayment that assumes, at the debt’s rate. */
+                monthlyRepayment: number;
+                /** @description The assumption in words, for the host to relay. */
+                note: string;
+            }[];
             /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
             presentation: string[];
-            /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again with the answers. */
+            /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again once the customer answers, in a later message. */
             questions: string[];
             /** @description What the plan holds at its end, everything included and each part named: towards the goal, the buffer, less what is still owed. */
             position: {
@@ -10222,7 +10265,7 @@ export interface components {
                 } | null;
                 /** @description YYYY-MM the main goal’s target is reached at this plan’s pace, looking up to ten years ahead in instant access where the horizon is not enough. Null without a target, or when it is not reached within the figures. */
                 goalReachedAtCurrentPace: string | null;
-                /** @description The what-ifs in words, with their figures, for the host to relay. To try one, call saoi_build_plan again with the changed input; do not adjust the figures by hand. */
+                /** @description The what-ifs in words, with their figures, for the host to relay. To compare one properly, pass it as an `alternative` in the same call; do not adjust the figures by hand. */
                 lines: string[];
             };
             /** @description For the host to relay: what can be done next with this plan, including saving it into the Saoi app. */
@@ -10287,7 +10330,7 @@ export interface components {
                 targetDate?: string;
                 priority?: number;
             }[];
-            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To try a different buffer, call again with a new figure. */
+            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To compare a different buffer, pass it as an alternative. */
             emergencyBufferEur?: number;
             /** @description An emergency buffer sized as months of outgoings (`situation.outgoings`, rent plus other). Used when `emergencyBufferEur` is absent. Without either field the buffer comes from an `emergency_fund` goal (its `targetAmount`, else 3 months of outgoings); with neither, none is held. */
             emergencyBufferMonths?: number;
@@ -10312,11 +10355,34 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
+            /** @description Up to three named variations to compare with the main plan in this same call (a different buffer, a debt kept or cleared, another monthly amount or date). Each comes back with its net figure. Use this to compare options rather than calling again. */
+            alternatives?: {
+                /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
+                name: string;
+                /** @description A different emergency buffer, in euro. */
+                emergencyBufferEur?: number;
+                /** @description Everything in instant access (true), or terms allowed (false). */
+                keepAccessible?: boolean;
+                /** @description A different amount saved each month. */
+                monthlySaving?: number;
+                /** @description A different date for the main goal. */
+                targetDate?: string;
+                /** @description A different target for the main goal. */
+                targetAmount?: number;
+                /** @description A different choice for a debt: `keep`, `clear` or `compare`, by its id. */
+                debtPlans?: {
+                    debtId: string;
+                    /** @enum {string} */
+                    plan: "clear" | "keep" | "compare";
+                }[];
+                /** @description A different home price, for Help to Buy. */
+                homePrice?: number;
+            }[];
         };
         MoneyCheckResult: {
             /** @description Present to the customer: the headline sentences in order, ending with the questions to ask and, when there is a plan, the link to save it. */
             presentation: string[];
-            /** @description The two or three questions that would unlock or sharpen the plan, for the host to ask in its own words. Call this tool again with the answers. */
+            /** @description The two or three questions that would unlock or sharpen the plan, for the host to ask in its own words. Call this tool again once the customer answers, in a later message. */
             questions: string[];
             review: {
                 /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
@@ -10372,9 +10438,52 @@ export interface components {
             };
             /** @description A plan, when there was enough to build one (money to place, or a debt to weigh). Null otherwise. */
             plan: {
+                /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
+                alternatives: {
+                    name: string;
+                    /** @description What differs from the main plan, in words. */
+                    changes: string[];
+                    /** @description The alternative’s own position, everything held less what is still owed. */
+                    position: {
+                        /** @description YYYY-MM: the end of the months the plan covers. */
+                        at: string;
+                        /** @description Everything held then, after DIRT (towards the goal plus the buffer), less what is still owed on the debts given. */
+                        total: number;
+                        /** @description Savings towards the main goal then, after DIRT. */
+                        towardsGoal: number;
+                        /** @description The emergency buffer then, with its interest. 0 when none is held. */
+                        buffer: number;
+                        /** @description Still owed then on the debts given. 0 when none is owed or none given. */
+                        owed: number;
+                        /** @description True when a debt’s repayment was not given, so today’s balance is counted as owed: the most it can be, and `total` the least. */
+                        owedIsCeiling: boolean;
+                        /** @description False when the call had no debts: `total` is then savings only, not a net position against debts. */
+                        debtsGiven: boolean;
+                        /** @description The position in one sentence, with its parts named. */
+                        line: string;
+                    };
+                    /** @description Its total less the main plan’s total, at the same date where the date is the same. */
+                    differenceEur: number;
+                    goalReachedOn: string | null;
+                    moneyFoundAnnualEur: number;
+                    /** @description The comparison in one sentence, for the presentation and the card. */
+                    line: string;
+                }[];
+                /** @description Debts whose repayment was assumed. Empty when every repayment was given. */
+                assumedRepayments: {
+                    debtId: string;
+                    label: string;
+                    balance: number;
+                    /** @description Repaid evenly over this many months: the plan’s horizon. */
+                    months: number;
+                    /** @description The level repayment that assumes, at the debt’s rate. */
+                    monthlyRepayment: number;
+                    /** @description The assumption in words, for the host to relay. */
+                    note: string;
+                }[];
                 /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
                 presentation: string[];
-                /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again with the answers. */
+                /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again once the customer answers, in a later message. */
                 questions: string[];
                 /** @description What the plan holds at its end, everything included and each part named: towards the goal, the buffer, less what is still owed. */
                 position: {
@@ -10655,7 +10764,7 @@ export interface components {
                     } | null;
                     /** @description YYYY-MM the main goal’s target is reached at this plan’s pace, looking up to ten years ahead in instant access where the horizon is not enough. Null without a target, or when it is not reached within the figures. */
                     goalReachedAtCurrentPace: string | null;
-                    /** @description The what-ifs in words, with their figures, for the host to relay. To try one, call saoi_build_plan again with the changed input; do not adjust the figures by hand. */
+                    /** @description The what-ifs in words, with their figures, for the host to relay. To compare one properly, pass it as an `alternative` in the same call; do not adjust the figures by hand. */
                     lines: string[];
                 };
                 /** @description For the host to relay: what can be done next with this plan, including saving it into the Saoi app. */
@@ -10665,7 +10774,7 @@ export interface components {
             planGoalAssumed: string | null;
         };
         MoneyCheck: {
-            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To try a different buffer, call again with a new figure. */
+            /** @description An emergency buffer to hold first, in the best instant-access account, in euro. Wins over `emergencyBufferMonths` and over an `emergency_fund` goal’s `targetAmount`. 0 holds none. To compare a different buffer, pass it as an alternative. */
             emergencyBufferEur?: number;
             /** @description An emergency buffer sized as months of outgoings (`situation.outgoings`, rent plus other). Used when `emergencyBufferEur` is absent. Without either field the buffer comes from an `emergency_fund` goal (its `targetAmount`, else 3 months of outgoings); with neither, none is held. */
             emergencyBufferMonths?: number;
@@ -10690,6 +10799,29 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
+            /** @description Up to three named variations to compare with the main plan in this same call (a different buffer, a debt kept or cleared, another monthly amount or date). Each comes back with its net figure. Use this to compare options rather than calling again. */
+            alternatives?: {
+                /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
+                name: string;
+                /** @description A different emergency buffer, in euro. */
+                emergencyBufferEur?: number;
+                /** @description Everything in instant access (true), or terms allowed (false). */
+                keepAccessible?: boolean;
+                /** @description A different amount saved each month. */
+                monthlySaving?: number;
+                /** @description A different date for the main goal. */
+                targetDate?: string;
+                /** @description A different target for the main goal. */
+                targetAmount?: number;
+                /** @description A different choice for a debt: `keep`, `clear` or `compare`, by its id. */
+                debtPlans?: {
+                    debtId: string;
+                    /** @enum {string} */
+                    plan: "clear" | "keep" | "compare";
+                }[];
+                /** @description A different home price, for Help to Buy. */
+                homePrice?: number;
+            }[];
             /**
              * @description Whatever the customer has said about their money so far, however partial: savings and where they are, what they can save a month, loans and cards, a mortgage, income, outgoings. Leave out what was not said; never guess.
              * @default {

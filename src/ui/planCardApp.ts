@@ -169,7 +169,32 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
       }
       position.append(parts)
       if (view.position.note !== null) position.append(el('p', 'muted small', view.position.note))
+      for (const note of view.assumed) position.append(el('p', 'small muted-strong', note))
       summary.append(position)
+    } else {
+      for (const note of view.assumed) summary.append(el('p', 'small muted-strong', note))
+    }
+    if (view.alternatives.length > 0) {
+      const compare = el('ul', 'rows position')
+      compare.setAttribute('aria-label', 'Alternatives compared in this call')
+      for (const alternative of view.alternatives) {
+        const item = el('li', 'row small')
+        const name = el('span', '')
+        name.append(el('span', 'strong', alternative.name))
+        if (alternative.changes !== '') name.append(el('span', 'muted', ` (${alternative.changes})`))
+        item.append(
+          name,
+          el(
+            'span',
+            'num',
+            alternative.difference === null
+              ? alternative.total
+              : `${alternative.total} · ${alternative.difference}`,
+          ),
+        )
+        compare.append(item)
+      }
+      summary.append(compare)
     }
     root.append(summary)
 

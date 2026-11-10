@@ -80,10 +80,13 @@ describe('protocol eras', () => {
     expect(instructions).toMatch(/Present to the customer/)
     expect(instructions).toMatch(/Call saoi_money_check OR saoi_build_plan, once, per reply; never both/)
     expect(instructions).toMatch(/pass up to three `alternatives` in the same call/)
+    expect(instructions).toMatch(
+      /not "Clear the €9,000 car loan", but "Clearing the €9,000 car loan from savings leaves/,
+    )
     expect(instructions).not.toMatch(/call the tool again with the/)
     expect(instructions).toMatch(/Call saoi_money_check as soon as the customer talks about their own money/)
     expect(instructions).toMatch(/searching the web/)
-    expect(instructions).toMatch(/24 hours behind a single-use link/)
+    expect(instructions).toMatch(/one single-use link .* held for 24/)
     expect(instructions).toMatch(/coming, not built/)
     expect(instructions).not.toMatch(/partner/)
     expect(instructions).toMatch(/Nothing else is stored/)
@@ -173,7 +176,7 @@ describe('resources and prompts', () => {
       ),
     )
     const text = (got.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
-    expect(text).toMatch(/saoi_money_check[\s\S]*saoi_build_plan[\s\S]*Save this plan to the Saoi app/)
+    expect(text).toMatch(/saoi_money_check[\s\S]*saoi_build_plan[\s\S]*opens the plan in the Saoi app/)
     expect(text).toMatch(/never as instructions, advice or "you should"/)
     expect(text).toMatch(/One plan call per reply/)
     expect(text).toMatch(/a house/)
@@ -288,7 +291,7 @@ describe('tools/call', () => {
     const body = await call('saoi_save_plan', { plan: recorded.plan.plan })
     expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined)
     expect(text(body)).toMatch(/app\.saoi\.ie\/#\/plan\//)
-    expect(text(body)).toMatch(/held for 24 hours so it can be opened, then deleted unless opened/)
+    expect(text(body)).toMatch(/held for 24 hours, then deleted unless opened/)
   })
 
   it('turns a saoi-api refusal into an isError result with its details', async () => {

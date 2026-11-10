@@ -58,6 +58,9 @@ export interface OptionRow {
   more: string | null
   notes: string[]
   unconfirmed: boolean
+  /** The figure the list is sorted by, shown large, and one other beside it. */
+  lead: string
+  second: string
 }
 
 export interface HomeCalculatorModel {
@@ -67,6 +70,12 @@ export interface HomeCalculatorModel {
   buildPlanBody(inputs: HomeInputs, sortBy: HomeSort): Record<string, unknown>
   contextText(inputs: HomeInputs, sortBy: HomeSort, count: number): string
   rows(home: NonNullable<BuildPlanResult['home']>, sortBy: HomeSort): OptionRow[]
+  /** "You could borrow up to €360,000 · deposit ready around Jan 2028". */
+  headline(inputs: HomeInputs, figures: HomeFigures): string
+  /** "€25k saved · €1,200/mo · €90k · €350k". */
+  summary(inputs: HomeInputs): string
+  /** The keys month every option shares, or null when they differ. */
+  sharedKeys(home: NonNullable<BuildPlanResult['home']>): string | null
   eur(value: number): string
   month(yyyyMm: string | null): string
   addMonths(asOf: string, months: number): string
@@ -272,8 +281,46 @@ export function homeCalculatorModel(): HomeCalculatorModel {
         more: option.drivers === 'the rate alone' ? null : option.drivers,
         notes: option.conditions,
         unconfirmed: !option.confirmed,
+        lead:
+          sortBy === 'monthly_repayment'
+            ? `${eur(option.mortgage.monthlyRepayment)}/mo`
+            : sortBy === 'keys_date'
+              ? month(option.keysOn)
+              : eur(option.netCostEur),
+        second:
+          sortBy === 'monthly_repayment'
+            ? `${eur(option.netCostEur)} over 5 yrs`
+            : sortBy === 'keys_date'
+              ? `${eur(option.netCostEur)} over 5 yrs`
+              : `${eur(option.mortgage.monthlyRepayment)}/mo`,
       }
     })
+  }
+
+  const short = (value: number): string =>
+    value >= 1_000_000
+      ? `€${String(Math.round(value / 100_000) / 10)}m`
+      : value >= 1_000
+        ? `€${String(Math.round(value / 100) / 10)}k`
+        : eur(value)
+
+  const headline = (inputs: HomeInputs, figures: HomeFigures): string =>
+    `You could borrow up to ${eur(figures.maxLoanEur)} · deposit ready ${
+      figures.reachedOn === null ? 'not reached at this pace' : `around ${month(figures.reachedOn)}`
+    }${figures.targetMet === false ? ` (${String(monthsBetween(inputs.targetDate, figures.reachedOn ?? inputs.targetDate))} months after your date)` : ''}`
+
+  const summary = (inputs: HomeInputs): string =>
+    [
+      `${short(inputs.depositSavedEur)} saved`,
+      `${eur(inputs.monthlySavingEur)}/mo`,
+      short(inputs.annualGrossIncomeEur + inputs.secondIncomeEur),
+      short(inputs.targetPriceEur),
+    ].join(' · ')
+
+  const sharedKeys = (home: NonNullable<BuildPlanResult['home']>): string | null => {
+    const keys = new Set(home.pathways.map((option) => option.keysOn ?? 'none'))
+    const only = [...keys][0]
+    return keys.size === 1 && only !== undefined && only !== 'none' ? month(only) : null
   }
 
   return {
@@ -283,6 +330,9 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     buildPlanBody,
     contextText,
     rows,
+    headline,
+    summary,
+    sharedKeys,
     eur,
     month,
     addMonths,

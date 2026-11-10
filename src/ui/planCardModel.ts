@@ -34,6 +34,9 @@ export interface PlanCardView {
       monthlyEur: number
       driver: string
       confirmed: boolean
+      product: string
+      rate: string
+      conditions: string[]
     }[]
   } | null
   /** The next splits under the same rule, beside the worked combination. */
@@ -385,6 +388,9 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
             monthlyEur: pathway.mortgage.monthlyRepayment,
             driver: pathway.drivers,
             confirmed: pathway.confirmed,
+            product: pathway.mortgage.name,
+            rate: pct(pathway.mortgage.ratePct),
+            conditions: pathway.conditions,
           })),
         }
 

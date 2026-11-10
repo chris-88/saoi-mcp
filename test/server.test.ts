@@ -21,7 +21,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.7.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.8.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -165,8 +165,8 @@ describe('resources and prompts', () => {
     expect(uris).toEqual([
       'saoi://about/earnings',
       'saoi://about/ranking',
-      'ui://saoi/home-calculator-v1.html',
-      'ui://saoi/plan-card-v8.html',
+      'ui://saoi/home-calculator-v2.html',
+      'ui://saoi/plan-card-v9.html',
     ])
     const read = await asRpc(
       await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),

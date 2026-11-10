@@ -148,15 +148,20 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
 
     if (view.home !== null) {
       // Every option that fits, in the order the customer picks; nothing is picked for them.
+      // The top three as compact rows, each expanding for its detail (Chris, 2026-11-10).
       const home = view.home
-      const goal = el('section', 'found')
-      goal.append(el('p', 'found-headline', home.headline))
-      for (const filter of home.filters) goal.append(el('p', 'small strong', filter))
+      const goal = el('section', 'section')
+      goal.append(el('p', 'strong', home.headline))
+      for (const filter of home.filters) goal.append(el('p', 'small muted', filter))
       let sortBy = home.sortBy
       let all = false
-      const sorts = el('div', 'rows')
-      const routes = el('ol', 'rows position')
+      const sort = el('div', 'segmented')
+      sort.setAttribute('role', 'group')
+      sort.setAttribute('aria-label', 'Sort by')
+      const note = el('p', 'small muted')
+      const routes = el('ol', 'options')
       routes.setAttribute('aria-label', 'Mortgage options, in the order chosen')
+      const keys = new Set(home.rows.map((row) => row.keysOn))
       const fill = (): void => {
         const rows = [...home.rows].sort((a, b) =>
           sortBy === 'monthly_repayment'
@@ -165,23 +170,59 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
               ? a.keysOn.localeCompare(b.keysOn) || a.costEur - b.costEur
               : a.costEur - b.costEur || a.monthlyEur - b.monthlyEur,
         )
+        note.textContent =
+          sortBy === 'keys_date' && keys.size === 1
+            ? `Every option has the same keys date (${home.rows[0]?.keys.replace(/^keys /, '') ?? ''}): the deposit needed is the same at each lender. Shown by 5-year cost.`
+            : ''
         routes.replaceChildren()
-        for (const row of all ? rows : rows.slice(0, 6)) {
-          const item = el('li', 'row small')
-          const name = el('span', '')
-          name.append(
-            el('span', 'strong', `${row.lender} · ${row.kind}`),
-            el(
-              'span',
-              'muted block',
-              `${row.keys} · ${row.monthly}${row.driver === 'the rate alone' ? '' : ` · ${row.driver}`}${row.confirmed ? '' : ' (unconfirmed)'}`,
-            ),
-          )
-          item.append(name, el('span', 'num', row.cost))
+        ;(all ? rows : rows.slice(0, 3)).forEach((row, index) => {
+          const item = el('li', '')
+          const head = el('button', 'option-head')
+          head.type = 'button'
+          head.setAttribute('aria-expanded', 'false')
+          const left = el('span', '')
+          const name = el('span', 'medium block', row.lender)
+          if (!row.confirmed) name.append(el('span', 'badge', 'Unconfirmed'))
+          left.append(name, el('span', 'small muted block', `${row.kind} · ${row.rate}`))
+          const lead =
+            sortBy === 'monthly_repayment' ? row.monthly : sortBy === 'keys_date' ? row.keys : row.cost
+          const second = sortBy === 'monthly_repayment' ? row.cost : row.monthly
+          const right = el('span', 'right')
+          right.append(el('span', 'big num block', lead), el('span', 'small muted num block', second))
+          head.append(left, right)
+          const body = el('div', 'option-body')
+          body.id = `home-opt-${String(index)}`
+          head.setAttribute('aria-controls', body.id)
+          body.hidden = true
+          for (const [label, value] of [
+            ['Product', row.product],
+            ['Monthly', row.monthly],
+            ['Cost', row.cost],
+            ['Keys', row.keys],
+            ...(row.driver === 'the rate alone' ? [] : [['Cashback and bonus', row.driver]]),
+          ] as const) {
+            const line = el('p', 'kv small')
+            line.append(el('span', 'muted', label), el('span', 'num', value))
+            body.append(line)
+          }
+          for (const condition of row.conditions) body.append(el('p', 'small muted', condition))
+          if (!row.confirmed)
+            body.append(
+              el(
+                'p',
+                'small muted',
+                'Unconfirmed: the incentives come from CCPC’s tables and are not confirmed on the lender’s own site.',
+              ),
+            )
+          head.onclick = () => {
+            body.hidden = !body.hidden
+            head.setAttribute('aria-expanded', String(!body.hidden))
+          }
+          item.append(head, body)
           routes.append(item)
-        }
-        if (!all && rows.length > 6) {
-          const more = el('button', 'save', `Show all ${String(rows.length)} options`)
+        })
+        if (!all && rows.length > 3) {
+          const more = el('button', 'link', `Show all ${String(rows.length)}`)
           more.type = 'button'
           more.onclick = () => {
             all = true
@@ -192,33 +233,41 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
           routes.append(li)
         }
       }
-      const label = el('p', 'label', `${String(home.rows.length)} options · sort by`)
-      sorts.append(label)
-      const buttons = el('p', 'row')
       for (const [value, text] of [
-        ['five_year_cost', 'cost'],
-        ['keys_date', 'keys date'],
-        ['monthly_repayment', 'monthly'],
+        ['keys_date', 'Keys date'],
+        ['five_year_cost', '5-year cost'],
+        ['monthly_repayment', 'Monthly'],
       ] as const) {
-        const button = el('button', 'badge', text)
-        button.type = 'button'
-        button.setAttribute('aria-pressed', String(value === sortBy))
-        button.onclick = () => {
+        const item = el('button', '', text)
+        item.type = 'button'
+        item.setAttribute('aria-pressed', String(value === sortBy))
+        item.onclick = () => {
           sortBy = value
-          for (const other of Array.from(buttons.children)) other.setAttribute('aria-pressed', 'false')
-          button.setAttribute('aria-pressed', 'true')
+          for (const other of Array.from(sort.children)) other.setAttribute('aria-pressed', 'false')
+          item.setAttribute('aria-pressed', 'true')
           fill()
         }
-        buttons.append(button)
+        sort.append(item)
       }
-      sorts.append(buttons)
       fill()
-      goal.append(sorts, routes, el('p', 'small muted', `Cost ${home.period}. ${home.assumptions}`))
-      for (const warning of home.warnings) goal.append(el('p', 'small muted-strong', warning))
+      const method = el('details', 'collapsible')
+      method.append(el('summary', '', 'How we worked this out'))
+      const methodBody = el('div', 'fold')
+      methodBody.append(el('p', 'small muted', `Cost ${home.period}. ${home.assumptions}`))
+      method.append(methodBody)
+      goal.append(
+        el('p', 'small muted', `${String(home.rows.length)} options · sort by`),
+        sort,
+        note,
+        routes,
+        method,
+      )
+      // The statutory warnings stay visible, small, at the foot of the mortgage results.
+      for (const warning of home.warnings) goal.append(el('p', 'small muted', warning))
       root.append(goal)
     }
 
-    const found = el('div', 'found')
+    const found = el('div', 'found sep')
     found.append(el('p', 'found-headline', view.moneyFound.headline))
     if (view.moneyFound.note !== null) found.append(el('p', 'small muted-strong', view.moneyFound.note))
     root.append(found)
@@ -273,12 +322,6 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     }
     root.append(summary)
 
-    if (view.runnersUp.length > 0) {
-      const next = section('Other splits, each without one product of the first')
-      for (const line of view.runnersUp) next.append(el('p', 'small', line))
-      root.append(next)
-    }
-
     if (view.products.length > 0) {
       const products = el('ol', 'products section')
       products.setAttribute('aria-label', 'Products in the plan')
@@ -303,10 +346,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
       void save(view, button)
     }
     actions.append(button, status)
-    if (view.completeness !== null) actions.append(el('p', 'small muted-strong', view.completeness))
     if (view.save.note !== '') actions.append(el('p', 'small muted', view.save.note))
-    actions.append(el('p', 'small muted', view.save.today === '' ? view.app : view.save.today))
-    if (view.save.coming !== null) actions.append(el('p', 'small muted', view.save.coming))
     root.append(actions)
 
     const folds = el('div', 'folds')
@@ -359,6 +399,20 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
         }),
       )
     }
+    folds.append(
+      fold('What the Saoi app does', (body) => {
+        if (view.completeness !== null) body.append(el('p', 'small muted', view.completeness))
+        body.append(el('p', 'small muted', view.save.today === '' ? view.app : view.save.today))
+        if (view.save.coming !== null) body.append(el('p', 'small muted', view.save.coming))
+      }),
+    )
+    if (view.runnersUp.length > 0) {
+      folds.append(
+        fold('Other splits', (body) => {
+          for (const line of view.runnersUp) body.append(el('p', 'small', line))
+        }),
+      )
+    }
     if (view.moneyFound.notCounted.length > 0) {
       folds.append(
         fold('What is not counted', (body) => {
@@ -376,10 +430,9 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
 
     const foot = el('footer', 'footer')
     foot.append(
-      el('p', 'small muted', 'Information, not advice: options with their figures, for you to decide.'),
       el(
         'p',
-        'small muted',
+        'small',
         'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.',
       ),
     )

@@ -12,14 +12,32 @@ import type { BuildPlanResult } from '../saoiClient.js'
 export interface PlanCardView {
   title: string
   /**
-   * For a home goal (saoi-api `home`): "Your home: keys around <month>", the assumptions, and up
-   * to three pathways, ranked by cost, each with the keys month first. Null for other goals.
+   * For a home goal (saoi-api `home`): the date the deposit is in place, the filters the customer
+   * chose, and every option that fits, with the figures each sort uses. The card sorts them; no
+   * option is picked or highlighted. Null for other goals.
    */
   home: {
     headline: string
     assumptions: string
-    rows: { lender: string; keys: string; cost: string; driver: string; confirmed: boolean }[]
+    filters: string[]
+    sortBy: 'five_year_cost' | 'keys_date' | 'monthly_repayment'
+    period: string
+    warnings: string[]
+    rows: {
+      lender: string
+      kind: string
+      keys: string
+      keysOn: string
+      cost: string
+      costEur: number
+      monthly: string
+      monthlyEur: number
+      driver: string
+      confirmed: boolean
+    }[]
   } | null
+  /** The next splits under the same rule, beside the worked combination. */
+  runnersUp: string[]
   /** `headline` is the figure; `note` the sentences after it (how money held is counted). */
   moneyFound: { headline: string; note: string | null; notCounted: string[] }
   /** The goals the plan saves towards (the buffer shows in the position instead). */
@@ -146,7 +164,7 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
       }
     })
 
-  const products = plan.recommendation.products.map((product) => {
+  const products = plan.combination.products.map((product) => {
     const guarantee = product.depositGuarantee
     const known = guarantee !== undefined && guarantee.scheme !== null
     // The guarantee has its own line; a check that only repeats it is dropped.
@@ -242,7 +260,7 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
 
   const attributions = [
     ...new Set(
-      plan.recommendation.products.flatMap((product) =>
+      plan.combination.products.flatMap((product) =>
         product.attribution === undefined ? [] : [product.attribution],
       ),
     ),
@@ -339,16 +357,32 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
       : {
           headline: homeResult.headline,
           assumptions: homeResult.assumptions.join(' '),
-          rows: homeResult.pathways.slice(0, 3).map((pathway) => ({
+          // Older results carry neither filters, sort nor warnings.
+          filters: (homeResult as { filters?: string[] }).filters ?? [],
+          sortBy:
+            (homeResult as { sortBy?: NonNullable<PlanCardView['home']>['sortBy'] }).sortBy ??
+            'five_year_cost',
+          period,
+          warnings: (homeResult as { warnings?: string[] }).warnings ?? [
+            'Warning: if you do not keep up your repayments you may lose your home.',
+            'Warning: the cost of your monthly repayments may increase.',
+            'Warning: if you do not meet the repayments on your loan, your account will go into arrears.',
+          ],
+          rows: homeResult.pathways.map((pathway) => ({
             lender: pathway.lenderName,
+            kind:
+              pathway.mortgage.fixedYears === null
+                ? 'variable'
+                : `${String(pathway.mortgage.fixedYears)}-year fixed`,
             keys:
               pathway.keysOn === null
                 ? 'keys not in reach'
                 : `keys ${month(pathway.keysOn) ?? pathway.keysOn}`,
-            cost:
-              pathway.vsCheapestEur <= 0
-                ? `cheapest ${period}`
-                : `about ${eur(Math.round(pathway.vsCheapestEur))} more ${period}`,
+            keysOn: pathway.keysOn ?? '9999-99',
+            cost: `${eur(Math.round(pathway.netCostEur))} / 5 yrs`,
+            costEur: pathway.netCostEur,
+            monthly: `${eur(Math.round(pathway.mortgage.monthlyRepayment))} a month`,
+            monthlyEur: pathway.mortgage.monthlyRepayment,
             driver: pathway.drivers,
             confirmed: pathway.confirmed,
           })),
@@ -360,6 +394,10 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
   return {
     title: plan.title,
     home,
+    // Optional at runtime, for results from before saoi-api carried runners-up.
+    runnersUp: ((result as { runnersUp?: BuildPlanResult['runnersUp'] }).runnersUp ?? []).map(
+      (runnerUp) => runnerUp.line,
+    ),
     moneyFound: {
       headline: lead?.[1] ?? result.moneyFound.headline,
       note: lead?.[2] ?? null,
@@ -377,12 +415,13 @@ export function planCardModel(result: BuildPlanResult): PlanCardView {
     basis: `Ranked by ${plan.ranking.objective.replaceAll('_', ' ')}: ${plan.ranking.basis}`,
     footer: [
       `Information, not advice: options with their figures, for you to decide. Rates checked ${day(plan.dataCheckedAt)}; figures assume today's rates hold.`,
+      'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.',
     ],
     attributions,
-    app: 'In the Saoi app the plan opens as a card, Saoirse knows it and can talk it through, and signing in with an email keeps it across your devices.',
+    app: 'In the Saoi app the comparison opens as a card, Saoirse knows it and can talk it through, and signing in with an email keeps it across your devices.',
     save:
       saveCall === undefined
-        ? { label: 'Save to Saoi app', note: '', today: '', coming: null }
+        ? { label: 'Save this comparison', note: '', today: '', coming: null }
         : {
             label: saveCall.label,
             note: saveCall.note,

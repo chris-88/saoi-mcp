@@ -1,38 +1,49 @@
 {
   "alternatives": [],
-  "nextQuestion": {
-    "key": "property_kind",
-    "question": "Is the home a new build, or second-hand?",
-    "why": "A new build brings Help to Buy and green rates: it moves the keys by 7 months, the cost per €100,000 borrowed by up to €1,162.",
-    "spread": { "keysMonths": 7, "costEur": 3660, "costPer100kEur": 1161.9, "priceEur": 0, "totalEur": 0 },
-    "scoreEur": 6761.9
-  },
-  "laterQuestions": [
+  "runnersUp": [
     {
-      "key": "current_account_bank",
-      "question": "Which bank holds the current account?",
-      "why": "Some products need an account with the same bank; none of those in these pathways does, so it changes no figure here.",
-      "spread": { "keysMonths": 0, "costEur": 0, "costPer100kEur": 0, "priceEur": 0, "totalEur": 0 },
-      "scoreEur": 0
+      "without": "MoCo EasySaver",
+      "split": "€25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account",
+      "towardsGoalEur": 45332.63,
+      "differenceEur": 54.38,
+      "goalReachedOn": null,
+      "line": "Next under the same rule, without MoCo EasySaver: €25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account; €45,332.63 towards the goal at November 2028, €54.38 more."
+    },
+    {
+      "without": "Online Saver",
+      "split": "€25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account",
+      "towardsGoalEur": 45212.69,
+      "differenceEur": -65.56,
+      "goalReachedOn": null,
+      "line": "Next under the same rule, without Online Saver: €25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account; €45,212.69 towards the goal at November 2028, €65.56 less."
     }
   ],
+  "nextQuestion": {
+    "key": "current_account_bank",
+    "question": "Which bank holds the current account?",
+    "why": "Some products need an account with the same bank; none of the options shown does, so it changes no figure here.",
+    "spread": { "keysMonths": 0, "costEur": 0, "costPer100kEur": 0, "priceEur": 0, "totalEur": 0 },
+    "scoreEur": 0
+  },
+  "laterQuestions": [],
   "completeness": {
     "answered": [
       "what can be saved each month",
       "the goal’s date",
       "first-time buyer",
       "gross income",
+      "new build or second-hand",
       "the price"
     ],
-    "assumed": ["new build or second-hand"],
-    "line": "Plan based on 5 of 6 answers."
+    "assumed": [],
+    "line": "Plan based on 6 of 6 answers."
   },
   "saveCall": {
-    "ready": false,
-    "label": "Save this plan",
+    "ready": true,
+    "label": "Save this comparison",
     "note": "Held for 24 hours behind a single-use link, then deleted unless opened.",
     "appToday": [
-      "keeps the plan",
+      "keeps the comparison",
       "Saoirse, Saoi’s assistant, talks it through",
       "signing in keeps it across devices"
     ],
@@ -44,9 +55,9 @@
     ]
   },
   "home": {
-    "headline": "Your home: keys around July 2027.",
+    "headline": "At these figures, the deposit and buying costs are in place around July 2028.",
     "assumptions": [
-      "Assumed: first-time buyer; a 30-year mortgage with a €35,000 deposit (10%); a €350,000 home, as given; not a new build, so no Help to Buy and standard rates (a BER C where a lender prices by BER); stamp duty of €3,500 (1%) and €3,000 for legal fees and a survey (an estimate); costs compared over the first 5 years for every lender: interest on a 30-year term plus the valuation fee, less cashback paid within 5 years and any savings bonus; a shorter fix moves to its stated follow-on rate for the rest of the 5 years."
+      "Showing first-time-buyer rates; a 30-year mortgage with a €35,000 deposit (10%); a €350,000 home, as given; not a new build, so no Help to Buy and standard rates (a BER C where a lender prices by BER); stamp duty of €3,500 (1%) and €3,000 for legal fees and a survey (an estimate); costs compared over the first 5 years for every lender: interest on a 30-year term plus the valuation fee, less cashback paid within 5 years and any savings bonus; a shorter fix moves to its stated follow-on rate for the rest of the 5 years."
     ],
     "price": 350000,
     "priceFrom": "given",
@@ -58,8 +69,11 @@
     "legalAndSurveyEur": 3000,
     "helpToBuyEur": 0,
     "neededAtKeysEur": 41500,
-    "keysOn": "2027-07",
+    "keysOn": "2028-07",
     "comparedOver": { "basis": "first_years", "years": 5 },
+    "sortBy": "five_year_cost",
+    "sortedBy": "49 options that fit, sorted by cost over the first 5 years, lowest first (another order can be chosen).",
+    "filters": [],
     "pathways": [
       {
         "lender": "boi",
@@ -67,12 +81,13 @@
         "mortgage": {
           "productId": "boi:mortgage.c3785",
           "name": "4 Year Fixed HVM BER C",
+          "rateType": "fixed",
           "ratePct": 3.2,
           "fixedYears": 4,
           "followOnRatePct": 4.15,
           "monthlyRepayment": 1362.27
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 50678.1,
         "cashbackEur": 0,
         "bonusEur": 1340,
@@ -95,18 +110,6 @@
             "name": "4 Year Fixed HVM BER C",
             "ratePct": 3.2,
             "netCostEur": 49338.1
-          },
-          {
-            "productId": "boi:mortgage.c3739",
-            "name": "5 Year Fixed HVM BER C",
-            "ratePct": 3.5,
-            "netCostEur": 51225.23
-          },
-          {
-            "productId": "boi:mortgage.c3728",
-            "name": "7 Year Fixed HVM BER C",
-            "ratePct": 3.55,
-            "netCostEur": 51995.69
           }
         ],
         "greenNote": null,
@@ -114,7 +117,7 @@
           "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
           "https://personalbanking.bankofireland.com/borrow/mortgages/"
         ],
-        "line": "The Bank of Ireland path: MortgageSaver (€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown), Bank of Ireland SuperSaver Account (€675 a month), 4 Year Fixed HVM BER C (3.2%, €1,362.27 a month); your current account can stay where it is; keys around July 2027; the lowest cost over the first 5 years.",
+        "line": "Bank of Ireland, 4-year fixed: 4 Year Fixed HVM BER C at 3.2%, €1,362.27 a month; deposit in place around July 2028; €49,338 over the first 5 years, the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
         "bundle": {
           "products": [
             {
@@ -125,11 +128,11 @@
             {
               "role": "regular_saver",
               "name": "Bank of Ireland SuperSaver Account",
-              "detail": "€675 a month"
+              "detail": "€225 a month"
             },
             { "role": "mortgage", "name": "4 Year Fixed HVM BER C", "detail": "3.2%, €1,362.27 a month" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -138,12 +141,13 @@
         "mortgage": {
           "productId": "avant_money:mortgage.c1760",
           "name": "5 year fixed LTV >80%",
+          "rateType": "fixed",
           "ratePct": 3.7,
           "fixedYears": 5,
           "followOnRatePct": 3.95,
           "monthlyRepayment": 1449.89
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 55685.02,
         "cashbackEur": 6300,
         "bonusEur": 0,
@@ -164,13 +168,105 @@
             "name": "5 year fixed LTV >80%",
             "ratePct": 3.7,
             "netCostEur": 49385.02
-          },
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.avantmoney.ie/"
+        ],
+        "line": "Avant Money, 5-year fixed: 5 year fixed LTV >80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €49,385 over the first 5 years, €47 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "5 year fixed LTV >80%", "detail": "3.7%, €1,449.89 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c2014",
+          "name": "4 year fixed >80%",
+          "rateType": "fixed",
+          "ratePct": 3.7,
+          "fixedYears": 4,
+          "followOnRatePct": 3.95,
+          "monthlyRepayment": 1449.89
+        },
+        "keysOn": "2028-07",
+        "interestEur": 56407.42,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 50107.42,
+        "thirtyYearNetEur": 213146.02,
+        "followOnAssumed": false,
+        "vsCheapestEur": 769.32,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "1% or 2% at drawdown, by product (CCPC’s words; avantmoney.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.6,
+        "considered": [
           {
             "productId": "avant_money:mortgage.c2014",
             "name": "4 year fixed >80%",
             "ratePct": 3.7,
             "netCostEur": 50107.42
           },
+          {
+            "productId": "avant_money:mortgage.c8808",
+            "name": "4 year High Value fixed LTV >80%",
+            "ratePct": 3.6,
+            "netCostEur": 55151.56
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.avantmoney.ie/"
+        ],
+        "line": "Avant Money, 4-year fixed: 4 year fixed >80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €50,107 over the first 5 years, €769 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "4 year fixed >80%", "detail": "3.7%, €1,449.89 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c1748",
+          "name": "3 year fixed LTV >80%",
+          "rateType": "fixed",
+          "ratePct": 3.7,
+          "fixedYears": 3,
+          "followOnRatePct": 3.95,
+          "monthlyRepayment": 1449.89
+        },
+        "keysOn": "2028-07",
+        "interestEur": 57155.97,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 50855.97,
+        "thirtyYearNetEur": 214031.67,
+        "followOnAssumed": false,
+        "vsCheapestEur": 1517.87,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "1% or 2% at drawdown, by product (CCPC’s words; avantmoney.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.6,
+        "considered": [
           {
             "productId": "avant_money:mortgage.c1748",
             "name": "3 year fixed LTV >80%",
@@ -183,13 +279,79 @@
           "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "https://www.avantmoney.ie/"
         ],
-        "line": "The Avant Money path: 5 year fixed LTV >80% (3.7%, €1,449.89 a month), Cashback (€6,300); your current account can stay where it is; keys around July 2027; about €47 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "line": "Avant Money, 3-year fixed: 3 year fixed LTV >80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €50,856 over the first 5 years, €1,518 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
         "bundle": {
           "products": [
-            { "role": "mortgage", "name": "5 year fixed LTV >80%", "detail": "3.7%, €1,449.89 a month" },
+            { "role": "mortgage", "name": "3 year fixed LTV >80%", "detail": "3.7%, €1,449.89 a month" },
             { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c3739",
+          "name": "5 Year Fixed HVM BER C",
+          "rateType": "fixed",
+          "ratePct": 3.5,
+          "fixedYears": 5,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1414.49
+        },
+        "keysOn": "2028-07",
+        "interestEur": 52565.23,
+        "cashbackEur": 0,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 0,
+        "netCostEur": 51225.23,
+        "thirtyYearNetEur": 222993.83,
+        "followOnAssumed": false,
+        "vsCheapestEur": 1887.13,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT",
+        "conditions": [
+          "5 Year Fixed HVM BER C is for loans of €250,000 or more.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c3739",
+            "name": "5 Year Fixed HVM BER C",
+            "ratePct": 3.5,
+            "netCostEur": 51225.23
+          },
+          {
+            "productId": "boi:mortgage.c6177",
+            "name": "5 Year Fixed BER C",
+            "ratePct": 4,
+            "netCostEur": 52651.15
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, 5-year fixed: 5 Year Fixed HVM BER C at 3.5%, €1,414.49 a month; deposit in place around July 2028; €51,225 over the first 5 years, €1,887 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "5 Year Fixed HVM BER C", "detail": "3.5%, €1,414.49 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -198,12 +360,13 @@
         "mortgage": {
           "productId": "aib:mortgage.c2039",
           "name": "Higher Value 4 Year Fixed Rate, LTV Greater than 80%",
+          "rateType": "fixed",
           "ratePct": 3.25,
           "fixedYears": 4,
           "followOnRatePct": 4.15,
           "monthlyRepayment": 1370.9
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 51304.12,
         "cashbackEur": 0,
         "bonusEur": 0,
@@ -230,27 +393,179 @@
             "name": "4 year fixed, LTV over 80%",
             "ratePct": 3.75,
             "netCostEur": 57579.37
-          },
-          {
-            "productId": "aib:mortgage.c275",
-            "name": "5 year fixed, LTV over 80%",
-            "ratePct": 3.85,
-            "netCostEur": 57968.52
           }
         ],
         "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
         "sources": ["https://aib.ie/our-products/mortgages/first-time-buyers"],
-        "line": "The AIB path: AIB Online Saver (€25 a month), Higher Value 4 Year Fixed Rate, LTV Greater than 80% (3.25%, €1,370.90 a month); your current account can stay where it is; keys around July 2027; about €1,966 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "line": "AIB, 4-year fixed: Higher Value 4 Year Fixed Rate, LTV Greater than 80% at 3.25%, €1,370.90 a month; deposit in place around July 2028; €51,304 over the first 5 years, €1,966 more than the lowest shown (incentives from CCPC’s tables, not confirmed on the lender’s site).",
         "bundle": {
           "products": [
-            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€25 a month" },
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
             {
               "role": "mortgage",
               "name": "Higher Value 4 Year Fixed Rate, LTV Greater than 80%",
               "detail": "3.25%, €1,370.90 a month"
             }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c3728",
+          "name": "7 Year Fixed HVM BER C",
+          "rateType": "fixed",
+          "ratePct": 3.55,
+          "fixedYears": 7,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1423.3
+        },
+        "keysOn": "2028-07",
+        "interestEur": 53335.69,
+        "cashbackEur": 0,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 0,
+        "netCostEur": 51995.69,
+        "thirtyYearNetEur": 219931.62,
+        "followOnAssumed": false,
+        "vsCheapestEur": 2657.59,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT",
+        "conditions": [
+          "7 Year Fixed HVM BER C is for loans of €250,000 or more.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c3728",
+            "name": "7 Year Fixed HVM BER C",
+            "ratePct": 3.55,
+            "netCostEur": 51995.69
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, 7-year fixed: 7 Year Fixed HVM BER C at 3.55%, €1,423.30 a month; deposit in place around July 2028; €51,996 over the first 5 years, €2,658 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "7 Year Fixed HVM BER C", "detail": "3.55%, €1,423.30 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c2033",
+          "name": "10 year fixed >80%",
+          "rateType": "fixed",
+          "ratePct": 3.95,
+          "fixedYears": 10,
+          "followOnRatePct": 3.95,
+          "monthlyRepayment": 1494.79
+        },
+        "keysOn": "2028-07",
+        "interestEur": 59551.52,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 53251.52,
+        "thirtyYearNetEur": 216825.23,
+        "followOnAssumed": false,
+        "vsCheapestEur": 3913.42,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "1% or 2% at drawdown, by product (CCPC’s words; avantmoney.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.6,
+        "considered": [
+          {
+            "productId": "avant_money:mortgage.c2033",
+            "name": "10 year fixed >80%",
+            "ratePct": 3.95,
+            "netCostEur": 53251.52
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.avantmoney.ie/"
+        ],
+        "line": "Avant Money, 10-year fixed: 10 year fixed >80% at 3.95%, €1,494.79 a month; deposit in place around July 2028; €53,252 over the first 5 years, €3,913 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "10 year fixed >80%", "detail": "3.95%, €1,494.79 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c1772",
+          "name": "7 year fixed LTV >80%",
+          "rateType": "fixed",
+          "ratePct": 3.95,
+          "fixedYears": 7,
+          "followOnRatePct": 3.95,
+          "monthlyRepayment": 1494.79
+        },
+        "keysOn": "2028-07",
+        "interestEur": 59551.52,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 53251.52,
+        "thirtyYearNetEur": 216825.23,
+        "followOnAssumed": false,
+        "vsCheapestEur": 3913.42,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "1% or 2% at drawdown, by product (CCPC’s words; avantmoney.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.6,
+        "considered": [
+          {
+            "productId": "avant_money:mortgage.c1772",
+            "name": "7 year fixed LTV >80%",
+            "ratePct": 3.95,
+            "netCostEur": 53251.52
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.avantmoney.ie/"
+        ],
+        "line": "Avant Money, 7-year fixed: 7 year fixed LTV >80% at 3.95%, €1,494.79 a month; deposit in place around July 2028; €53,252 over the first 5 years, €3,913 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "7 year fixed LTV >80%", "detail": "3.95%, €1,494.79 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -259,12 +574,13 @@
         "mortgage": {
           "productId": "ptsb:mortgage.c1975",
           "name": "5 Year Fixed High Value LTV greater than 80% and less than or equal to 90%",
+          "rateType": "fixed",
           "ratePct": 3.95,
           "fixedYears": 5,
           "followOnRatePct": 4.7,
           "monthlyRepayment": 1494.79
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 59556.52,
         "cashbackEur": 6300,
         "bonusEur": 0,
@@ -286,18 +602,6 @@
             "name": "5 Year Fixed High Value LTV greater than 80% and less than or equal to 90%",
             "ratePct": 3.95,
             "netCostEur": 53256.52
-          },
-          {
-            "productId": "ptsb:mortgage.c1033",
-            "name": "7 Year Fixed, LTV between 80% and 90%",
-            "ratePct": 3.95,
-            "netCostEur": 53256.52
-          },
-          {
-            "productId": "ptsb:mortgage.c1997",
-            "name": "4 Year Fixed, LTV greater than 80% and less than or equal to 90%",
-            "ratePct": 3.7,
-            "netCostEur": 58582.09
           }
         ],
         "greenNote": "If the home is BER B3 or better: Green 3 Year Fixed High Value, LTV greater than 80% and less than or equal to 90% at 3.95%.",
@@ -305,7 +609,7 @@
           "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "https://www.permanenttsb.ie/mortgages/first-time-buyer-mortgage-overview/"
         ],
-        "line": "The ptsb path: 5 Year Fixed High Value LTV greater than 80% and less than or equal to 90% (3.95%, €1,494.79 a month), Cashback (€6,300); your current account can stay where it is; keys around July 2027; about €3,918 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "line": "ptsb, 5-year fixed: 5 Year Fixed High Value LTV greater than 80% and less than or equal to 90% at 3.95%, €1,494.79 a month; deposit in place around July 2028; €53,257 over the first 5 years, €3,918 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
         "bundle": {
           "products": [
             {
@@ -315,7 +619,184 @@
             },
             { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ptsb",
+        "lenderName": "ptsb",
+        "mortgage": {
+          "productId": "ptsb:mortgage.c1033",
+          "name": "7 Year Fixed, LTV between 80% and 90%",
+          "rateType": "fixed",
+          "ratePct": 3.95,
+          "fixedYears": 7,
+          "followOnRatePct": 4.7,
+          "monthlyRepayment": 1494.79
+        },
+        "keysOn": "2028-07",
+        "interestEur": 59556.52,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 53256.52,
+        "thirtyYearNetEur": 247740.27,
+        "followOnAssumed": false,
+        "vsCheapestEur": 3918.42,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "2% at drawdown on fixed rates other than the 4-year fixed (CCPC’s words; ptsb.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.7,
+        "considered": [
+          {
+            "productId": "ptsb:mortgage.c1033",
+            "name": "7 Year Fixed, LTV between 80% and 90%",
+            "ratePct": 3.95,
+            "netCostEur": 53256.52
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 3 Year Fixed High Value, LTV greater than 80% and less than or equal to 90% at 3.95%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.permanenttsb.ie/mortgages/first-time-buyer-mortgage-overview/"
+        ],
+        "line": "ptsb, 7-year fixed: 7 Year Fixed, LTV between 80% and 90% at 3.95%, €1,494.79 a month; deposit in place around July 2028; €53,257 over the first 5 years, €3,918 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "7 Year Fixed, LTV between 80% and 90%",
+              "detail": "3.95%, €1,494.79 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c6158",
+          "name": "2 Year Fixed BER C",
+          "rateType": "fixed",
+          "ratePct": 3.9,
+          "fixedYears": 2,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1485.75
+        },
+        "keysOn": "2028-07",
+        "interestEur": 60993.41,
+        "cashbackEur": 6300,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 3150,
+        "netCostEur": 53353.41,
+        "thirtyYearNetEur": 223554.98,
+        "followOnAssumed": false,
+        "vsCheapestEur": 4015.31,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)",
+        "conditions": [
+          "2% within 45 days of drawdown; 1% more after 5 years if every repayment is made in full and on time. Fixed rates only, not High Value Mortgage rates.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c6158",
+            "name": "2 Year Fixed BER C",
+            "ratePct": 3.9,
+            "netCostEur": 53353.41
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/borrow/mortgages/offers/cashback/",
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, 2-year fixed: 2 Year Fixed BER C at 3.9%, €1,485.75 a month; deposit in place around July 2028; €53,353 over the first 5 years, €4,015 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "2 Year Fixed BER C", "detail": "3.9%, €1,485.75 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "2% at drawdown and 1% after 5 years" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c6169",
+          "name": "3 Year Fixed BER C",
+          "rateType": "fixed",
+          "ratePct": 4,
+          "fixedYears": 3,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1503.86
+        },
+        "keysOn": "2028-07",
+        "interestEur": 61177.36,
+        "cashbackEur": 6300,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 3150,
+        "netCostEur": 53537.36,
+        "thirtyYearNetEur": 223765.47,
+        "followOnAssumed": false,
+        "vsCheapestEur": 4199.26,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)",
+        "conditions": [
+          "2% within 45 days of drawdown; 1% more after 5 years if every repayment is made in full and on time. Fixed rates only, not High Value Mortgage rates.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c6169",
+            "name": "3 Year Fixed BER C",
+            "ratePct": 4,
+            "netCostEur": 53537.36
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/borrow/mortgages/offers/cashback/",
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, 3-year fixed: 3 Year Fixed BER C at 4%, €1,503.86 a month; deposit in place around July 2028; €53,537 over the first 5 years, €4,199 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "3 Year Fixed BER C", "detail": "4%, €1,503.86 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "2% at drawdown and 1% after 5 years" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -324,12 +805,13 @@
         "mortgage": {
           "productId": "haven:mortgage.c455",
           "name": "5 year fixed rate mortgage",
+          "rateType": "fixed",
           "ratePct": 3.9,
           "fixedYears": 5,
           "followOnRatePct": 4.15,
           "monthlyRepayment": 1485.75
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 58742.33,
         "cashbackEur": 5000,
         "bonusEur": 0,
@@ -350,13 +832,103 @@
             "name": "5 year fixed rate mortgage",
             "ratePct": 3.9,
             "netCostEur": 53742.33
-          },
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.havenmortgages.ie/"
+        ],
+        "line": "Haven Mortgages Limited, 5-year fixed: 5 year fixed rate mortgage at 3.9%, €1,485.75 a month; deposit in place around July 2028; €53,742 over the first 5 years, €4,404 more than the lowest shown (€5,000 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "5 year fixed rate mortgage", "detail": "3.9%, €1,485.75 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€5,000" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c453",
+          "name": "3 year fixed rate mortgage",
+          "rateType": "fixed",
+          "ratePct": 3.75,
+          "fixedYears": 3,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1458.81
+        },
+        "keysOn": "2028-07",
+        "interestEur": 58778.53,
+        "cashbackEur": 5000,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 53778.53,
+        "thirtyYearNetEur": 226737.58,
+        "followOnAssumed": false,
+        "vsCheapestEur": 4440.43,
+        "drivers": "€5,000 cashback at drawdown",
+        "conditions": [
+          "€5,000 when €250,000 or more is drawn down on a fixed rate, by December 2027 (CCPC’s words; havenmortgages.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.55,
+        "considered": [
           {
             "productId": "haven:mortgage.c453",
             "name": "3 year fixed rate mortgage",
             "ratePct": 3.75,
             "netCostEur": 53778.53
-          },
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.havenmortgages.ie/"
+        ],
+        "line": "Haven Mortgages Limited, 3-year fixed: 3 year fixed rate mortgage at 3.75%, €1,458.81 a month; deposit in place around July 2028; €53,779 over the first 5 years, €4,440 more than the lowest shown (€5,000 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "3 year fixed rate mortgage",
+              "detail": "3.75%, €1,458.81 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€5,000" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c452",
+          "name": "2 year fixed rate mortgage",
+          "rateType": "fixed",
+          "ratePct": 3.6,
+          "fixedYears": 2,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1432.13
+        },
+        "keysOn": "2028-07",
+        "interestEur": 59044.04,
+        "cashbackEur": 5000,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 54044.04,
+        "thirtyYearNetEur": 227057.77,
+        "followOnAssumed": false,
+        "vsCheapestEur": 4705.94,
+        "drivers": "€5,000 cashback at drawdown",
+        "conditions": [
+          "€5,000 when €250,000 or more is drawn down on a fixed rate, by December 2027 (CCPC’s words; havenmortgages.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.55,
+        "considered": [
           {
             "productId": "haven:mortgage.c452",
             "name": "2 year fixed rate mortgage",
@@ -369,13 +941,66 @@
           "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "https://www.havenmortgages.ie/"
         ],
-        "line": "The Haven Mortgages Limited path: 5 year fixed rate mortgage (3.9%, €1,485.75 a month), Cashback (€5,000); your current account can stay where it is; keys around July 2027; about €4,404 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "line": "Haven Mortgages Limited, 2-year fixed: 2 year fixed rate mortgage at 3.6%, €1,432.13 a month; deposit in place around July 2028; €54,044 over the first 5 years, €4,706 more than the lowest shown (€5,000 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
         "bundle": {
           "products": [
-            { "role": "mortgage", "name": "5 year fixed rate mortgage", "detail": "3.9%, €1,485.75 a month" },
+            { "role": "mortgage", "name": "2 year fixed rate mortgage", "detail": "3.6%, €1,432.13 a month" },
             { "role": "cashback", "name": "Cashback", "detail": "€5,000" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c2165",
+          "name": "Up to 30 year fixed >80% <=90%",
+          "rateType": "fixed",
+          "ratePct": 3.8,
+          "fixedYears": 30,
+          "followOnRatePct": 3.8,
+          "monthlyRepayment": 1467.77
+        },
+        "keysOn": "2028-07",
+        "interestEur": 57230.22,
+        "cashbackEur": 3150,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 54080.22,
+        "thirtyYearNetEur": 210245.64,
+        "followOnAssumed": false,
+        "vsCheapestEur": 4742.12,
+        "drivers": "€3,150 cashback at drawdown",
+        "conditions": [
+          "1% or 2% at drawdown, by product (CCPC’s words; avantmoney.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.6,
+        "considered": [
+          {
+            "productId": "avant_money:mortgage.c2165",
+            "name": "Up to 30 year fixed >80% <=90%",
+            "ratePct": 3.8,
+            "netCostEur": 54080.22
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.avantmoney.ie/"
+        ],
+        "line": "Avant Money, 30-year fixed: Up to 30 year fixed >80% <=90% at 3.8%, €1,467.77 a month; deposit in place around July 2028; €54,080 over the first 5 years, €4,742 more than the lowest shown (€3,150 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "Up to 30 year fixed >80% <=90%",
+              "detail": "3.8%, €1,467.77 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€3,150" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -384,12 +1009,13 @@
         "mortgage": {
           "productId": "ebs:mortgage.c521",
           "name": "2 Year fixed rate mortgage",
+          "rateType": "fixed",
           "ratePct": 3.9,
           "fixedYears": 2,
           "followOnRatePct": 4.15,
           "monthlyRepayment": 1485.75
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 60993.41,
         "cashbackEur": 6300,
         "bonusEur": 0,
@@ -410,18 +1036,6 @@
             "name": "2 Year fixed rate mortgage",
             "ratePct": 3.9,
             "netCostEur": 54693.41
-          },
-          {
-            "productId": "ebs:mortgage.c315",
-            "name": "3 year fixed rate mortgage",
-            "ratePct": 4.3,
-            "netCostEur": 57758.75
-          },
-          {
-            "productId": "ebs:mortgage.c316",
-            "name": "5 year fixed rate mortgage",
-            "ratePct": 4.4,
-            "netCostEur": 60203.71
           }
         ],
         "greenNote": "If the home is BER B3 or better: Green 4 year fixed rate mortgage at 3.2%.",
@@ -429,18 +1043,226 @@
           "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
           "https://www.ebs.ie/mortgages/first-mortgage.html"
         ],
-        "line": "The EBS d.a.c path: EBS d.a.c Family Savings Account (Fixed) (€100 a month), 2 Year fixed rate mortgage (3.9%, €1,485.75 a month), Cashback (2% at drawdown and 1% after 5 years); your current account can stay where it is; keys around July 2027; about €5,355 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "line": "EBS d.a.c, 2-year fixed: 2 Year fixed rate mortgage at 3.9%, €1,485.75 a month; deposit in place around July 2028; €54,693 over the first 5 years, €5,355 more than the lowest shown (€6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
         "bundle": {
           "products": [
-            {
-              "role": "regular_saver",
-              "name": "EBS d.a.c Family Savings Account (Fixed)",
-              "detail": "€100 a month"
-            },
             { "role": "mortgage", "name": "2 Year fixed rate mortgage", "detail": "3.9%, €1,485.75 a month" },
             { "role": "cashback", "name": "Cashback", "detail": "2% at drawdown and 1% after 5 years" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c450",
+          "name": "1 year fixed rate mortgage",
+          "rateType": "fixed",
+          "ratePct": 3.55,
+          "fixedYears": 1,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1423.3
+        },
+        "keysOn": "2028-07",
+        "interestEur": 60638.55,
+        "cashbackEur": 5000,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 55638.55,
+        "thirtyYearNetEur": 228930.99,
+        "followOnAssumed": false,
+        "vsCheapestEur": 6300.45,
+        "drivers": "€5,000 cashback at drawdown",
+        "conditions": [
+          "€5,000 when €250,000 or more is drawn down on a fixed rate, by December 2027 (CCPC’s words; havenmortgages.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.55,
+        "considered": [
+          {
+            "productId": "haven:mortgage.c450",
+            "name": "1 year fixed rate mortgage",
+            "ratePct": 3.55,
+            "netCostEur": 55638.55
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.havenmortgages.ie/"
+        ],
+        "line": "Haven Mortgages Limited, 1-year fixed: 1 year fixed rate mortgage at 3.55%, €1,423.30 a month; deposit in place around July 2028; €55,639 over the first 5 years, €6,300 more than the lowest shown (€5,000 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "1 year fixed rate mortgage",
+              "detail": "3.55%, €1,423.30 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€5,000" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c1155",
+          "name": "7 Year Fixed Mortgage",
+          "rateType": "fixed",
+          "ratePct": 4.1,
+          "fixedYears": 7,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1522.07
+        },
+        "keysOn": "2028-07",
+        "interestEur": 61841.8,
+        "cashbackEur": 5000,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 56841.8,
+        "thirtyYearNetEur": 229993.47,
+        "followOnAssumed": false,
+        "vsCheapestEur": 7503.7,
+        "drivers": "€5,000 cashback at drawdown",
+        "conditions": [
+          "€5,000 when €250,000 or more is drawn down on a fixed rate, by December 2027 (CCPC’s words; havenmortgages.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.55,
+        "considered": [
+          {
+            "productId": "haven:mortgage.c1155",
+            "name": "7 Year Fixed Mortgage",
+            "ratePct": 4.1,
+            "netCostEur": 56841.8
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.havenmortgages.ie/"
+        ],
+        "line": "Haven Mortgages Limited, 7-year fixed: 7 Year Fixed Mortgage at 4.1%, €1,522.07 a month; deposit in place around July 2028; €56,842 over the first 5 years, €7,504 more than the lowest shown (€5,000 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "7 Year Fixed Mortgage", "detail": "4.1%, €1,522.07 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€5,000" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c3748",
+          "name": "10 Year Fixed BER C",
+          "rateType": "fixed",
+          "ratePct": 4.3,
+          "fixedYears": 10,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1558.85
+        },
+        "keysOn": "2028-07",
+        "interestEur": 64948.06,
+        "cashbackEur": 6300,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 3150,
+        "netCostEur": 57308.06,
+        "thirtyYearNetEur": 230586.91,
+        "followOnAssumed": false,
+        "vsCheapestEur": 7969.96,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)",
+        "conditions": [
+          "2% within 45 days of drawdown; 1% more after 5 years if every repayment is made in full and on time. Fixed rates only, not High Value Mortgage rates.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c3748",
+            "name": "10 Year Fixed BER C",
+            "ratePct": 4.3,
+            "netCostEur": 57308.06
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/borrow/mortgages/offers/cashback/",
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, 10-year fixed: 10 Year Fixed BER C at 4.3%, €1,558.85 a month; deposit in place around July 2028; €57,308 over the first 5 years, €7,970 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT, €6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "10 Year Fixed BER C", "detail": "4.3%, €1,558.85 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "2% at drawdown and 1% after 5 years" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ebs",
+        "lenderName": "EBS d.a.c",
+        "mortgage": {
+          "productId": "ebs:mortgage.c315",
+          "name": "3 year fixed rate mortgage",
+          "rateType": "fixed",
+          "ratePct": 4.3,
+          "fixedYears": 3,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1558.85
+        },
+        "keysOn": "2028-07",
+        "interestEur": 64058.75,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 3150,
+        "netCostEur": 57758.75,
+        "thirtyYearNetEur": 228473.08,
+        "followOnAssumed": false,
+        "vsCheapestEur": 8420.65,
+        "drivers": "€6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)",
+        "conditions": [
+          "2% within 2 months of drawdown and 1% in five years if the mortgage account remains open (CCPC’s words; ebs.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.85,
+        "considered": [
+          {
+            "productId": "ebs:mortgage.c315",
+            "name": "3 year fixed rate mortgage",
+            "ratePct": 4.3,
+            "netCostEur": 57758.75
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 4 year fixed rate mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.ebs.ie/mortgages/first-mortgage.html"
+        ],
+        "line": "EBS d.a.c, 3-year fixed: 3 year fixed rate mortgage at 4.3%, €1,558.85 a month; deposit in place around July 2028; €57,759 over the first 5 years, €8,421 more than the lowest shown (€6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "3 year fixed rate mortgage", "detail": "4.3%, €1,558.85 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "2% at drawdown and 1% after 5 years" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -449,12 +1271,13 @@
         "mortgage": {
           "productId": "credit_union_mortgages:mortgage.c8714",
           "name": "Capped Variable Rate Mortgage - Capped at 4.40% (APRC 4.50%)* for first 3 years.",
+          "rateType": "variable",
           "ratePct": 3.85,
           "fixedYears": null,
           "followOnRatePct": 3.85,
           "monthlyRepayment": 1476.75
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 57818.52,
         "cashbackEur": 0,
         "bonusEur": 0,
@@ -477,7 +1300,7 @@
         ],
         "greenNote": null,
         "sources": ["https://www.creditunionmortgages.com/"],
-        "line": "The Credit Union Mortgages path: Capped Variable Rate Mortgage - Capped at 4.40% (APRC 4.50%)* for first 3 years. (3.85%, €1,476.75 a month); your current account can stay where it is; keys around July 2027; about €8,480 more over the first 5 years than the cheapest.",
+        "line": "Credit Union Mortgages, variable: Capped Variable Rate Mortgage - Capped at 4.40% (APRC 4.50%)* for first 3 years. at 3.85%, €1,476.75 a month; deposit in place around July 2028; €57,819 over the first 5 years, €8,480 more than the lowest shown.",
         "bundle": {
           "products": [
             {
@@ -486,7 +1309,870 @@
               "detail": "3.85%, €1,476.75 a month"
             }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c275",
+          "name": "5 year fixed, LTV over 80%",
+          "rateType": "fixed",
+          "ratePct": 3.85,
+          "fixedYears": 5,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1476.75
+        },
+        "keysOn": "2028-07",
+        "interestEur": 57968.52,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 57968.52,
+        "thirtyYearNetEur": 230752.07,
+        "followOnAssumed": false,
+        "vsCheapestEur": 8630.42,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c275",
+            "name": "5 year fixed, LTV over 80%",
+            "ratePct": 3.85,
+            "netCostEur": 57968.52
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, 5-year fixed: 5 year fixed, LTV over 80% at 3.85%, €1,476.75 a month; deposit in place around July 2028; €57,969 over the first 5 years, €8,630 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            { "role": "mortgage", "name": "5 year fixed, LTV over 80%", "detail": "3.85%, €1,476.75 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c277",
+          "name": "3 year fixed, LTV over 80%",
+          "rateType": "fixed",
+          "ratePct": 3.7,
+          "fixedYears": 3,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1449.89
+        },
+        "keysOn": "2028-07",
+        "interestEur": 58299.02,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 58299.02,
+        "thirtyYearNetEur": 231172.75,
+        "followOnAssumed": false,
+        "vsCheapestEur": 8960.92,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c277",
+            "name": "3 year fixed, LTV over 80%",
+            "ratePct": 3.7,
+            "netCostEur": 58299.02
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, 3-year fixed: 3 year fixed, LTV over 80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €58,299 over the first 5 years, €8,961 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            { "role": "mortgage", "name": "3 year fixed, LTV over 80%", "detail": "3.7%, €1,449.89 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ptsb",
+        "lenderName": "ptsb",
+        "mortgage": {
+          "productId": "ptsb:mortgage.c1997",
+          "name": "4 Year Fixed, LTV greater than 80% and less than or equal to 90%",
+          "rateType": "fixed",
+          "ratePct": 3.7,
+          "fixedYears": 4,
+          "followOnRatePct": 4.7,
+          "monthlyRepayment": 1449.89
+        },
+        "keysOn": "2028-07",
+        "interestEur": 58582.09,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 58582.09,
+        "thirtyYearNetEur": 257990.95,
+        "followOnAssumed": false,
+        "vsCheapestEur": 9243.99,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.7,
+        "considered": [
+          {
+            "productId": "ptsb:mortgage.c1997",
+            "name": "4 Year Fixed, LTV greater than 80% and less than or equal to 90%",
+            "ratePct": 3.7,
+            "netCostEur": 58582.09
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 3 Year Fixed High Value, LTV greater than 80% and less than or equal to 90% at 3.95%.",
+        "sources": ["https://www.permanenttsb.ie/mortgages/first-time-buyer-mortgage-overview/"],
+        "line": "ptsb, 4-year fixed: 4 Year Fixed, LTV greater than 80% and less than or equal to 90% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €58,582 over the first 5 years, €9,244 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "4 Year Fixed, LTV greater than 80% and less than or equal to 90%",
+              "detail": "3.7%, €1,449.89 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ptsb",
+        "lenderName": "ptsb",
+        "mortgage": {
+          "productId": "ptsb:mortgage.c1972",
+          "name": "3 Year Fixed High Value LTV greater than 80% and less than or equal to 90%",
+          "rateType": "fixed",
+          "ratePct": 4.05,
+          "fixedYears": 3,
+          "followOnRatePct": 4.7,
+          "monthlyRepayment": 1512.95
+        },
+        "keysOn": "2028-07",
+        "interestEur": 64953.51,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 58653.51,
+        "thirtyYearNetEur": 259383.21,
+        "followOnAssumed": false,
+        "vsCheapestEur": 9315.41,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "3 Year Fixed High Value LTV greater than 80% and less than or equal to 90% is a higher-value rate for larger loans; the minimum loan is not stated in CCPC’s data, so check it with ptsb.",
+          "2% at drawdown on fixed rates other than the 4-year fixed (CCPC’s words; ptsb.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.7,
+        "considered": [
+          {
+            "productId": "ptsb:mortgage.c1972",
+            "name": "3 Year Fixed High Value LTV greater than 80% and less than or equal to 90%",
+            "ratePct": 4.05,
+            "netCostEur": 58653.51
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 3 Year Fixed High Value, LTV greater than 80% and less than or equal to 90% at 3.95%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.permanenttsb.ie/mortgages/first-time-buyer-mortgage-overview/"
+        ],
+        "line": "ptsb, 3-year fixed: 3 Year Fixed High Value LTV greater than 80% and less than or equal to 90% at 4.05%, €1,512.95 a month; deposit in place around July 2028; €58,654 over the first 5 years, €9,315 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "3 Year Fixed High Value LTV greater than 80% and less than or equal to 90%",
+              "detail": "4.05%, €1,512.95 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c278",
+          "name": "2 year fixed, LTV over 80%",
+          "rateType": "fixed",
+          "ratePct": 3.55,
+          "fixedYears": 2,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1423.3
+        },
+        "keysOn": "2028-07",
+        "interestEur": 58719.12,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 58719.12,
+        "thirtyYearNetEur": 231675.32,
+        "followOnAssumed": false,
+        "vsCheapestEur": 9381.02,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c278",
+            "name": "2 year fixed, LTV over 80%",
+            "ratePct": 3.55,
+            "netCostEur": 58719.12
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, 2-year fixed: 2 year fixed, LTV over 80% at 3.55%, €1,423.30 a month; deposit in place around July 2028; €58,719 over the first 5 years, €9,381 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            { "role": "mortgage", "name": "2 year fixed, LTV over 80%", "detail": "3.55%, €1,423.30 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c7645",
+          "name": "1 Year HVM BER C",
+          "rateType": "fixed",
+          "ratePct": 3.4,
+          "fixedYears": 1,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1396.97
+        },
+        "keysOn": "2028-07",
+        "interestEur": 60142.96,
+        "cashbackEur": 0,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 0,
+        "netCostEur": 58802.96,
+        "thirtyYearNetEur": 232008.48,
+        "followOnAssumed": false,
+        "vsCheapestEur": 9464.86,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT",
+        "conditions": [
+          "1 Year HVM BER C is for loans of €250,000 or more.",
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c7645",
+            "name": "1 Year HVM BER C",
+            "ratePct": 3.4,
+            "netCostEur": 58802.96
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, 1-year fixed: 1 Year HVM BER C at 3.4%, €1,396.97 a month; deposit in place around July 2028; €58,803 over the first 5 years, €9,465 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "1 Year HVM BER C", "detail": "3.4%, €1,396.97 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c1158",
+          "name": "10 Year Fixed Mortgage",
+          "rateType": "fixed",
+          "ratePct": 4.25,
+          "fixedYears": 10,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1549.61
+        },
+        "keysOn": "2028-07",
+        "interestEur": 64170.89,
+        "cashbackEur": 5000,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 59170.89,
+        "thirtyYearNetEur": 234664.08,
+        "followOnAssumed": false,
+        "vsCheapestEur": 9832.79,
+        "drivers": "€5,000 cashback at drawdown",
+        "conditions": [
+          "€5,000 when €250,000 or more is drawn down on a fixed rate, by December 2027 (CCPC’s words; havenmortgages.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.55,
+        "considered": [
+          {
+            "productId": "haven:mortgage.c1158",
+            "name": "10 Year Fixed Mortgage",
+            "ratePct": 4.25,
+            "netCostEur": 59170.89
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.havenmortgages.ie/"
+        ],
+        "line": "Haven Mortgages Limited, 10-year fixed: 10 Year Fixed Mortgage at 4.25%, €1,549.61 a month; deposit in place around July 2028; €59,171 over the first 5 years, €9,833 more than the lowest shown (€5,000 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "10 Year Fixed Mortgage", "detail": "4.25%, €1,549.61 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "€5,000" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ebs",
+        "lenderName": "EBS d.a.c",
+        "mortgage": {
+          "productId": "ebs:mortgage.c316",
+          "name": "5 year fixed rate mortgage",
+          "rateType": "fixed",
+          "ratePct": 4.4,
+          "fixedYears": 5,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1577.4
+        },
+        "keysOn": "2028-07",
+        "interestEur": 66503.71,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 3150,
+        "netCostEur": 60203.71,
+        "thirtyYearNetEur": 231356.06,
+        "followOnAssumed": false,
+        "vsCheapestEur": 10865.61,
+        "drivers": "€6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)",
+        "conditions": [
+          "2% within 2 months of drawdown and 1% in five years if the mortgage account remains open (CCPC’s words; ebs.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.85,
+        "considered": [
+          {
+            "productId": "ebs:mortgage.c316",
+            "name": "5 year fixed rate mortgage",
+            "ratePct": 4.4,
+            "netCostEur": 60203.71
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 4 year fixed rate mortgage at 3.2%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.ebs.ie/mortgages/first-mortgage.html"
+        ],
+        "line": "EBS d.a.c, 5-year fixed: 5 year fixed rate mortgage at 4.4%, €1,577.40 a month; deposit in place around July 2028; €60,204 over the first 5 years, €10,866 more than the lowest shown (€6,300 cashback at drawdown, +€3,150 after 5 years if repayments are on time (not counted in the ranking)) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "5 year fixed rate mortgage", "detail": "4.4%, €1,577.40 a month" },
+            { "role": "cashback", "name": "Cashback", "detail": "2% at drawdown and 1% after 5 years" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c419",
+          "name": "1 year fixed, LTV over 80%",
+          "rateType": "fixed",
+          "ratePct": 3.5,
+          "fixedYears": 1,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1414.49
+        },
+        "keysOn": "2028-07",
+        "interestEur": 60473.39,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 60473.39,
+        "thirtyYearNetEur": 233737.04,
+        "followOnAssumed": false,
+        "vsCheapestEur": 11135.29,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c419",
+            "name": "1 year fixed, LTV over 80%",
+            "ratePct": 3.5,
+            "netCostEur": 60473.39
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, 1-year fixed: 1 year fixed, LTV over 80% at 3.5%, €1,414.49 a month; deposit in place around July 2028; €60,473 over the first 5 years, €11,135 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            { "role": "mortgage", "name": "1 year fixed, LTV over 80%", "detail": "3.5%, €1,414.49 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c955",
+          "name": "7 year fixed, LTV over 80%",
+          "rateType": "fixed",
+          "ratePct": 4.05,
+          "fixedYears": 7,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1512.95
+        },
+        "keysOn": "2028-07",
+        "interestEur": 61066.26,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 61066.26,
+        "thirtyYearNetEur": 233745.79,
+        "followOnAssumed": false,
+        "vsCheapestEur": 11728.16,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c955",
+            "name": "7 year fixed, LTV over 80%",
+            "ratePct": 4.05,
+            "netCostEur": 61066.26
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, 7-year fixed: 7 year fixed, LTV over 80% at 4.05%, €1,512.95 a month; deposit in place around July 2028; €61,066 over the first 5 years, €11,728 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            { "role": "mortgage", "name": "7 year fixed, LTV over 80%", "detail": "4.05%, €1,512.95 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "boi",
+        "lenderName": "Bank of Ireland",
+        "mortgage": {
+          "productId": "boi:mortgage.c489",
+          "name": "Standard Variable Rate",
+          "rateType": "variable",
+          "ratePct": 4.15,
+          "fixedYears": null,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1531.23
+        },
+        "keysOn": "2028-07",
+        "interestEur": 62617.69,
+        "cashbackEur": 0,
+        "bonusEur": 1340,
+        "cashbackAfterEur": 0,
+        "netCostEur": 61277.69,
+        "thirtyYearNetEur": 234901.17,
+        "followOnAssumed": false,
+        "vsCheapestEur": 11939.59,
+        "drivers": "MortgageSaver bonus €1,340 after DIRT",
+        "conditions": [
+          "MortgageSaver: €2,000 less DIRT, paid into the account within 5 working days of a Bank of Ireland first-time-buyer mortgage being drawn down in full: €200 to €2,500 a month by direct debit for 6 months in a row, €5,000 or more saved and still held at drawdown, within 30 months of opening. One bonus per mortgage; one account per person; can be held alongside SuperSaver.",
+          "The bonus is paid after drawdown, so it lowers the cost rather than the deposit needed: the keys date is the same."
+        ],
+        "confirmed": true,
+        "lowestRatePct": 3.2,
+        "considered": [
+          {
+            "productId": "boi:mortgage.c489",
+            "name": "Standard Variable Rate",
+            "ratePct": 4.15,
+            "netCostEur": 61277.69
+          }
+        ],
+        "greenNote": null,
+        "sources": [
+          "https://personalbanking.bankofireland.com/app/uploads/MortgageSaver-Brochure-April-2025-A.pdf",
+          "https://personalbanking.bankofireland.com/borrow/mortgages/"
+        ],
+        "line": "Bank of Ireland, variable: Standard Variable Rate at 4.15%, €1,531.23 a month; deposit in place around July 2028; €61,278 over the first 5 years, €11,940 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
+        "bundle": {
+          "products": [
+            {
+              "role": "linked_saver",
+              "name": "MortgageSaver",
+              "detail": "€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown"
+            },
+            {
+              "role": "regular_saver",
+              "name": "Bank of Ireland SuperSaver Account",
+              "detail": "€225 a month"
+            },
+            { "role": "mortgage", "name": "Standard Variable Rate", "detail": "4.15%, €1,531.23 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ebs",
+        "lenderName": "EBS d.a.c",
+        "mortgage": {
+          "productId": "ebs:mortgage.c314",
+          "name": "1 year fixed rate mortgage",
+          "rateType": "fixed",
+          "ratePct": 3.85,
+          "fixedYears": 1,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1476.75
+        },
+        "keysOn": "2028-07",
+        "interestEur": 61628.77,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 61628.77,
+        "thirtyYearNetEur": 235090.02,
+        "followOnAssumed": false,
+        "vsCheapestEur": 12290.67,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.85,
+        "considered": [
+          {
+            "productId": "ebs:mortgage.c314",
+            "name": "1 year fixed rate mortgage",
+            "ratePct": 3.85,
+            "netCostEur": 61628.77
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 4 year fixed rate mortgage at 3.2%.",
+        "sources": ["https://www.ebs.ie/mortgages/first-mortgage.html"],
+        "line": "EBS d.a.c, 1-year fixed: 1 year fixed rate mortgage at 3.85%, €1,476.75 a month; deposit in place around July 2028; €61,629 over the first 5 years, €12,291 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "1 year fixed rate mortgage", "detail": "3.85%, €1,476.75 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c393",
+          "name": "Variable, LTV greater than 80%",
+          "rateType": "variable",
+          "ratePct": 4.15,
+          "fixedYears": null,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1531.23
+        },
+        "keysOn": "2028-07",
+        "interestEur": 62617.69,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 62617.69,
+        "thirtyYearNetEur": 236241.17,
+        "followOnAssumed": false,
+        "vsCheapestEur": 13279.59,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c393",
+            "name": "Variable, LTV greater than 80%",
+            "ratePct": 4.15,
+            "netCostEur": 62617.69
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, variable: Variable, LTV greater than 80% at 4.15%, €1,531.23 a month; deposit in place around July 2028; €62,618 over the first 5 years, €13,280 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            {
+              "role": "mortgage",
+              "name": "Variable, LTV greater than 80%",
+              "detail": "4.15%, €1,531.23 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ebs",
+        "lenderName": "EBS d.a.c",
+        "mortgage": {
+          "productId": "ebs:mortgage.c258",
+          "name": "Variable, LTV greater than 80%",
+          "rateType": "variable",
+          "ratePct": 4.15,
+          "fixedYears": null,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1531.23
+        },
+        "keysOn": "2028-07",
+        "interestEur": 62617.69,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 62617.69,
+        "thirtyYearNetEur": 236241.17,
+        "followOnAssumed": false,
+        "vsCheapestEur": 13279.59,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.85,
+        "considered": [
+          {
+            "productId": "ebs:mortgage.c258",
+            "name": "Variable, LTV greater than 80%",
+            "ratePct": 4.15,
+            "netCostEur": 62617.69
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 4 year fixed rate mortgage at 3.2%.",
+        "sources": ["https://www.ebs.ie/mortgages/first-mortgage.html"],
+        "line": "EBS d.a.c, variable: Variable, LTV greater than 80% at 4.15%, €1,531.23 a month; deposit in place around July 2028; €62,618 over the first 5 years, €13,280 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "Variable, LTV greater than 80%",
+              "detail": "4.15%, €1,531.23 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "haven",
+        "lenderName": "Haven Mortgages Limited",
+        "mortgage": {
+          "productId": "haven:mortgage.c249",
+          "name": "Variable, LTV greater than 80%",
+          "rateType": "variable",
+          "ratePct": 4.15,
+          "fixedYears": null,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1531.23
+        },
+        "keysOn": "2028-07",
+        "interestEur": 62617.69,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 62617.69,
+        "thirtyYearNetEur": 236241.17,
+        "followOnAssumed": false,
+        "vsCheapestEur": 13279.59,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.55,
+        "considered": [
+          {
+            "productId": "haven:mortgage.c249",
+            "name": "Variable, LTV greater than 80%",
+            "ratePct": 4.15,
+            "netCostEur": 62617.69
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Haven Green 4 Year Fixed Rate Mortgage at 3.2%.",
+        "sources": ["https://www.havenmortgages.ie/"],
+        "line": "Haven Mortgages Limited, variable: Variable, LTV greater than 80% at 4.15%, €1,531.23 a month; deposit in place around July 2028; €62,618 over the first 5 years, €13,280 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "Variable, LTV greater than 80%",
+              "detail": "4.15%, €1,531.23 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ptsb",
+        "lenderName": "ptsb",
+        "mortgage": {
+          "productId": "ptsb:mortgage.c547",
+          "name": "2 Year Fixed, LTV greater than 80% and less than or equal to 90%",
+          "rateType": "fixed",
+          "ratePct": 4.4,
+          "fixedYears": 2,
+          "followOnRatePct": 4.7,
+          "monthlyRepayment": 1577.4
+        },
+        "keysOn": "2028-07",
+        "interestEur": 69262.79,
+        "cashbackEur": 6300,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 62962.79,
+        "thirtyYearNetEur": 264524.99,
+        "followOnAssumed": false,
+        "vsCheapestEur": 13624.69,
+        "drivers": "€6,300 cashback at drawdown",
+        "conditions": [
+          "2% at drawdown on fixed rates other than the 4-year fixed (CCPC’s words; ptsb.ie refused automated reads)."
+        ],
+        "confirmed": false,
+        "lowestRatePct": 3.7,
+        "considered": [
+          {
+            "productId": "ptsb:mortgage.c547",
+            "name": "2 Year Fixed, LTV greater than 80% and less than or equal to 90%",
+            "ratePct": 4.4,
+            "netCostEur": 62962.79
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 3 Year Fixed High Value, LTV greater than 80% and less than or equal to 90% at 3.95%.",
+        "sources": [
+          "https://www.ccpc.ie/manage-your-money/buying-a-home/mortgage-comparison-tools",
+          "https://www.permanenttsb.ie/mortgages/first-time-buyer-mortgage-overview/"
+        ],
+        "line": "ptsb, 2-year fixed: 2 Year Fixed, LTV greater than 80% and less than or equal to 90% at 4.4%, €1,577.40 a month; deposit in place around July 2028; €62,963 over the first 5 years, €13,625 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "2 Year Fixed, LTV greater than 80% and less than or equal to 90%",
+              "detail": "4.4%, €1,577.40 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€6,300" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "aib",
+        "lenderName": "AIB",
+        "mortgage": {
+          "productId": "aib:mortgage.c1072",
+          "name": "10 year fixed, LTV over 80%",
+          "rateType": "fixed",
+          "ratePct": 4.2,
+          "fixedYears": 10,
+          "followOnRatePct": 4.15,
+          "monthlyRepayment": 1540.4
+        },
+        "keysOn": "2028-07",
+        "interestEur": 63394.12,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 63394.12,
+        "thirtyYearNetEur": 237952.16,
+        "followOnAssumed": false,
+        "vsCheapestEur": 14056.02,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.25,
+        "considered": [
+          {
+            "productId": "aib:mortgage.c1072",
+            "name": "10 year fixed, LTV over 80%",
+            "ratePct": 4.2,
+            "netCostEur": 63394.12
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: 2-year fixed Green Mortgage, LTV over 80% at 3.35%.",
+        "sources": ["https://personal.aib.ie/our-products/mortgages/first-time-buyers"],
+        "line": "AIB, 10-year fixed: 10 year fixed, LTV over 80% at 4.2%, €1,540.40 a month; deposit in place around July 2028; €63,394 over the first 5 years, €14,056 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "regular_saver", "name": "AIB Online Saver", "detail": "€575 a month" },
+            { "role": "mortgage", "name": "10 year fixed, LTV over 80%", "detail": "4.2%, €1,540.40 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "avant_money",
+        "lenderName": "Avant Money",
+        "mortgage": {
+          "productId": "avant_money:mortgage.c7972",
+          "name": "Flex Mortgage >80% LTV",
+          "rateType": "variable",
+          "ratePct": 4.34,
+          "fixedYears": null,
+          "followOnRatePct": 4.34,
+          "monthlyRepayment": 1566.25
+        },
+        "keysOn": "2028-07",
+        "interestEur": 65605.17,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 65605.17,
+        "thirtyYearNetEur": 248850.9,
+        "followOnAssumed": false,
+        "vsCheapestEur": 16267.07,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.6,
+        "considered": [
+          {
+            "productId": "avant_money:mortgage.c7972",
+            "name": "Flex Mortgage >80% LTV",
+            "ratePct": 4.34,
+            "netCostEur": 65605.17
+          }
+        ],
+        "greenNote": null,
+        "sources": ["https://www.avantmoney.ie/mortgages"],
+        "line": "Avant Money, variable: Flex Mortgage >80% LTV at 4.34%, €1,566.25 a month; deposit in place around July 2028; €65,605 over the first 5 years, €16,267 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "Flex Mortgage >80% LTV", "detail": "4.34%, €1,566.25 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -495,12 +2181,13 @@
         "mortgage": {
           "productId": "moco:mortgage.c8438",
           "name": "5 Year Fixed LTV>80% <=90%",
+          "rateType": "fixed",
           "ratePct": 4.45,
           "fixedYears": 5,
           "followOnRatePct": 4.6,
           "monthlyRepayment": 1586.71
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 67331.18,
         "cashbackEur": 1500,
         "bonusEur": 0,
@@ -519,17 +2206,11 @@
             "name": "5 Year Fixed LTV>80% <=90%",
             "ratePct": 4.45,
             "netCostEur": 65831.18
-          },
-          {
-            "productId": "moco:mortgage.c8200",
-            "name": "3 Year Fixed LTV >80% <= 90%",
-            "ratePct": 4.45,
-            "netCostEur": 66722.86
           }
         ],
         "greenNote": null,
         "sources": ["https://www.moco.ie/moco/mortgages/faq-mortgages", "https://www.moco.ie/moco/our-rates"],
-        "line": "The MoCo path: 5 Year Fixed LTV>80% <=90% (4.45%, €1,586.71 a month), Cashback (€1,500); your current account can stay where it is; keys around July 2027; about €16,493 more over the first 5 years than the cheapest.",
+        "line": "MoCo, 5-year fixed: 5 Year Fixed LTV>80% <=90% at 4.45%, €1,586.71 a month; deposit in place around July 2028; €65,831 over the first 5 years, €16,493 more than the lowest shown (€1,500 cashback at drawdown).",
         "bundle": {
           "products": [
             {
@@ -539,7 +2220,102 @@
             },
             { "role": "cashback", "name": "Cashback", "detail": "€1,500" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "moco",
+        "lenderName": "MoCo",
+        "mortgage": {
+          "productId": "moco:mortgage.c8200",
+          "name": "3 Year Fixed LTV >80% <= 90%",
+          "rateType": "fixed",
+          "ratePct": 4.45,
+          "fixedYears": 3,
+          "followOnRatePct": 4.6,
+          "monthlyRepayment": 1586.71
+        },
+        "keysOn": "2028-07",
+        "interestEur": 68222.86,
+        "cashbackEur": 1500,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 66722.86,
+        "thirtyYearNetEur": 263131.12,
+        "followOnAssumed": false,
+        "vsCheapestEur": 17384.76,
+        "drivers": "€1,500 cashback at drawdown",
+        "conditions": ["€1,500 paid the month after the first monthly instalment; not repaid."],
+        "confirmed": true,
+        "lowestRatePct": 4.45,
+        "considered": [
+          {
+            "productId": "moco:mortgage.c8200",
+            "name": "3 Year Fixed LTV >80% <= 90%",
+            "ratePct": 4.45,
+            "netCostEur": 66722.86
+          }
+        ],
+        "greenNote": null,
+        "sources": ["https://www.moco.ie/moco/mortgages/faq-mortgages", "https://www.moco.ie/moco/our-rates"],
+        "line": "MoCo, 3-year fixed: 3 Year Fixed LTV >80% <= 90% at 4.45%, €1,586.71 a month; deposit in place around July 2028; €66,723 over the first 5 years, €17,385 more than the lowest shown (€1,500 cashback at drawdown).",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "3 Year Fixed LTV >80% <= 90%",
+              "detail": "4.45%, €1,586.71 a month"
+            },
+            { "role": "cashback", "name": "Cashback", "detail": "€1,500" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ptsb",
+        "lenderName": "ptsb",
+        "mortgage": {
+          "productId": "ptsb:mortgage.c876",
+          "name": "Managed Variable Rate, LTV greater than 80% and less than or equal to 90%",
+          "rateType": "variable",
+          "ratePct": 4.7,
+          "fixedYears": null,
+          "followOnRatePct": 4.7,
+          "monthlyRepayment": 1633.71
+        },
+        "keysOn": "2028-07",
+        "interestEur": 71220.07,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 71220.07,
+        "thirtyYearNetEur": 273135.28,
+        "followOnAssumed": false,
+        "vsCheapestEur": 21881.97,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 3.7,
+        "considered": [
+          {
+            "productId": "ptsb:mortgage.c876",
+            "name": "Managed Variable Rate, LTV greater than 80% and less than or equal to 90%",
+            "ratePct": 4.7,
+            "netCostEur": 71220.07
+          }
+        ],
+        "greenNote": "If the home is BER B3 or better: Green 3 Year Fixed High Value, LTV greater than 80% and less than or equal to 90% at 3.95%.",
+        "sources": ["https://www.permanenttsb.ie/mortgages/first-time-buyer-mortgage-overview/"],
+        "line": "ptsb, variable: Managed Variable Rate, LTV greater than 80% and less than or equal to 90% at 4.7%, €1,633.71 a month; deposit in place around July 2028; €71,220 over the first 5 years, €21,882 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "Managed Variable Rate, LTV greater than 80% and less than or equal to 90%",
+              "detail": "4.7%, €1,633.71 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -548,12 +2324,13 @@
         "mortgage": {
           "productId": "ics_mortgages:mortgage.c1473",
           "name": "Variable Rate - less than or equal to 90% LTV",
+          "rateType": "variable",
           "ratePct": 5.1,
           "fixedYears": null,
           "followOnRatePct": 5.1,
           "monthlyRepayment": 1710.29
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 77470.85,
         "cashbackEur": 0,
         "bonusEur": 0,
@@ -572,23 +2349,11 @@
             "name": "Variable Rate - less than or equal to 90% LTV",
             "ratePct": 5.1,
             "netCostEur": 77470.85
-          },
-          {
-            "productId": "ics_mortgages:mortgage.c1461",
-            "name": "3 yr Fixed Rate - less than or equal to 90% LTV",
-            "ratePct": 5.95,
-            "netCostEur": 85698.96
-          },
-          {
-            "productId": "ics_mortgages:mortgage.c1467",
-            "name": "5 yr Fixed Rate - less than or equal to 90% LTV",
-            "ratePct": 5.95,
-            "netCostEur": 90832.72
           }
         ],
         "greenNote": null,
         "sources": ["https://www.icsmortgages.ie/"],
-        "line": "The ICS Mortgages path: Variable Rate - less than or equal to 90% LTV (5.1%, €1,710.29 a month); your current account can stay where it is; keys around July 2027; about €28,133 more over the first 5 years than the cheapest.",
+        "line": "ICS Mortgages, variable: Variable Rate - less than or equal to 90% LTV at 5.1%, €1,710.29 a month; deposit in place around July 2028; €77,471 over the first 5 years, €28,133 more than the lowest shown.",
         "bundle": {
           "products": [
             {
@@ -597,7 +2362,54 @@
               "detail": "5.1%, €1,710.29 a month"
             }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ics_mortgages",
+        "lenderName": "ICS Mortgages",
+        "mortgage": {
+          "productId": "ics_mortgages:mortgage.c1461",
+          "name": "3 yr Fixed Rate - less than or equal to 90% LTV",
+          "rateType": "fixed",
+          "ratePct": 5.95,
+          "fixedYears": 3,
+          "followOnRatePct": 5.1,
+          "monthlyRepayment": 1878.47
+        },
+        "keysOn": "2028-07",
+        "interestEur": 85698.96,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 85698.96,
+        "thirtyYearNetEur": 310401.66,
+        "followOnAssumed": false,
+        "vsCheapestEur": 36360.86,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 5.1,
+        "considered": [
+          {
+            "productId": "ics_mortgages:mortgage.c1461",
+            "name": "3 yr Fixed Rate - less than or equal to 90% LTV",
+            "ratePct": 5.95,
+            "netCostEur": 85698.96
+          }
+        ],
+        "greenNote": null,
+        "sources": ["https://www.icsmortgages.ie/"],
+        "line": "ICS Mortgages, 3-year fixed: 3 yr Fixed Rate - less than or equal to 90% LTV at 5.95%, €1,878.47 a month; deposit in place around July 2028; €85,699 over the first 5 years, €36,361 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "3 yr Fixed Rate - less than or equal to 90% LTV",
+              "detail": "5.95%, €1,878.47 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       },
       {
@@ -606,12 +2418,13 @@
         "mortgage": {
           "productId": "nua_money:mortgage.c7044",
           "name": "FTB 90% LTV 3yr Fixed",
+          "rateType": "fixed",
           "ratePct": 5.85,
           "fixedYears": 3,
           "followOnRatePct": 5.5,
           "monthlyRepayment": 1858.31
         },
-        "keysOn": "2027-07",
+        "keysOn": "2028-07",
         "interestEur": 87176.99,
         "cashbackEur": 0,
         "bonusEur": 0,
@@ -630,7 +2443,44 @@
             "name": "FTB 90% LTV 3yr Fixed",
             "ratePct": 5.85,
             "netCostEur": 87176.99
-          },
+          }
+        ],
+        "greenNote": null,
+        "sources": ["https://www.nuamoney.com/"],
+        "line": "Nua Money Limited, 3-year fixed: FTB 90% LTV 3yr Fixed at 5.85%, €1,858.31 a month; deposit in place around July 2028; €87,177 over the first 5 years, €37,839 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            { "role": "mortgage", "name": "FTB 90% LTV 3yr Fixed", "detail": "5.85%, €1,858.31 a month" }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "nua_money",
+        "lenderName": "Nua Money Limited",
+        "mortgage": {
+          "productId": "nua_money:mortgage.c7069",
+          "name": "FTB 90% LTV 5yr Fixed",
+          "rateType": "fixed",
+          "ratePct": 5.85,
+          "fixedYears": 5,
+          "followOnRatePct": 5.5,
+          "monthlyRepayment": 1858.31
+        },
+        "keysOn": "2028-07",
+        "interestEur": 89290.43,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 89290.43,
+        "thirtyYearNetEur": 335494.28,
+        "followOnAssumed": false,
+        "vsCheapestEur": 39952.33,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 5.85,
+        "considered": [
           {
             "productId": "nua_money:mortgage.c7069",
             "name": "FTB 90% LTV 5yr Fixed",
@@ -640,86 +2490,152 @@
         ],
         "greenNote": null,
         "sources": ["https://www.nuamoney.com/"],
-        "line": "The Nua Money Limited path: FTB 90% LTV 3yr Fixed (5.85%, €1,858.31 a month); your current account can stay where it is; keys around July 2027; about €37,839 more over the first 5 years than the cheapest.",
+        "line": "Nua Money Limited, 5-year fixed: FTB 90% LTV 5yr Fixed at 5.85%, €1,858.31 a month; deposit in place around July 2028; €89,290 over the first 5 years, €39,952 more than the lowest shown.",
         "bundle": {
           "products": [
-            { "role": "mortgage", "name": "FTB 90% LTV 3yr Fixed", "detail": "5.85%, €1,858.31 a month" }
+            { "role": "mortgage", "name": "FTB 90% LTV 5yr Fixed", "detail": "5.85%, €1,858.31 a month" }
           ],
-          "currentAccount": "Your current account can stay where it is."
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
+        }
+      },
+      {
+        "lender": "ics_mortgages",
+        "lenderName": "ICS Mortgages",
+        "mortgage": {
+          "productId": "ics_mortgages:mortgage.c1467",
+          "name": "5 yr Fixed Rate - less than or equal to 90% LTV",
+          "rateType": "fixed",
+          "ratePct": 5.95,
+          "fixedYears": 5,
+          "followOnRatePct": 5.1,
+          "monthlyRepayment": 1878.47
+        },
+        "keysOn": "2028-07",
+        "interestEur": 90832.72,
+        "cashbackEur": 0,
+        "bonusEur": 0,
+        "cashbackAfterEur": 0,
+        "netCostEur": 90832.72,
+        "thirtyYearNetEur": 316589.97,
+        "followOnAssumed": false,
+        "vsCheapestEur": 41494.62,
+        "drivers": "the rate alone",
+        "conditions": [],
+        "confirmed": true,
+        "lowestRatePct": 5.1,
+        "considered": [
+          {
+            "productId": "ics_mortgages:mortgage.c1467",
+            "name": "5 yr Fixed Rate - less than or equal to 90% LTV",
+            "ratePct": 5.95,
+            "netCostEur": 90832.72
+          }
+        ],
+        "greenNote": null,
+        "sources": ["https://www.icsmortgages.ie/"],
+        "line": "ICS Mortgages, 5-year fixed: 5 yr Fixed Rate - less than or equal to 90% LTV at 5.95%, €1,878.47 a month; deposit in place around July 2028; €90,833 over the first 5 years, €41,495 more than the lowest shown.",
+        "bundle": {
+          "products": [
+            {
+              "role": "mortgage",
+              "name": "5 yr Fixed Rate - less than or equal to 90% LTV",
+              "detail": "5.95%, €1,878.47 a month"
+            }
+          ],
+          "currentAccount": "None of these products is recorded as needing a current account with the lender."
         }
       }
     ],
-    "leftOut": []
+    "leftOut": [],
+    "warnings": [
+      "Warning: if you do not keep up your repayments you may lose your home.",
+      "Warning: the cost of your monthly repayments may increase.",
+      "Warning: if you do not meet the repayments on your loan, your account will go into arrears."
+    ]
   },
   "assumedRepayments": [],
   "presentation": [
-    "Your home: keys around July 2027.",
-    "Assumed: first-time buyer; a 30-year mortgage with a €35,000 deposit (10%); a €350,000 home, as given; not a new build, so no Help to Buy and standard rates (a BER C where a lender prices by BER); stamp duty of €3,500 (1%) and €3,000 for legal fees and a survey (an estimate); costs compared over the first 5 years for every lender: interest on a 30-year term plus the valuation fee, less cashback paid within 5 years and any savings bonus; a shorter fix moves to its stated follow-on rate for the rest of the 5 years.",
-    "The Bank of Ireland path: MortgageSaver (€200 or more a month for 6 months, €2,000 bonus less DIRT after drawdown), Bank of Ireland SuperSaver Account (€675 a month), 4 Year Fixed HVM BER C (3.2%, €1,362.27 a month); your current account can stay where it is; keys around July 2027; the lowest cost over the first 5 years.",
-    "The Avant Money path: 5 year fixed LTV >80% (3.7%, €1,449.89 a month), Cashback (€6,300); your current account can stay where it is; keys around July 2027; about €47 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
-    "The AIB path: AIB Online Saver (€25 a month), Higher Value 4 Year Fixed Rate, LTV Greater than 80% (3.25%, €1,370.90 a month); your current account can stay where it is; keys around July 2027; about €1,966 more over the first 5 years than the cheapest (incentives from CCPC’s tables, not confirmed on the lender’s site).",
-    "Money found: about €258 a year after DIRT (€35,000 in MoCo EasySaver, €258).",
-    "€45,197 in all at November 2027: €45,197 towards the first home (no debts given).",
-    "The split this plan uses: €35,000 in MoCo EasySaver; €675 a month in Bank of Ireland SuperSaver Account; €100 a month in EBS d.a.c Family Savings Account (Fixed); €25 a month in AIB Online Saver.",
-    "Everything stays in instant access: a fixed term would add only €70.35 by November 2027.",
-    "Each extra €100 a month adds about €1,213.06 by November 2027.",
-    "Help to Buy: depends, up to €35,000 on €350,000: the lesser of 10% of a new build’s price (up to €500,000), €35,000 (applications from 2026-10-07) and the Income Tax and DIRT paid over the last four years, for homes bought or built by 2029-12-31. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Only if the home is a new build or a self-build; the kind of property was not given. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
-    "These are options with their figures, for the inputs given; the customer decides.",
-    "This plan can be opened in the Saoi app: https://app.saoi.ie/#/plan/y0SGr2aElYhWsZ-F_pDQgw (held for 24 hours, then deleted unless opened).",
-    "Answer this one and the plan gets sharper: Is the home a new build, or second-hand? A new build brings Help to Buy and green rates: it moves the keys by 7 months, the cost per €100,000 borrowed by up to €1,162."
+    "At these figures, the deposit and buying costs are in place around July 2028.",
+    "Showing first-time-buyer rates; a 30-year mortgage with a €35,000 deposit (10%); a €350,000 home, as given; not a new build, so no Help to Buy and standard rates (a BER C where a lender prices by BER); stamp duty of €3,500 (1%) and €3,000 for legal fees and a survey (an estimate); costs compared over the first 5 years for every lender: interest on a 30-year term plus the valuation fee, less cashback paid within 5 years and any savings bonus; a shorter fix moves to its stated follow-on rate for the rest of the 5 years.",
+    "49 options that fit, sorted by cost over the first 5 years, lowest first (another order can be chosen).",
+    "Bank of Ireland, 4-year fixed: 4 Year Fixed HVM BER C at 3.2%, €1,362.27 a month; deposit in place around July 2028; €49,338 over the first 5 years, the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
+    "Avant Money, 5-year fixed: 5 year fixed LTV >80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €49,385 over the first 5 years, €47 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+    "Avant Money, 4-year fixed: 4 year fixed >80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €50,107 over the first 5 years, €769 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+    "Avant Money, 3-year fixed: 3 year fixed LTV >80% at 3.7%, €1,449.89 a month; deposit in place around July 2028; €50,856 over the first 5 years, €1,518 more than the lowest shown (€6,300 cashback at drawdown) (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+    "Bank of Ireland, 5-year fixed: 5 Year Fixed HVM BER C at 3.5%, €1,414.49 a month; deposit in place around July 2028; €51,225 over the first 5 years, €1,887 more than the lowest shown (MortgageSaver bonus €1,340 after DIRT).",
+    "AIB, 4-year fixed: Higher Value 4 Year Fixed Rate, LTV Greater than 80% at 3.25%, €1,370.90 a month; deposit in place around July 2028; €51,304 over the first 5 years, €1,966 more than the lowest shown (incentives from CCPC’s tables, not confirmed on the lender’s site).",
+    "43 more options fit, in the same order, in `home.pathways` and on the card.",
+    "Warning: if you do not keep up your repayments you may lose your home.",
+    "Warning: the cost of your monthly repayments may increase.",
+    "Warning: if you do not meet the repayments on your loan, your account will go into arrears.",
+    "No money found that the figures given support yet; see what is not counted.",
+    "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given).",
+    "Under the rule \"most towards the goal by November 2028\", this split comes first: €25,000 in MoCo EasySaver; €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account.",
+    "A fixed term would add €54.38 by November 2028 and lock the money until then; this combination uses instant access.",
+    "Each extra €100 a month adds about €2,438.03 by November 2028.",
+    "Help to Buy: not available here. Help to Buy is for new builds and self-builds, not a second-hand home. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
+    "Next under the same rule, without MoCo EasySaver: €25,000 in AIB Personal Fixed Term Deposit (24-month term); €575 a month in AIB Online Saver; €225 a month in Bank of Ireland SuperSaver Account; €45,332.63 towards the goal at November 2028, €54.38 more.",
+    "Next under the same rule, without Online Saver: €25,000 in MoCo EasySaver; €800 a month in Bank of Ireland SuperSaver Account; €45,212.69 towards the goal at November 2028, €65.56 less.",
+    "These are options with their figures, for the inputs given; the customer decides. Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.",
+    "Save this comparison to the Saoi app: https://app.saoi.ie/#/plan/VJrEo5B5dk7Vinc_lBjbgg (held for 24 hours, then deleted unless opened).",
+    "Answer this one and the plan gets sharper: Which bank holds the current account? Some products need an account with the same bank; none of the options shown does, so it changes no figure here."
   ],
-  "questions": ["Is the home a new build, or second-hand?", "Which bank holds the current account?"],
+  "questions": ["Which bank holds the current account?"],
   "position": {
-    "at": "2027-11",
-    "total": 45196.98,
-    "towardsGoal": 45196.98,
+    "at": "2028-11",
+    "total": 45278.25,
+    "towardsGoal": 45278.25,
     "buffer": 0,
     "owed": 0,
     "owedIsCeiling": false,
     "debtsGiven": false,
-    "line": "€45,197 in all at November 2027: €45,197 towards the first home (no debts given)."
+    "line": "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given)."
   },
   "saveLink": {
-    "url": "https://app.saoi.ie/#/plan/y0SGr2aElYhWsZ-F_pDQgw",
-    "expiresAt": "2026-11-11T13:28:54.154Z"
+    "url": "https://app.saoi.ie/#/plan/VJrEo5B5dk7Vinc_lBjbgg",
+    "expiresAt": "2026-11-11T15:00:36.728Z"
   },
   "helpToBuy": {
-    "status": "depends",
+    "status": "not_available",
     "amountEur": null,
-    "upToEur": 35000,
-    "note": "Help to Buy: depends, up to €35,000 on €350,000: the lesser of 10% of a new build’s price (up to €500,000), €35,000 (applications from 2026-10-07) and the Income Tax and DIRT paid over the last four years, for homes bought or built by 2029-12-31. The refund is also limited to the Income Tax and DIRT paid over the last four tax years, which was not given. Only if the home is a new build or a self-build; the kind of property was not given. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
+    "upToEur": 0,
+    "note": "Help to Buy: not available here. Help to Buy is for new builds and self-builds, not a second-hand home. Source: Revenue, https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx, checked 2026-11-09; saoi_first_home works it out for a price.",
     "sourceUrl": "https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx",
     "checkedOn": "2026-11-09"
   },
   "moneyFound": {
-    "annualEur": 258,
-    "headline": "Money found: about €258 a year after DIRT (€35,000 in MoCo EasySaver, €258).",
-    "parts": [
+    "annualEur": 0,
+    "headline": "No money found that the figures given support yet; see what is not counted.",
+    "parts": [],
+    "notCounted": [
       {
-        "kind": "idle_cash",
-        "label": "€35,000 in MoCo EasySaver",
-        "annualEur": 258,
-        "detail": "€492.45 a year after DIRT in MoCo EasySaver, against what the money earns now (0.67% after DIRT).",
-        "source": "MoCo’s own site",
-        "sourceUrl": "https://www.moco.ie/moco/savings",
-        "checkedAt": "2026-11-09T16:47:20.560Z"
+        "label": "€25,000 in MoCo EasySaver",
+        "annualEur": 352,
+        "why": "What this money earns now was not given, so the gain is not counted. The figure is what it would earn if it earns nothing now."
       }
     ],
-    "notCounted": [],
-    "basis": "A year’s figures, after DIRT at 33%: idle cash against the best confirmed instant-access rate (only where its current rate was given), debt interest not paid in the next twelve months less what the same money would earn, and a mortgage switch’s lower repayment. Bonuses, cashback and rates resting on CCPC’s one figure are not counted. In a plan, debt figures are the plan’s own net positions, spread over its 12 months."
+    "basis": "A year’s figures, after DIRT at 33%: idle cash against the best confirmed instant-access rate (only where its current rate was given), debt interest not paid in the next twelve months less what the same money would earn, and a mortgage switch’s lower repayment. Bonuses, cashback and rates resting on CCPC’s one figure are not counted. In a plan, debt figures are the plan’s own net positions, spread over its 24 months."
   },
   "plan": {
     "version": 1,
-    "title": "First home by November 2027",
+    "title": "Buying a home by November 2028",
     "situation": {
-      "summary": "Holds €35,000 in savings. Can save €800 a month. Gross income €90,000 a year.",
+      "summary": "Holds €25,000 in savings. Can save €800 a month. Gross income €90,000 a year.",
       "income": { "annualGross": 90000 },
       "monthlySaving": 800,
-      "savings": [{ "label": "savings", "balance": 35000, "aerPct": 1 }],
+      "savings": [{ "label": "Deposit saved", "balance": 25000 }],
       "debts": []
     },
-    "goals": [{ "id": "home", "kind": "house_deposit", "label": "First home", "targetDate": "2027-11" }],
-    "recommendation": {
+    "goals": [
+      {
+        "id": "home",
+        "kind": "house_deposit",
+        "label": "Buying a home",
+        "targetDate": "2028-11",
+        "priority": 1
+      }
+    ],
+    "combination": {
       "products": [
         {
           "role": "lump_sum",
@@ -730,10 +2646,10 @@
           "category": "savings",
           "productId": "savings.moco_easysaver",
           "productName": "MoCo EasySaver",
-          "amount": 35000,
+          "amount": 25000,
           "ratePct": 2.1,
-          "projected": { "horizonMonths": 12, "balance": 35492.45, "netInterest": 492.45 },
-          "why": "€35,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+          "projected": { "horizonMonths": 24, "balance": 25708.45, "netInterest": 708.45 },
+          "why": "€25,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
           "unknowns": [],
           "checks": [
             "Protected by the Austrian deposit guarantee (Einlagensicherung AUSTRIA) up to €100,000, not the Irish scheme.",
@@ -753,79 +2669,16 @@
         {
           "role": "regular_saver",
           "goalIds": ["home"],
-          "provider": "boi",
-          "providerName": "Bank of Ireland",
-          "source": "bank",
-          "category": "savings",
-          "productId": "savings.supersaver",
-          "productName": "SuperSaver Account",
-          "monthlyAmount": 675,
-          "ratePct": 3,
-          "projected": { "horizonMonths": 12, "balance": 8188.19, "netInterest": 88.19 },
-          "why": "€675 a month in Bank of Ireland SuperSaver Account: the most known interest after DIRT for this part of the money.",
-          "unknowns": [],
-          "checks": [
-            "Minimum age 16.",
-            "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."
-          ],
-          "depositGuarantee": {
-            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
-            "country": "Ireland",
-            "coverEur": 100000,
-            "note": null,
-            "sourceUrl": "https://personalbanking.bankofireland.com/?p=27570",
-            "checkedOn": "2026-11-09"
-          },
-          "checkedAt": "2026-11-09T16:15:23.051Z"
-        },
-        {
-          "role": "regular_saver",
-          "goalIds": ["home"],
-          "provider": "ebs",
-          "providerName": "EBS d.a.c",
-          "source": "ccpc",
-          "category": "savings",
-          "productId": "savings.c122",
-          "productName": "Family Savings Account (Fixed)",
-          "monthlyAmount": 100,
-          "ratePct": 3,
-          "projected": { "horizonMonths": 12, "balance": 1213.07, "netInterest": 13.07 },
-          "why": "€100 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
-          "unknowns": [
-            "the minimum age to open it",
-            "whether it takes a lump sum",
-            "the rate paid on a lump sum",
-            "the rate after the introductory or fixed period"
-          ],
-          "checks": [
-            "Introductory or tiered rate not confirmed: CCPC states only this rate. The provider may pay it only for a period or on part of the balance; check its terms.",
-            "Check eligibility with EBS d.a.c: CCPC does not record who can open it (for example, whether an account with EBS d.a.c is needed first)."
-          ],
-          "depositGuarantee": {
-            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
-            "country": "Ireland",
-            "coverEur": 100000,
-            "note": "EBS d.a.c. holds its own banking licence (Central Bank register), so its €100,000 is separate from AIB’s.",
-            "sourceUrl": "https://registers.centralbank.ie/prerenderedreports/2.pdf",
-            "checkedOn": "2026-11-09"
-          },
-          "checkedAt": "2026-11-09T16:15:23.051Z",
-          "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
-          "url": "https://www.ebs.ie/regular-savings.html"
-        },
-        {
-          "role": "regular_saver",
-          "goalIds": ["home"],
           "provider": "aib",
           "providerName": "AIB",
           "source": "ccpc",
           "category": "savings",
           "productId": "savings.c396",
           "productName": "Online Saver",
-          "monthlyAmount": 25,
+          "monthlyAmount": 575,
           "ratePct": 3,
-          "projected": { "horizonMonths": 12, "balance": 303.27, "netInterest": 3.27 },
-          "why": "€25 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
+          "projected": { "horizonMonths": 24, "balance": 14084.23, "netInterest": 284.23 },
+          "why": "€575 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
           "unknowns": [
             "the minimum age to open it",
             "whether it takes a lump sum",
@@ -847,82 +2700,102 @@
           "checkedAt": "2026-11-09T16:15:23.051Z",
           "attribution": "Source: Competition and Consumer Protection Commission, www.ccpc.ie",
           "url": "https://personal.aib.ie/our-products/savings-and-deposits/online-saver"
+        },
+        {
+          "role": "regular_saver",
+          "goalIds": ["home"],
+          "provider": "boi",
+          "providerName": "Bank of Ireland",
+          "source": "bank",
+          "category": "savings",
+          "productId": "savings.supersaver",
+          "productName": "SuperSaver Account",
+          "monthlyAmount": 225,
+          "ratePct": 3,
+          "projected": { "horizonMonths": 24, "balance": 5485.57, "netInterest": 85.57 },
+          "why": "€225 a month in Bank of Ireland SuperSaver Account: the most known interest after DIRT for this part of the money.",
+          "unknowns": [],
+          "checks": [
+            "Minimum age 16.",
+            "Check eligibility with Bank of Ireland: the rates and limits were read from its own page; who can open it is not recorded."
+          ],
+          "depositGuarantee": {
+            "scheme": "Deposit Guarantee Scheme (Ireland, run by the Central Bank of Ireland)",
+            "country": "Ireland",
+            "coverEur": 100000,
+            "note": null,
+            "sourceUrl": "https://personalbanking.bankofireland.com/?p=27570",
+            "checkedOn": "2026-11-09"
+          },
+          "checkedAt": "2026-11-09T16:15:23.051Z"
         }
       ],
-      "totals": { "monthly": 800, "lumpSum": 35000, "netInterest": 596.98 }
+      "totals": { "monthly": 800, "lumpSum": 25000, "netInterest": 1078.25 }
     },
     "debts": [],
     "ranking": {
       "objective": "highest_net_return",
-      "basis": "The split that earns the most interest after DIRT that can be known over 12 months on €35,000 placed and €800 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 12."
+      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €25,000 placed and €800 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 24."
     },
     "assumptions": [
-      "€45,197 in all at November 2027: €45,197 towards the first home (no debts given).",
+      "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given).",
       "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
       "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
       "Variable rates are assumed to stay as published today; they can change.",
       "Bonuses are not counted as interest.",
       "Every other euro of savings held is treated as available to place.",
-      "Locking €35,000 in Bank of Ireland Advantage Fixed Term Deposit Account for 12 months would leave only €70.35 more (0.20% a year on the money locked): €45,267.33 against €45,196.98 in instant access (everything held less what is still owed, at November 2027). A lock has to earn at least €100 and 0.…",
-      "A €45,196.98 deposit and €90,000 gross income support a price up to €405,196.98 under the Central Bank limits (the income limit binds)."
+      "Locking €25,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €54.38 more (0.11% a year on the money locked): €45,332.63 against €45,278.25 in instant access (everything held less what is still owed, at November 2028). A lock has to earn at least €100 and 0.25% a year, so the mo…",
+      "A €45,278.25 deposit and €90,000 gross income support a price up to €405,278.25 under the Central Bank limits (the income limit binds)."
     ],
     "position": {
-      "at": "2027-11",
-      "total": 45196.98,
-      "towardsGoal": 45196.98,
+      "at": "2028-11",
+      "total": 45278.25,
+      "towardsGoal": 45278.25,
       "buffer": 0,
       "owed": 0,
-      "line": "€45,197 in all at November 2027: €45,197 towards the first home (no debts given)."
+      "line": "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given)."
     },
-    "createdAt": "2026-11-10T13:28:54.154Z",
+    "createdAt": "2026-11-10T15:00:36.728Z",
     "dataCheckedAt": "2026-11-09T16:15:23.051Z"
   },
-  "horizonMonths": 12,
-  "knownThroughMonth": 12,
+  "horizonMonths": 24,
+  "knownThroughMonth": 24,
   "goalReachedOn": null,
   "reasoning": [
-    "€35,000 held and €800 a month to place, over 12 months.",
-    "Locking €35,000 in Bank of Ireland Advantage Fixed Term Deposit Account for 12 months would leave only €70.35 more (0.20% a year on the money locked): €45,267.33 against €45,196.98 in instant access (everything held less what is still owed, at November 2027). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
-    "€35,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
-    "€675 a month in Bank of Ireland SuperSaver Account: the most known interest after DIRT for this part of the money.",
-    "€100 a month in EBS d.a.c Family Savings Account (Fixed): the most known interest after DIRT for this part of the money.",
-    "€25 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
-    "€45,197 in all at November 2027: €45,197 towards the first home (no debts given).",
-    "A €45,196.98 deposit and €90,000 gross income support a price up to €405,196.98 under the Central Bank limits (the income limit binds).",
-    "For a new build or self-build, Help to Buy (up to €35,000 at that price: 10% of it, at most €35,000, and no more than the Income Tax and DIRT paid over the last four years, not given) counted towards the deposit lifts that to €440,196.98."
+    "€25,000 held and €800 a month to place, over 24 months.",
+    "Locking €25,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €54.38 more (0.11% a year on the money locked): €45,332.63 against €45,278.25 in instant access (everything held less what is still owed, at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "€25,000 in MoCo EasySaver: the most known interest after DIRT for this part of the money.",
+    "€575 a month in AIB Online Saver: the most known interest after DIRT for this part of the money.",
+    "€225 a month in Bank of Ireland SuperSaver Account: the most known interest after DIRT for this part of the money.",
+    "€45,278 in all at November 2028: €45,278 towards the buying a home (no debts given).",
+    "A €45,278.25 deposit and €90,000 gross income support a price up to €405,278.25 under the Central Bank limits (the income limit binds)."
   ],
   "debtScenarios": [],
   "affordability": {
-    "deposit": 45196.98,
-    "maxPrice": 405196.98,
+    "deposit": 45278.25,
+    "maxPrice": 405278.25,
     "maxLoanByIncome": 360000,
     "bindingLimit": "income",
-    "note": "A €45,196.98 deposit and €90,000 gross income support a price up to €405,196.98 under the Central Bank limits (the income limit binds).",
-    "helpToBuy": {
-      "upToEur": 35000,
-      "maxPriceWithHelpToBuy": 440196.98,
-      "note": "For a new build or self-build, Help to Buy (up to €35,000 at that price: 10% of it, at most €35,000, and no more than the Income Tax and DIRT paid over the last four years, not given) counted towards the deposit lifts that to €440,196.98.",
-      "sourceUrl": "https://www.revenue.ie/en/property/help-to-buy-incentive/how-much-can-you-claim.aspx",
-      "checkedOn": "2026-11-09"
-    }
+    "note": "A €45,278.25 deposit and €90,000 gross income support a price up to €405,278.25 under the Central Bank limits (the income limit binds).",
+    "helpToBuy": null
   },
   "unplaced": { "lumpSum": 0, "monthly": 0 },
   "liquidity": {
     "decision": "instant_access",
-    "why": "Locking €35,000 in Bank of Ireland Advantage Fixed Term Deposit Account for 12 months would leave only €70.35 more (0.20% a year on the money locked): €45,267.33 against €45,196.98 in instant access (everything held less what is still owed, at November 2027). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
-    "lockedNetPosition": 45267.33,
-    "instantNetPosition": 45196.98,
-    "gainEur": 70.35,
-    "gainPctPerYear": 0.2,
+    "why": "Locking €25,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €54.38 more (0.11% a year on the money locked): €45,332.63 against €45,278.25 in instant access (everything held less what is still owed, at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
+    "lockedNetPosition": 45332.63,
+    "instantNetPosition": 45278.25,
+    "gainEur": 54.38,
+    "gainPctPerYear": 0.11,
     "thresholdEur": 100,
     "thresholdPctPerYear": 0.25
   },
   "whatIf": {
-    "extraMonthly": { "extra": 100, "addsAtHorizon": 1213.06, "goalReachedOn": null },
+    "extraMonthly": { "extra": 100, "addsAtHorizon": 2438.03, "goalReachedOn": null },
     "goalReachedAtCurrentPace": null,
     "lines": [
-      "What if the lump sum were locked in a fixed term anyway (minLockGainEur: 0 and minLockGainPctPerYear: 0, in a later call): €45,267.33 at November 2027 (everything held less what is still owed), €70.35 more than this plan, with the money tied up.",
-      "Each extra €100 a month adds about €1,213.06 by November 2027, after DIRT.",
+      "What if the lump sum were locked in a fixed term anyway (minLockGainEur: 0 and minLockGainPctPerYear: 0, in a later call): €45,332.63 at November 2028 (everything held less what is still owed), €54.38 more than this plan, with the money tied up.",
+      "Each extra €100 a month adds about €2,438.03 by November 2028, after DIRT.",
       "With a target amount for the goal, the month it is reached is worked out: an alternative with targetAmount, or the amount in a later call."
     ]
   },

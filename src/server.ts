@@ -5,7 +5,7 @@ import type { SaoiApi } from './saoiClient.js'
 import type { Config } from './config.js'
 import { registerPrompts, registerResources, registerTools, SERVER_INSTRUCTIONS } from './tools.js'
 
-export const VERSION = '0.6.0'
+export const VERSION = '0.7.0'
 
 /** One server per request (stateless), bound to the end user's address for saoi-api's rate limit. */
 export function createSaoiServer(saoi: SaoiApi, ip?: string): McpServer {

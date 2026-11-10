@@ -6,6 +6,7 @@ import {
   renderAbout,
   renderDebt,
   renderFirstHome,
+  renderHomeCalculator,
   renderMoneyCheck,
   renderMortgage,
   renderPlan,
@@ -16,12 +17,25 @@ import {
   renderSearch,
 } from './render.js'
 import { SaoiError, type Body, type SaoiApi } from './saoiClient.js'
+import { HOME_CALCULATOR_TOOL_META, registerHomeCalculatorCard } from './ui/homeCalculatorResource.js'
 import { PLAN_CARD_TOOL_META, registerPlanCard } from './ui/planCardResource.js'
 
 export const SERVER_INSTRUCTIONS = [
+  'Saoi compares products and does the arithmetic on the figures the customer gives; it is information, not advice',
+  'or a recommendation, and it does not say which product is right for anyone. Saoi is not regulated by the Central',
+  'Bank of Ireland, so Central Bank consumer protection rules and compensation schemes do not cover it. Saoi earns',
+  'nothing from any provider. Never present a single option as right for the customer.',
+  '',
   'Saoi compares Irish savings, deposit, mortgage, loan, credit card and current account products against',
   "the customer's own figures and does the arithmetic: interest after DIRT, repayments, total cost, the month a",
-  'goal is reached. Information, not advice.',
+  'goal is reached.',
+  '',
+  'Buying a home: as soon as the customer raises buying a home, call saoi_home_calculator with whatever they have',
+  'already said (deposit, monthly saving, income and a second income, price, debts, date, their bank and whether',
+  'to stay with it, fixed or variable, first-time buyer, new build). Hosts that show cards open the calculator,',
+  'where the customer moves the sliders and taps "Show my options". Elsewhere, ask its questions in plain words,',
+  'one or two at a time, then call saoi_build_plan with a house_deposit goal, `homePrice`, `propertyKind` and',
+  '`homePreferences` (their own filters and the sort order they pick).',
   '',
   'Call saoi_money_check as soon as the customer talks about their own money in Ireland, without waiting to be',
   'asked: money sitting in a current account, saving for a house or anything else, a loan or credit card balance,',
@@ -48,12 +62,16 @@ export const SERVER_INSTRUCTIONS = [
   '- Every result starts with "Present to the customer". Relay that block first, in its own words and order: it',
   '  holds the money found, one net figure per scenario (savings less what is still owed), and for a plan the',
   '  link that opens it in the Saoi app. The detail below it is for questions.',
-  '- Present options with their figures; the customer decides. Never instruct: no "clear", "pay off", "set up",',
-  '  "move", "ask", "don\'t", "you should". Turn each recommendation into an option with its figure, e.g.:',
+  '- Present the options as a comparison, in the order the customer chose, with their figures; the customer',
+  '  decides and chooses. Never pick a product, lender or combination for them, never say which is best for them,',
+  '  what you would do, or what "the numbers support". A preference they gave (stay with my bank, fixed only) is',
+  '  their filter: say so ("showing Bank of Ireland options, as you asked").',
+  '- Never instruct: no "clear", "pay off", "set up", "move", "open", "switch", "ask", "don\'t", "you should".',
+  '  Give each option as a fact with its figure, e.g.:',
   '    not "Clear the €9,000 car loan", but "Clearing the €9,000 car loan from savings leaves €785 more by November',
   '    2028 than keeping it";',
-  '    not "Don\'t lock anything up", but "A fixed term would add only €24 by November 2028, so this plan keeps',
-  '    everything in instant access";',
+  '    not "Don\'t lock anything up", but "A fixed term would add €24 by November 2028 and lock the money until',
+  '    then";',
   '    not "Pay the old car repayment into savings", but "In this plan the €410 a month that went to the car loan',
   '    is saved".',
   "- Use the tools' figures; do not recompute, add up, extend or adjust them. Compare scenarios by their net",
@@ -66,11 +84,13 @@ export const SERVER_INSTRUCTIONS = [
   '- An emergency buffer is modelled only when the customer raises one. Never add a buffer, a buffer alternative',
   '  or a buffer suggestion they did not ask for.',
   '- Compare options by the amount towards the goal (each option line leads with it); the total held is secondary.',
+  '- Show the mortgage warnings with any mortgage figures, and say Saoi is not regulated and does not give advice.',
   '',
-  'Saving the plan:',
-  '- Each plan result carries one single-use link ("This plan can be opened in the Saoi app: …"), held for 24',
-  '  hours, then deleted unless opened. Nothing else is stored. Always give the customer that one link.',
-  '- In the app the plan opens as a card that Saoirse (Saoi’s assistant) knows and can talk through, and signing',
+  'Saving the comparison:',
+  '- Each plan result carries one single-use link ("Save this comparison to the Saoi app: …"), held for 24',
+  '  hours, then deleted unless opened. Nothing else is stored. Offer the customer that one link; saving is their',
+  '  choice.',
+  '- In the app the comparison opens as a card that Saoirse (Saoi’s assistant) knows and can talk through, and signing',
   '  in with an email keeps it across devices. Rate-change alerts and goal-date reminders are coming, not built.',
   '- saoi_save_plan is only for a plan that came back without a link.',
   '',
@@ -121,7 +141,11 @@ async function attempt(work: () => Promise<CallToolResult>): Promise<CallToolRes
 }
 
 /** Tools whose results the plan card renders in MCP Apps hosts (`_meta.ui`). */
-const CARD_TOOLS: ReadonlySet<string> = new Set(['saoi_money_check', 'saoi_build_plan'])
+const CARD_TOOLS: ReadonlySet<string> = new Set([
+  'saoi_money_check',
+  'saoi_build_plan',
+  'saoi_home_calculator',
+])
 
 /**
  * One line per tool call, for diagnosing a test afterwards (`docker logs saoi-mcp`): the tool,
@@ -204,7 +228,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Search and rank products',
       description: describe(
         'saoi_search_products',
-        'Follow-up: rank one category (savings, deposits, mortgages, loans, cards, current accounts) for given amounts, e.g. "what are the best 2-year fixed deposits for €10,000?".',
+        'Follow-up: rank one category (savings, deposits, mortgages, loans, cards, current accounts) for given amounts, e.g. "the highest-paying 2-year fixed deposits for €10,000".',
       ),
       inputSchema: input('saoi_search_products'),
       annotations: READ_ONLY,
@@ -315,12 +339,31 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
   )
 
   server.registerTool(
+    'saoi_home_calculator',
+    {
+      title: 'Home calculator: buying a home',
+      description: describe(
+        'saoi_home_calculator',
+        'Call as soon as the customer raises buying a home, with whatever they have already said (all optional). Hosts that show cards open an interactive calculator prefilled with it: sliders for deposit, monthly saving, income (single or joint), price, debts and date, the customer’s preferences, live figures as they move, and "Show my options", which compares every eligible option. Elsewhere, ask the questions it returns in plain words, then call saoi_build_plan with a house_deposit goal and `homePreferences`. It never picks a product.',
+      ),
+      inputSchema: input('saoi_home_calculator'),
+      annotations: READ_ONLY,
+      _meta: HOME_CALCULATOR_TOOL_META,
+    },
+    (args) =>
+      guarded('saoi_home_calculator', async () => {
+        const result = await saoi.homeCalculator(args, ip)
+        return ok(renderHomeCalculator(result), result)
+      }),
+  )
+
+  server.registerTool(
     'saoi_build_plan',
     {
-      title: 'Build a plan for the customer’s goals',
+      title: 'Compare the options for the customer’s goals',
       description: describe(
         'saoi_build_plan',
-        'Follow-up to saoi_money_check, for a later reply once a plan exists: once per reply, never alongside saoi_money_check and never once per option. To compare options (keeping the money accessible, the monthly amount, the date, keeping or clearing a debt), pass up to three `alternatives` in this one call; call again only when the customer changes their situation in a later message. To model keeping a debt, keep it in situation.debts with plan "keep"; never leave it out. Returns the plan with a link that holds it for 24 hours so the customer can open it in the Saoi app (the only thing stored), the reasoning, the liquidity decision, what-ifs and Help to Buy for a home. Relay its "Present to the customer" block first.',
+        'Follow-up to saoi_money_check, for a later reply once a plan exists: once per reply, never alongside saoi_money_check and never once per option. To compare options (keeping the money accessible, the monthly amount, the date, keeping or clearing a debt), pass up to three `alternatives` in this one call; call again only when the customer changes their situation in a later message. To model keeping a debt, keep it in situation.debts with plan "keep"; never leave it out. For a home, pass `homePreferences` with the customer’s own filters (their bank and whether to stay with it, fixed or variable, green) and the sort they pick (cost over 5 years, keys date, monthly repayment): every eligible option comes back in that order, never one pick. Returns a worked combination under the stated rule with its runners-up, a link that holds the comparison for 24 hours so the customer can save it to the Saoi app (the only thing stored), the reasoning, the liquidity figures, what-ifs and Help to Buy for a home. Relay its "Present to the customer" block first.',
       ),
       inputSchema: input('saoi_build_plan'),
       annotations: {
@@ -371,6 +414,7 @@ export const ABOUT_RESOURCES = {
 
 export function registerResources(server: McpServer, saoi: SaoiApi, ip?: string): void {
   registerPlanCard(server)
+  registerHomeCalculatorCard(server)
   for (const [topic, resource] of Object.entries(ABOUT_RESOURCES) as [
     keyof typeof ABOUT_RESOURCES,
     (typeof ABOUT_RESOURCES)[keyof typeof ABOUT_RESOURCES],
@@ -383,7 +427,7 @@ export function registerResources(server: McpServer, saoi: SaoiApi, ip?: string)
         description:
           topic === 'ranking'
             ? 'How results are ordered and every figure worked out: objectives, DIRT, unknowns, sources.'
-            : 'How Saoi earns: referral fees, disclosed and never used in ranking; information, not advice; the CCPC attribution.',
+            : 'How Saoi earns: it is free and earns nothing from any provider; how the order is decided; not advice and not regulated; the CCPC attribution.',
         mimeType: 'text/markdown',
       },
       async (uri) => {

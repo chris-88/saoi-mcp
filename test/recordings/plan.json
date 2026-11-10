@@ -27,10 +27,22 @@
     "title": "House deposit by November 2028",
     "situation": {
       "summary": "Holds €25,000 in savings. Can save €800 a month. Gross income €62,000 a year. Car loan: €9,000 at 9%.",
-      "income": { "annualGross": 62000, "netMonthly": 3900 },
-      "outgoings": { "rentMonthly": 1650, "otherMonthly": 900 },
+      "income": {
+        "annualGross": 62000,
+        "netMonthly": 3900
+      },
+      "outgoings": {
+        "rentMonthly": 1650,
+        "otherMonthly": 900
+      },
       "monthlySaving": 800,
-      "savings": [{ "label": "Current account", "balance": 25000, "aerPct": 0 }],
+      "savings": [
+        {
+          "label": "Current account",
+          "balance": 25000,
+          "aerPct": 0
+        }
+      ],
       "debts": [
         {
           "id": "car-loan",
@@ -53,7 +65,32 @@
         "priority": 1
       }
     ],
-    "recommendation": {
+    "debts": [
+      {
+        "debtId": "car-loan",
+        "action": "pay_off_first",
+        "why": "At 9% it costs more than the savings earn. Clearing from the lump sum and saving its €280 a month leaves €991.72 more at month 24 than keeping it. Keeping it reaches €35,000 sooner, in November 2027 rather than May 2028, with €3,385.33 still owed at the end.",
+        "costIfKept": 1274.96,
+        "costWithStep": 0
+      }
+    ],
+    "ranking": {
+      "objective": "highest_net_return",
+      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €16,000 placed and €1,080 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 24."
+    },
+    "assumptions": [
+      "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
+      "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
+      "Variable rates are assumed to stay as published today; they can change.",
+      "Bonuses are not counted as interest.",
+      "Every other euro of savings held is treated as available to place.",
+      "The €280 a month the Car loan took is saved instead from the next month: with the €800 a month already saved, €1,080 a month goes into the accounts below.",
+      "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant ac…",
+      "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
+    ],
+    "createdAt": "2026-11-09T14:53:05.105Z",
+    "dataCheckedAt": "2026-11-09T13:16:08.102Z",
+    "combination": {
       "products": [
         {
           "role": "lump_sum",
@@ -173,33 +210,12 @@
           "url": "https://personal.aib.ie/our-products/savings-and-deposits/online-saver"
         }
       ],
-      "totals": { "monthly": 1080, "lumpSum": 16000, "netInterest": 998.94 }
-    },
-    "debts": [
-      {
-        "debtId": "car-loan",
-        "action": "pay_off_first",
-        "why": "At 9% it costs more than the savings earn. Clearing from the lump sum and saving its €280 a month leaves €991.72 more at month 24 than keeping it. Keeping it reaches €35,000 sooner, in November 2027 rather than May 2028, with €3,385.33 still owed at the end.",
-        "costIfKept": 1274.96,
-        "costWithStep": 0
+      "totals": {
+        "monthly": 1080,
+        "lumpSum": 16000,
+        "netInterest": 998.94
       }
-    ],
-    "ranking": {
-      "objective": "highest_net_return",
-      "basis": "The split that earns the most interest after DIRT that can be known over 24 months on €16,000 placed and €1,080 a month, for the inputs given; a fixed term or notice account only where it beats instant access by €100 and 0.25% a year; debts set against savings by net position at month 24."
-    },
-    "assumptions": [
-      "DIRT at 33% is deducted from interest, except on products the source marks DIRT-free.",
-      "Interest accrues monthly at a twelfth of the AER and is credited every twelve months and at the end.",
-      "Variable rates are assumed to stay as published today; they can change.",
-      "Bonuses are not counted as interest.",
-      "Every other euro of savings held is treated as available to place.",
-      "The €280 a month the Car loan took is saved instead from the next month: with the €800 a month already saved, €1,080 a month goes into the accounts below.",
-      "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant ac…",
-      "A €42,918.94 deposit and €62,000 gross income support a price up to €290,918.94 under the Central Bank limits (the income limit binds)."
-    ],
-    "createdAt": "2026-11-09T14:53:05.105Z",
-    "dataCheckedAt": "2026-11-09T13:16:08.102Z"
+    }
   },
   "horizonMonths": 24,
   "knownThroughMonth": 24,
@@ -249,7 +265,10 @@
       "checkedOn": "2026-11-09"
     }
   },
-  "unplaced": { "lumpSum": 0, "monthly": 0 },
+  "unplaced": {
+    "lumpSum": 0,
+    "monthly": 0
+  },
   "liquidity": {
     "decision": "instant_access",
     "why": "Locking €16,000 in AIB Personal Fixed Term Deposit for 24 months would leave only €34.80 more (0.11% a year on the money locked): €42,953.74 against €42,918.94 in instant access (savings less debt at November 2028). A lock has to earn at least €100 and 0.25% a year, so the money stays in instant access and can be reached at any time.",
@@ -261,7 +280,11 @@
     "thresholdPctPerYear": 0.25
   },
   "whatIf": {
-    "extraMonthly": { "extra": 100, "addsAtHorizon": 2450.52, "goalReachedOn": "2028-03" },
+    "extraMonthly": {
+      "extra": 100,
+      "addsAtHorizon": 2450.52,
+      "goalReachedOn": "2028-03"
+    },
     "goalReachedAtCurrentPace": "2028-05",
     "lines": [
       "Locking it anyway: €42,953.74 at November 2028, €34.80 more, with the money tied up (minLockGainEur: 0 and minLockGainPctPerYear: 0).",
@@ -270,5 +293,6 @@
       "At this pace €35,000 is reached in May 2028."
     ]
   },
-  "next": "Nothing has been stored. If the customer wants to keep this plan, offer saoi_save_plan: it saves the plan into the Saoi app (app.saoi.ie) behind a one-time link, valid for seven days. In the app the plan opens as a card, and Saoirse, Saoi’s assistant, knows it and can talk it through; signing in with an email address keeps it across devices, including the installed app. Alerts when a chosen product’s rate changes and reminders as the goal date nears are coming, not built yet. To change an assumption (the buffer, keeping the money accessible, the monthly amount, the date), call saoi_build_plan again with the new inputs; the figures come from that call."
+  "next": "Nothing has been stored. If the customer wants to keep this plan, offer saoi_save_plan: it saves the plan into the Saoi app (app.saoi.ie) behind a one-time link, valid for seven days. In the app the plan opens as a card, and Saoirse, Saoi’s assistant, knows it and can talk it through; signing in with an email address keeps it across devices, including the installed app. Alerts when a chosen product’s rate changes and reminders as the goal date nears are coming, not built yet. To change an assumption (the buffer, keeping the money accessible, the monthly amount, the date), call saoi_build_plan again with the new inputs; the figures come from that call.",
+  "runnersUp": []
 }

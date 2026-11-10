@@ -1,6 +1,7 @@
 import { Script } from 'node:vm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { planCardModel } from '../src/ui/planCardModel.js'
+import { HOME_CALCULATOR_URI } from '../src/ui/homeCalculatorResource.js'
 import { MCP_APP_MIME_TYPE, PLAN_CARD_URI, planCardHtml } from '../src/ui/planCardResource.js'
 import { mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
@@ -16,14 +17,25 @@ afterEach(async () => {
 })
 
 describe('plan card over the protocol', () => {
-  it('saoi_money_check and saoi_build_plan name the card; no other tool does', async () => {
+  it('saoi_money_check and saoi_build_plan name the plan card, saoi_home_calculator its own', async () => {
     const tools = (await result(await modernPost(srv.url, 'tools/list')))['tools'] as {
       name: string
       _meta?: Record<string, unknown>
     }[]
     const withUi = tools.filter((tool) => tool._meta?.['ui'] !== undefined)
-    expect(withUi.map((tool) => tool.name).sort()).toEqual(['saoi_build_plan', 'saoi_money_check'])
-    expect(withUi[0]?._meta).toEqual({ ui: { resourceUri: PLAN_CARD_URI }, 'ui/resourceUri': PLAN_CARD_URI })
+    expect(withUi.map((tool) => tool.name).sort()).toEqual([
+      'saoi_build_plan',
+      'saoi_home_calculator',
+      'saoi_money_check',
+    ])
+    expect(withUi.find((tool) => tool.name === 'saoi_build_plan')?._meta).toEqual({
+      ui: { resourceUri: PLAN_CARD_URI },
+      'ui/resourceUri': PLAN_CARD_URI,
+    })
+    expect(withUi.find((tool) => tool.name === 'saoi_home_calculator')?._meta).toEqual({
+      ui: { resourceUri: HOME_CALCULATOR_URI },
+      'ui/resourceUri': HOME_CALCULATOR_URI,
+    })
   })
 
   it('lists and serves the card as an MCP App resource with no external origins but Claude’s fonts', async () => {
@@ -228,17 +240,25 @@ describe('plan card model: assumed repayments and alternatives (after test 5)', 
   })
 })
 
-describe('plan card model: pathways to a home', () => {
+describe('plan card model: every option for a home', () => {
   const view = planCardModel(recorded.planHome)
 
-  it('leads with the goal and gives up to three pathways, keys first, ranked by cost', () => {
-    expect(view.home?.headline).toMatch(/^Your home: keys around /)
-    expect(view.home?.rows.length).toBeGreaterThan(0)
-    expect(view.home?.rows.length).toBeLessThanOrEqual(3)
-    expect(view.home?.rows[0]?.cost).toMatch(/^cheapest over the first 5 years$/)
-    expect(view.home?.rows[1]?.cost).toMatch(/^about €[\d,]+ more over the first 5 years$/)
+  it('carries every option with the figures each sort uses, and no pick', () => {
+    expect(view.home?.headline).toMatch(
+      /^At these figures, the deposit and buying costs are in place around /,
+    )
+    expect(view.home?.rows).toHaveLength(recorded.planHome.home?.pathways.length ?? -1)
+    expect(view.home?.rows.length).toBeGreaterThan(3)
+    expect(view.home?.rows[0]?.cost).toMatch(/^€[\d,]+ \/ 5 yrs$/)
     expect(view.home?.rows[0]?.keys).toMatch(/^keys [A-Z][a-z]{2} \d{4}$/)
-    expect(view.home?.assumptions).toMatch(/^Assumed: first-time buyer/)
+    expect(view.home?.rows[0]?.kind).toMatch(/^(\d+-year fixed|variable)$/)
+    expect(view.home?.sortBy).toBe('five_year_cost')
+    expect(view.home?.warnings).toHaveLength(3)
+    expect(view.home?.assumptions).toMatch(/^Showing first-time-buyer rates/)
+    expect(view.runnersUp.length).toBeGreaterThan(0)
+    expect(view.footer.join(' ')).toMatch(/not regulated by the Central Bank of Ireland/)
+    const words = JSON.stringify({ ...view, plan: null })
+    expect(words).not.toMatch(/cheapest|Your home: keys|your path|recommend|make this plan happen/i)
   })
 
   it('has none for a plan whose goal is not a home', () => {
@@ -257,7 +277,7 @@ describe('plan card model: the save call grows with the plan', () => {
 
   it('falls back to the plain button for older results', () => {
     const older = planCardModel(recorded.plan)
-    expect(older.save.label).toBe('Save to Saoi app')
+    expect(older.save.label).toBe('Save this comparison')
     expect(older.completeness).toBeNull()
   })
 })

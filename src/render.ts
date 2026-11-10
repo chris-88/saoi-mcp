@@ -10,6 +10,7 @@ import type {
   BuildPlanResult,
   DebtResult,
   FirstHomeResult,
+  HomeCalculatorResult,
   MoneyCheckResult,
   MortgageResult,
   ProductDetail,
@@ -54,7 +55,18 @@ export function present(lines: readonly string[]): string[] {
   return ['Present to the customer:', ...lines.map((line) => `- ${line}`), '', 'Detail:']
 }
 
-const DECIDES = 'These are options with their figures, for the inputs given; the customer decides.'
+/** Under every result (decision 2026-11-10): Saoi compares; it is not regulated and does not advise. */
+export const STATEMENT =
+  'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.'
+
+const DECIDES = `These are options with their figures, for the inputs given; the customer decides. ${STATEMENT}`
+
+/** The statutory mortgage warnings, shown with every mortgage result (saoi-api's wording). */
+export const MORTGAGE_WARNINGS = [
+  'Warning: if you do not keep up your repayments you may lose your home.',
+  'Warning: the cost of your monthly repayments may increase.',
+  'Warning: if you do not meet the repayments on your loan, your account will go into arrears.',
+] as const
 
 export const productName = (product: Pick<Product, 'name' | 'providerName'>): string =>
   product.name.toLowerCase().startsWith(product.providerName.toLowerCase())
@@ -104,6 +116,7 @@ export function renderSearch(result: SearchResult): string {
       ...result.results
         .slice(0, 3)
         .map((row) => `${String(row.rank)}. ${productName(row.product)}: ${figuresLine(row.figures)}.`),
+      ...(result.results.some((row) => row.product.category === 'mortgage') ? MORTGAGE_WARNINGS : []),
       `Ranked by ${result.ranking.objective.replaceAll('_', ' ')}; another order can be asked for. ${DECIDES}`,
     ]),
     `Ranked by ${result.ranking.objective.replaceAll('_', ' ')}: ${result.ranking.basis}`,
@@ -249,6 +262,7 @@ export function renderMortgage(result: MortgageResult): string {
               `At ${eur(result.forProperty.propertyValue)}: a ${eur(result.forProperty.depositNeeded)} deposit${result.forProperty.depositShortfall > 0 ? `, ${eur(result.forProperty.depositShortfall)} short` : ''}; the loan is ${result.forProperty.withinIncomeLimit ? 'within' : 'above'} the income limit.`,
             ]),
         'For a first home, saoi_first_home adds Help to Buy.',
+        ...MORTGAGE_WARNINGS,
         DECIDES,
       ]),
       `Central Bank limits: loan up to ${String(result.limits.loanToIncome)} times income, loan-to-value up to ${pct(result.limits.maxLtvPct)}. ${result.limits.allowance}`,
@@ -274,8 +288,9 @@ export function renderMortgage(result: MortgageResult): string {
       ...(best === undefined
         ? ['No switcher rate in the data is lower for these figures.']
         : [
-            `The lowest whole-term cost: ${productName(best.product)}, ${eur(best.monthlySaving)} a month less${best.lifetimeSaving === null ? '' : `, ${eur(best.lifetimeSaving)} over the term`} (fees as stated, not counted).`,
+            `Lowest whole-term cost of the ${String(result.options.length)} shown: ${productName(best.product)}, ${eur(best.monthlySaving)} a month less${best.lifetimeSaving === null ? '' : `, ${eur(best.lifetimeSaving)} over the term`} (fees as stated, not counted).`,
           ]),
+      ...MORTGAGE_WARNINGS,
       DECIDES,
     ]),
     `Now: ${pct(result.current.ratePct)}, ${eur(result.current.monthlyRepayment)} a month, ${eur(result.current.totalRemaining)} over the rest of the term.${result.ltvPct === null ? '' : ` LTV ${pct(result.ltvPct)}.`}`,
@@ -337,7 +352,7 @@ export function renderDebt(result: DebtResult): string {
 }
 
 type PlanGuarantee = NonNullable<
-  BuildPlanResult['plan']['recommendation']['products'][number]['depositGuarantee']
+  BuildPlanResult['plan']['combination']['products'][number]['depositGuarantee']
 >
 
 /** The deposit guarantee in one line, with where it was read. */
@@ -354,10 +369,10 @@ export function guaranteeLine(guarantee: PlanGuarantee): string {
 
 /** A payoff step as an option with its figures, not an instruction: the customer decides. */
 const DEBT_ACTIONS: Record<BuildPlanResult['plan']['debts'][number]['action'], string> = {
-  pay_off_first: 'cleared from the lump sum in this plan',
-  overpay: 'part paid from the lump sum in this plan',
-  keep_paying: 'kept as it is in this plan',
-  refinance: 'refinancing compared in this plan',
+  pay_off_first: 'cleared from the lump sum in this combination',
+  overpay: 'part paid from the lump sum in this combination',
+  keep_paying: 'kept as it is in this combination',
+  refinance: 'refinancing compared in this combination',
 }
 
 export function renderPlan(result: BuildPlanResult): string {
@@ -369,9 +384,10 @@ export function renderPlan(result: BuildPlanResult): string {
     `Ranked by ${plan.ranking.objective.replaceAll('_', ' ')}: ${plan.ranking.basis}`,
     '',
     ...result.reasoning.map((line) => `- ${line}`),
+    ...renderHomeOptions(result.home),
     '',
-    'Products:',
-    ...plan.recommendation.products.flatMap((product) => [
+    'One worked combination, for the stated rule (other splits below it):',
+    ...plan.combination.products.flatMap((product) => [
       `- ${product.productName} (${product.providerName}, ${product.source === 'bank' ? 'from the provider' : 'from CCPC'}): ${[
         product.amount === undefined ? '' : `${eur(product.amount)} placed`,
         product.monthlyAmount === undefined ? '' : `${eur(product.monthlyAmount)} a month`,
@@ -385,6 +401,14 @@ export function renderPlan(result: BuildPlanResult): string {
       ...product.unknowns.map((unknown) => `  · Not stated: ${unknown}`),
       ...product.checks.map((check) => `  · ${check}`),
     ]),
+    ...((result.runnersUp as BuildPlanResult['runnersUp'] | undefined) === undefined ||
+    result.runnersUp.length === 0
+      ? []
+      : [
+          '',
+          'Other splits, each without one product of the first:',
+          ...result.runnersUp.map((runnerUp) => `- ${runnerUp.line}`),
+        ]),
     '',
     `Locked or accessible: ${result.liquidity.why}`,
     ...(result.whatIf.lines.length === 0
@@ -411,12 +435,63 @@ export function renderPlan(result: BuildPlanResult): string {
       dataCheckedAt: plan.dataCheckedAt,
       attributions: [
         ...new Set(
-          plan.recommendation.products.flatMap((p) => (p.attribution === undefined ? [] : [p.attribution])),
+          plan.combination.products.flatMap((p) => (p.attribution === undefined ? [] : [p.attribution])),
         ),
       ],
     }),
     '',
     `Next: ${result.next}`,
+    '',
+    STATEMENT,
+  ].join('\n')
+}
+
+/** Every home option, in the customer's order, with the filters they chose and the warnings. */
+function renderHomeOptions(home: BuildPlanResult['home'] | undefined): string[] {
+  // Optional at runtime: results from before saoi-api carried `home` have none.
+  if (home === null || home === undefined) return []
+  // Older results carry neither the filters nor the warnings: the warnings are shown anyway.
+  const extra = home as Partial<
+    Pick<NonNullable<BuildPlanResult['home']>, 'filters' | 'sortedBy' | 'warnings'>
+  >
+  return [
+    '',
+    `Home options: ${extra.sortedBy ?? 'sorted by cost over the first 5 years'}`,
+    ...(extra.filters ?? []).map((filter) => `- ${filter}`),
+    ...home.pathways.map((option, index) => `${String(index + 1)}. ${option.line}`),
+    ...home.leftOut.map((line) => `  Left out: ${line}`),
+    ...(extra.warnings ?? MORTGAGE_WARNINGS),
+  ]
+}
+
+/** The home calculator: the figures that move with the inputs, and what is still to ask. */
+export function renderHomeCalculator(result: HomeCalculatorResult): string {
+  const f = result.figures
+  return [
+    ...present(result.presentation),
+    'Figures:',
+    ...(f.maxLoanEur === null ? [] : [`- Central Bank income limit: ${eur(f.maxLoanEur)} borrowed`]),
+    ...(f.priceEur === null
+      ? ['- Price: not known yet']
+      : [
+          `- Price: ${eur(f.priceEur)} (${f.priceFrom === 'given' ? 'as given' : 'the most the deposit by the date and the income limit allow'})`,
+        ]),
+    ...(f.loanEur === null
+      ? []
+      : [`- Mortgage: ${eur(f.loanEur)}${f.ltvPct === null ? '' : ` (${pct(f.ltvPct)} of the price)`}`]),
+    ...(f.depositNeededEur === null ? [] : [`- Deposit: ${eur(f.depositNeededEur)}`]),
+    ...(f.neededAtKeysEur === null ? [] : [`- Needed at the keys: ${eur(f.neededAtKeysEur)}`]),
+    ...(f.depositReachedOn === null ? [] : [`- Saved by: ${f.depositReachedOn} (before interest)`]),
+    ...(result.questions.length === 0
+      ? []
+      : [
+          '',
+          'Still to ask, one or two at a time, in plain words:',
+          ...result.questions.map((q) => `- ${q.question}`),
+        ]),
+    '',
+    `Next: ${result.next}`,
+    ...result.rules.sources.map((source) => `Source: ${source}`),
   ].join('\n')
 }
 
@@ -467,7 +542,7 @@ export function renderMoneyCheck(result: MoneyCheckResult): string {
 export function renderSaved(result: SavePlanResult): string {
   return [
     ...present([
-      `This plan can be opened in the Saoi app: ${result.claimUrl} (held for 24 hours, then deleted unless opened).`,
+      `Saved: this comparison can be opened in the Saoi app: ${result.claimUrl} (held for 24 hours, then deleted unless opened).`,
     ]),
     `It works once and expires ${result.expiresAt}. Nothing else about the customer is stored.`,
   ].join('\n')

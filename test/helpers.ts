@@ -7,6 +7,7 @@ import type {
   BuildPlanResult,
   DebtResult,
   FirstHomeResult,
+  HomeCalculatorResult,
   MoneyCheckResult,
   MortgageResult,
   ProductDetail,
@@ -37,8 +38,10 @@ export const recorded = {
   planPresented: recording('plan-presented') as BuildPlanResult,
   /** The fourth-test scenario from the branch engine: an assumed repayment and one alternative. */
   planAlternatives: recording('plan-alternatives') as BuildPlanResult,
-  /** A first home (live, 2026-11-10): pathways per lender. */
+  /** A first home (live, 2026-11-10, after the comparison change): every option, filtered and sorted. */
   planHome: recording('plan-home') as BuildPlanResult,
+  /** The home calculator (live, 2026-11-10). */
+  homeCalculator: recording('home-calculator') as HomeCalculatorResult,
   reviewPresented: recording('review-presented') as ReviewResult,
   firstHomePresented: recording('first-home-presented') as FirstHomeResult,
   ranking: recording('ranking') as About,
@@ -56,6 +59,7 @@ export const mockSaoi = (): { [K in keyof SaoiApi]: ReturnType<typeof vi.fn<Saoi
   buildPlan: vi.fn<SaoiApi['buildPlan']>(() => Promise.resolve(recorded.planPresented)),
   firstHome: vi.fn<SaoiApi['firstHome']>(() => Promise.resolve(recorded.firstHomePresented)),
   moneyCheck: vi.fn<SaoiApi['moneyCheck']>(() => Promise.resolve(recorded.moneyCheck)),
+  homeCalculator: vi.fn<SaoiApi['homeCalculator']>(() => Promise.resolve(recorded.homeCalculator)),
   savePlan: vi.fn<SaoiApi['savePlan']>(() => Promise.resolve(recorded.saved)),
 })
 

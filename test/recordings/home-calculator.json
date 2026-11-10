@@ -1,0 +1,68 @@
+{
+  "inputs": {
+    "depositSavedEur": 25000,
+    "monthlySavingEur": 800,
+    "annualGrossIncomeEur": 90000,
+    "targetPriceEur": 350000,
+    "targetDate": "2028-11",
+    "firstTimeBuyer": true,
+    "propertyKind": "second_hand",
+    "currentBank": "Bank of Ireland"
+  },
+  "rules": {
+    "loanToIncome": 4,
+    "maxLtvPct": 90,
+    "stampDutyPct": 1,
+    "legalAndSurveyEur": 3000,
+    "helpToBuy": { "shareOfPrice": 0.1, "capEur": 35000, "maxPriceEur": 500000 },
+    "firstTimeBuyer": { "loanToIncome": 4, "maxLtvPct": 90 },
+    "otherBuyer": { "loanToIncome": 3.5, "maxLtvPct": 90 },
+    "sources": [
+      "https://www.centralbank.ie/financial-system/financial-stability/macro-prudential-policy/mortgage-measures",
+      "https://www.revenue.ie/en/property/stamp-duty/property/residential-property.aspx",
+      "https://www.revenue.ie/en/property/help-to-buy-incentive/what-type-of-property-qualifies.aspx"
+    ]
+  },
+  "figures": {
+    "incomeEur": 90000,
+    "maxLoanEur": 360000,
+    "priceEur": 350000,
+    "priceFrom": "given",
+    "loanEur": 315000,
+    "ltvPct": 90,
+    "depositNeededEur": 35000,
+    "stampDutyEur": 3500,
+    "legalAndSurveyEur": 3000,
+    "helpToBuyEur": 0,
+    "neededAtKeysEur": 41500,
+    "depositReachedOn": "2028-08",
+    "targetDateMet": true,
+    "monthlyCommitmentsNote": null
+  },
+  "lines": [
+    "The Central Bank limit for a first-time buyer is 4 times gross income: €360,000 on €90,000. Lenders decide within it, and may lend above it only under the 15% allowance.",
+    "For a €350,000 home: a €315,000 mortgage (90% of the price) and a €35,000 deposit.",
+    "Needed at the keys: €41,500 (the deposit, €3,500 stamp duty and about €3,000 for legal fees and a survey).",
+    "At €800 a month from €25,000, that is saved around August 2028, before interest: by November 2028, the date given."
+  ],
+  "questions": [{ "key": "rateType", "question": "Fixed rate, variable, or show both?" }],
+  "next": "To see every eligible option, sorted by keys date, cost over the first 5 years or monthly repayment: the card’s \"Show my options\" button, or saoi_build_plan with a house_deposit goal, these figures, `homePrice`, `propertyKind` and `homePreferences`.",
+  "presentation": [
+    "The Central Bank limit for a first-time buyer is 4 times gross income: €360,000 on €90,000. Lenders decide within it, and may lend above it only under the 15% allowance.",
+    "For a €350,000 home: a €315,000 mortgage (90% of the price) and a €35,000 deposit.",
+    "Needed at the keys: €41,500 (the deposit, €3,500 stamp duty and about €3,000 for legal fees and a survey).",
+    "At €800 a month from €25,000, that is saved around August 2028, before interest: by November 2028, the date given.",
+    "Still to know: Fixed rate, variable, or show both?",
+    "To see every eligible option, sorted by keys date, cost over the first 5 years or monthly repayment: the card’s \"Show my options\" button, or saoi_build_plan with a house_deposit goal, these figures, `homePrice`, `propertyKind` and `homePreferences`.",
+    "Warning: if you do not keep up your repayments you may lose your home.",
+    "Warning: the cost of your monthly repayments may increase.",
+    "Warning: if you do not meet the repayments on your loan, your account will go into arrears.",
+    "Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give."
+  ],
+  "warnings": [
+    "Warning: if you do not keep up your repayments you may lose your home.",
+    "Warning: the cost of your monthly repayments may increase.",
+    "Warning: if you do not meet the repayments on your loan, your account will go into arrears."
+  ],
+  "statement": "Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give."
+}

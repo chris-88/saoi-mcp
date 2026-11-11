@@ -8,15 +8,16 @@ import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardRes
 /**
  * The home calculator card (decision 2026-11-10: Saoi compares; the customer sets the filters):
  * an MCP Apps UI resource that hosts which support it render with `saoi_home_calculator`.
- * Card v7 (decision 2026-11-11): one phone screen under Saoirse's mark with the month the money
- * for the keys is ready, a progress bar, two tiles and two other routes to a home as facts, with
- * icons; sliders with typed boxes and the customer's filters under Edit; "Open in Saoi" (and "See
- * all N routes in Saoi"), which compares, saves and opens it in the app; the assumptions, warnings
- * and statement folded behind one footer line. No tool is called until the customer asks.
+ * Card v8 (decision 2026-11-11): one phone screen under Saoirse's mark with the month the money
+ * for the keys is ready and what it is made of, a progress bar, three tiles (savings, mortgage,
+ * could afford) and two other supports as facts, with icons; sliders with typed boxes and the
+ * customer's filters under Edit; "Open in Saoi" (and "See all N supports in Saoi"), which compares,
+ * saves and opens it in the app; the assumptions, warnings and statement folded behind one
+ * footer line. No tool is called until the customer asks.
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v7.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v8.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },
@@ -82,16 +83,16 @@ select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto;
 .caps { text-transform: uppercase; letter-spacing: 0.04em; }
 .hero-month { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
 .meter { display: grid; gap: 4px; }
-.meter .with-icon { display: flex; }
-.meter .with-icon .icon { color: var(--muted-foreground); }
 .bar { height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
 .bar > span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
-.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .tile {
-  border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; min-width: 0;
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; min-width: 0;
   display: grid; gap: 2px; align-content: start;
 }
 .tile p { overflow-wrap: anywhere; }
+/* One step under .big (15px): "up to €444,000" stays on one line in a third of 390px. */
+.tile .tile-value { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow-wrap: normal; }
 .tile-icon { color: var(--muted-foreground); padding-bottom: 2px; }
 .label.with-icon { display: flex; }
 .label.with-icon .icon { color: var(--muted-foreground); }

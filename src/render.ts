@@ -495,7 +495,8 @@ function renderRoutes(routes: readonly HomeRoute[] | undefined): string[] {
 /** The home calculator: the figures that move with the inputs, and what is still to ask. */
 export function renderHomeCalculator(result: HomeCalculatorResult): string {
   const f = result.figures
-  const extra = result as Partial<Pick<HomeCalculatorResult, 'routes'>>
+  const extra = result as Partial<Pick<HomeCalculatorResult, 'routes' | 'market'>>
+  const market = extra.market ?? null
   return [
     ...present(result.presentation),
     'Figures:',
@@ -516,6 +517,19 @@ export function renderHomeCalculator(result: HomeCalculatorResult): string {
         ? [`- Help to Buy counted: ${eur(f.helpToBuyEur)}`]
         : []),
     ...(f.depositReachedOn === null ? [] : [`- Saved by: ${f.depositReachedOn} (before interest)`]),
+    ...(typeof f.maxPriceEur !== 'number'
+      ? []
+      : [
+          `- Within the Central Bank limits: up to ${eur(f.maxPriceEur)} over ${String(f.termYears)} years; lenders decide`,
+        ]),
+    // The market in two sentences, as saoi-api gave them: facts, no product picked.
+    ...(market === null || market.lines.length === 0
+      ? []
+      : [
+          '',
+          'Savings and mortgages that fit (facts, none picked):',
+          ...market.lines.map((line) => `- ${line}`),
+        ]),
     ...renderRoutes(extra.routes),
     ...(result.questions.length === 0
       ? []

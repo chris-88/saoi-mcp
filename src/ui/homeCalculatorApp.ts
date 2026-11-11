@@ -6,6 +6,7 @@ import type {
   HomeCalculatorModel,
   HomeControl,
   HomeInputs,
+  HomeMarketFacts,
   HomeRoute,
   HomeRules,
   HomeSort,
@@ -15,18 +16,20 @@ import type {
  * The home calculator card's browser side. Runs inside the host's sandboxed frame as this
  * function's own source, with the bridge and the model handed in.
  *
- * Card v7, one phone screen (decision 2026-11-11, after v6 on the phone): when the host supplied
- * the figures, the card starts folded: Saoirse's mark, "Your home-buying plan" and Edit, chips for
- * the facts still missing (each opening one control), then the month the money for the keys is
- * ready, one fact line, a thin progress bar of deposit saved against the money needed at the keys
- * (with the rent now, when given), two tiles (home price, mortgage), two other routes to a home in
- * the order saoi-api gave (two-line rows with an icon, each opening to its reason, conditions and
- * source), "See all N routes in Saoi" and one filled button, "Open in Saoi", which both save the
- * comparison and open it in the app, and one footer line that opens what was assumed, the three
- * warnings (always: the card shows a mortgage figure), the 24-hour note and the statement. The
- * card calls no tool until the customer presses something. Without figures from the host, the
- * inputs open expanded and fold once the options run. No route or option is picked or
- * highlighted for them. Every string goes in with `textContent`; icons are decorative.
+ * Card v8, one phone screen (decision 2026-11-11, the key figures and the products to compare):
+ * when the host supplied the figures, the card starts folded: Saoirse's mark, "Your home-buying
+ * plan" and Edit, one chip for rent when it was not given, then the month the money for the keys
+ * is ready, what that money is made of (deposit, stamp duty, legal and survey, less Help to Buy
+ * when counted), a thin progress bar of deposit saved against it (with the rent now, when given),
+ * three tiles worded from saoi-api (savings, mortgage, could afford), two other supports in the
+ * order saoi-api gave
+ * (two-line rows with an icon, each opening to its reason, conditions and source), "See all N
+ * supports in Saoi" and one filled button, "Open in Saoi", which both save the comparison and open
+ * it in the app, and one footer line that opens what was assumed, the three warnings (always: the
+ * card shows a mortgage figure), the 24-hour note and the statement. The card calls no tool until
+ * the customer presses something. Without figures from the host, the inputs open expanded and
+ * fold once the options run. No route or option is picked or highlighted for them. Every string
+ * goes in with `textContent`; icons are decorative.
  */
 export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalculatorModel, icon: Icon): void {
   const doc = win.document
@@ -47,6 +50,8 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   let routes: HomeRoute[] = []
   /** What the figures take as given when it was not said, from the same result. */
   let assumed: string[] = []
+  /** The market block and the affordability figures from the same result, for the tiles. */
+  let facts: HomeMarketFacts = { market: null, maxPriceEur: null, termYears: null }
   /** The request keys the customer has given (the host's arguments, then their answers). */
   let given: string[] = []
   let openRoute: string | null = null
@@ -622,6 +627,16 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (sent !== null) rules = sent as unknown as HomeRules
     const said = content?.['assumed']
     if (Array.isArray(said)) assumed = said.filter((line): line is string => typeof line === 'string')
+    if (content !== null) {
+      const sentFigures = bridge.record(content['figures'])
+      const number = (value: unknown): number | null =>
+        typeof value === 'number' && Number.isFinite(value) ? value : null
+      facts = {
+        market: bridge.record(content['market']) as HomeMarketFacts['market'],
+        maxPriceEur: number(sentFigures?.['maxPriceEur']),
+        termYears: number(sentFigures?.['termYears']),
+      }
+    }
     const next = content?.['routes']
     if (!Array.isArray(next)) return false
     routes = next as HomeRoute[]
@@ -693,7 +708,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (routes.length === 0) return null
     const block = el('section', 'section')
     const label = el('h3', 'label with-icon')
-    label.append(icon('sparkles', 16), 'Other routes')
+    label.append(icon('sparkles', 16), 'Other supports')
     block.append(label)
     if (routesNote !== '') block.append(el('p', 'status', routesNote))
     const list = el('ul', 'options')
@@ -702,7 +717,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     block.append(list)
     if (routes.length > model.otherRoutes(routes).length) {
       // Every route is in the app; this does exactly what Open in Saoi does.
-      const more = opener('link with-icon', `See all ${String(routes.length)} routes in Saoi`)
+      const more = opener('link with-icon', `See all ${String(routes.length)} supports in Saoi`)
       more.append(icon('chevron-right', 16))
       block.append(more)
     }
@@ -723,7 +738,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       : model.readyHeadline(inputs, figures)
   }
 
-  /** The month, one fact line, progress (and rent) and the two tiles. */
+  /** The month, what the money at the keys is made of, progress (and rent) and the three tiles. */
   const planView = (): HTMLElement => {
     const block = el('section', 'section plan')
     const ready = readyNow()
@@ -732,13 +747,15 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       return block
     }
     const figures = model.figures(inputs, rules, asOf)
+    // One term per span, kept whole, so a wrap falls between the terms.
+    const fact = el('p', 'num fact')
+    model.factParts(figures).forEach((part, index) => {
+      if (index > 0) fact.append(' ')
+      fact.append(el('span', 'nowrap', part))
+    })
     const hero = el('div', 'hero')
     hero.setAttribute('aria-live', 'polite')
-    hero.append(
-      el('p', 'eyebrow caps', 'Ready to buy'),
-      el('p', 'hero-month', ready.text),
-      el('p', 'num', model.factLine(inputs, figures)),
-    )
+    hero.append(el('p', 'eyebrow caps', 'Ready to buy'), el('p', 'hero-month', ready.text), fact)
     block.append(hero)
 
     const progress = model.progress(inputs, figures)
@@ -752,11 +769,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     const fill = el('span', '')
     fill.style.width = `${String(progress.pct)}%`
     bar.append(fill)
-    const saved = el('p', 'small num with-icon')
-    saved.append(
-      icon('piggy-bank', 16),
-      `${model.eur(progress.savedEur)} of ${model.eur(progress.neededEur)}`,
-    )
+    const saved = el('p', 'small num', `${model.eur(progress.savedEur)} of ${model.eur(progress.neededEur)}`)
     const pace = el('p', 'kv small num')
     pace.append(
       el('span', 'muted', `${model.eur(inputs.monthlySavingEur)} a month`),
@@ -768,15 +781,28 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     block.append(meter)
 
     const tiles = el('div', 'tiles')
-    /** Both tiles the same shape: icon, label, value large. */
-    const tile = (name: IconName, label: string, value: string): void => {
+    /** Every tile the same shape: icon, label, value, then up to two small lines. */
+    const tile = (name: IconName, label: string, value: string, lines: readonly string[] = []): void => {
       const node = el('div', 'tile')
-      node.append(el('span', 'tile-icon'), el('p', 'small muted', label), el('p', 'big num', value))
+      node.append(el('span', 'tile-icon'), el('p', 'small muted', label), el('p', 'tile-value num', value))
       node.firstElementChild?.append(icon(name, 16))
+      for (const line of lines.slice(0, 2)) {
+        // Each phrase kept whole, so a narrow tile wraps between "from 3.20%," and "€1,557/mo".
+        const small = el('p', 'small muted num')
+        line.split(/(?<=,) | (?=by )/).forEach((phrase, index) => {
+          if (index > 0) small.append(' ')
+          small.append(el('span', 'nowrap', phrase))
+        })
+        node.append(small)
+      }
       tiles.append(node)
     }
-    tile('house', 'Home price', model.eur(inputs.targetPriceEur))
-    tile('landmark', 'Mortgage', model.eur(figures.loanEur))
+    // The tiles' figures are saoi-api's own (market block, maxPriceEur); the card only words them.
+    const limits = inputs.firstTimeBuyer ? rules.firstTimeBuyer : rules.otherBuyer
+    const ICONS: IconName[] = ['piggy-bank', 'landmark', 'house']
+    model.tiles(figures.loanEur, facts, limits).forEach((spec, index) => {
+      tile(ICONS[index] ?? 'house', spec.label, spec.value, spec.lines)
+    })
     block.append(tiles)
     return block
   }
@@ -909,7 +935,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     const words = el('span', 'btn-words')
     words.append(
       el('span', 'medium', 'Open in Saoi'),
-      el('span', 'small btn-sub', model.openLine(routes.length)),
+      el('span', 'small btn-sub', 'Compare all product options and supports'),
     )
     open.append(words, icon('external-link', 18))
     block.append(open, status)

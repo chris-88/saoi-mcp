@@ -21,7 +21,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.12.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.13.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -168,7 +168,7 @@ describe('resources and prompts', () => {
     expect(uris).toEqual([
       'saoi://about/earnings',
       'saoi://about/ranking',
-      'ui://saoi/home-calculator-v7.html',
+      'ui://saoi/home-calculator-v8.html',
       'ui://saoi/plan-card-v10.html',
     ])
     const read = await asRpc(
@@ -326,6 +326,14 @@ describe('tools/call', () => {
     expect(said).toMatch(/Saoi is not regulated by the Central Bank of Ireland/)
     expect(said).toMatch(/Show my options/)
     expect(body.result?.['structuredContent']).toEqual(recorded.homeCalculatorSecondHand)
+  })
+
+  it('relays the market sentences and the affordability figure as saoi-api gave them', async () => {
+    const said = text(await call('saoi_home_calculator', { targetPriceEur: 400000 }))
+    const market = recorded.homeCalculatorSecondHand.market
+    if (market === null) throw new Error('recording has no market')
+    for (const line of market.lines) expect(said).toContain(`- ${line}`)
+    expect(said).toMatch(/Within the Central Bank limits: up to €444,000 over 30 years; lenders decide/)
   })
 
   it('relays three route lines after the headline, then More routes, with nothing that reads as a pick', async () => {

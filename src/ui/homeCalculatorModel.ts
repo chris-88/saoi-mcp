@@ -12,6 +12,23 @@ import type { HomeCalculatorResult } from '../saoiClient.js'
 
 export type HomeRules = HomeCalculatorResult['rules']
 export type HomeRoute = HomeCalculatorResult['routes'][number]
+export type HomeMarket = HomeCalculatorResult['market']
+
+/** What the tiles show from saoi-api's result: its market block and its affordability figures. */
+export interface HomeMarketFacts {
+  market: HomeMarket
+  /** `figures.maxPriceEur`: the most the Central Bank limits allow, worked out by saoi-api. */
+  maxPriceEur: number | null
+  /** `figures.termYears`. */
+  termYears: number | null
+}
+
+/** One tile: a label, one value, and up to two small lines. */
+export interface HomeTile {
+  label: string
+  value: string
+  lines: string[]
+}
 
 /** A fact the card can ask for with one control, from a chip. */
 export type HomeControl =
@@ -50,6 +67,8 @@ export interface HomeFigures {
   ltvPct: number
   depositNeededEur: number
   stampDutyEur: number
+  /** The legal and survey allowance from the rules saoi-api sent. */
+  legalAndSurveyEur: number
   /** Counted in `neededAtKeysEur`; with `helpToBuyConditional`, what it could be, not counted. */
   helpToBuyEur: number
   /** A new build with tax paid not given: the headline is without Help to Buy (saoi-api's rule). */
@@ -95,21 +114,39 @@ export interface HomeCalculatorModel {
     figures: HomeFigures,
     keysOn?: string | null,
   ): { text: string; note: string | null }
-  /** "€400,000 second-hand, €47,000 needed at the keys". */
-  factLine(inputs: HomeInputs, figures: HomeFigures): string
+  /**
+   * What the money needed at the keys is made of: "€40,000 deposit + €4,000 stamp duty + €3,000
+   * legal and survey", with " − €35,000 Help to Buy" when Help to Buy is counted.
+   */
+  factLine(figures: HomeFigures): string
+  /** The same line in its terms, so the card can keep each term on one line when it wraps. */
+  factParts(figures: HomeFigures): string[]
   /** Deposit saved against the money needed at the keys. */
   progress(inputs: HomeInputs, figures: HomeFigures): HomeProgress
   /** "Assumed: … Estimates only; rates and offers are not confirmed." */
   assumedLine(assumed: readonly string[]): string
-  /** The line under Open in Saoi: "Compare every option and all 6 routes with Saoirse". */
-  openLine(routes: number): string
   /** "Rent now €2,500 a month" under the progress, or null when rent was not given. */
   rentNow(rent: number | null): string | null
+  /**
+   * The three tiles, Savings, Mortgage and Could afford, worded from saoi-api's figures as they
+   * come (no figure is worked out here): the top savings rate with its interest by the date and how
+   * many accounts fit; the mortgage with the lowest rate and monthly and how many options fit; the
+   * most the Central Bank limits allow, with the limits that set it. "See in Saoi" when saoi-api
+   * sent none. No provider or lender is named.
+   */
+  tiles(
+    loanEur: number,
+    facts: HomeMarketFacts,
+    limits: { loanToIncome: number; maxLtvPct: number },
+  ): HomeTile[]
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
   startsFolded(args: Record<string, unknown> | null): boolean
-  /** The facts still to ask, as chips: first home, the kind of property, then rent (optional) last. */
+  /**
+   * The facts still to ask on the folded card, as chips: rent only. First-time buyer stays assumed
+   * (the result's `assumed` says so) and is answered under Edit, as is the kind of property.
+   */
   missingFacts(given: readonly string[]): HomeControl[]
   /** The saoi_home_calculator request for these inputs; facts not given are left for it to ask. */
   homeCalculatorBody(inputs: HomeInputs, given: readonly string[]): Record<string, unknown>
@@ -120,7 +157,7 @@ export interface HomeCalculatorModel {
   /** The route's status as one small muted word. */
   statusWord(status: HomeRoute['status']): string
   /**
-   * "Other routes": the first route is the customer's own kind (it is the headline), so the next
+   * "Other supports": the first route is the customer's own kind (it is the headline), so the next
    * two in saoi-api's order. Every route sits behind "See all routes (N)".
    */
   otherRoutes(routes: readonly HomeRoute[]): HomeRoute[]
@@ -302,6 +339,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       ltvPct: price > 0 ? round2((loan / price) * 100) : 0,
       depositNeededEur: deposit,
       stampDutyEur: stamp,
+      legalAndSurveyEur: rules.legalAndSurveyEur,
       helpToBuyEur: conditional ? htbUpTo : htb,
       helpToBuyConditional: conditional,
       neededAtKeysEur: needed,
@@ -426,8 +464,16 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     return { text: longMonth(ready), note: notes.length === 0 ? null : notes.join(', ') }
   }
 
-  const factLine = (inputs: HomeInputs, figures: HomeFigures): string =>
-    `${eur(inputs.targetPriceEur)} ${inputs.propertyKind === 'new_build' ? 'new build' : 'second-hand'}, ${eur(figures.neededAtKeysEur)} needed at the keys`
+  const factParts = (figures: HomeFigures): string[] => [
+    `${eur(figures.depositNeededEur)} deposit`,
+    `+ ${eur(figures.stampDutyEur)} stamp duty`,
+    `+ ${eur(figures.legalAndSurveyEur)} legal and survey`,
+    ...(!figures.helpToBuyConditional && figures.helpToBuyEur > 0
+      ? [`− ${eur(figures.helpToBuyEur)} Help to Buy`]
+      : []),
+  ]
+
+  const factLine = (figures: HomeFigures): string => factParts(figures).join(' ')
 
   const progress = (inputs: HomeInputs, figures: HomeFigures): HomeProgress => {
     const saved = inputs.depositSavedEur
@@ -448,11 +494,54 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     return lines.length === 0 ? tail : `Assumed: ${lines.join(', ')}. ${tail}`
   }
 
-  const openLine = (routes: number): string =>
-    `Compare every option${routes > 0 ? ` and all ${String(routes)} routes` : ''} with Saoirse`
-
   const rentNow = (rent: number | null): string | null =>
     rent === null ? null : `Rent now ${eur(rent)} a month`
+
+  const pct2 = (value: number): string => `${value.toFixed(2)}%`
+  const count = (n: number, one: string, many: string): string => `${String(n)} ${n === 1 ? one : many}`
+
+  const tiles = (
+    loanEur: number,
+    facts: HomeMarketFacts,
+    limits: { loanToIncome: number; maxLtvPct: number },
+  ): HomeTile[] => {
+    const savings = facts.market?.savings ?? null
+    const mortgage = facts.market?.mortgage ?? null
+    const see = ['See in Saoi']
+    return [
+      savings === null
+        ? { label: 'Savings', value: 'In Saoi', lines: see }
+        : {
+            label: 'Savings',
+            value: `up to ${pct2(savings.topRatePct)}`,
+            lines: [
+              `${eur(savings.interestToTargetEur)} interest by ${month(savings.by)}`,
+              count(savings.accounts, 'account', 'accounts'),
+            ],
+          },
+      {
+        label: 'Mortgage',
+        value: eur(loanEur),
+        lines:
+          mortgage === null
+            ? see
+            : [
+                `from ${pct2(mortgage.lowestRatePct)}, ${eur(mortgage.lowestMonthlyEur)}/mo`,
+                `${count(mortgage.options, 'option', 'options')}, ${String(mortgage.termYears)} years`,
+              ],
+      },
+      facts.maxPriceEur === null
+        ? { label: 'Could afford', value: 'In Saoi', lines: see }
+        : {
+            label: 'Could afford',
+            value: `up to ${eur(facts.maxPriceEur)}`,
+            lines: [
+              `${String(limits.loanToIncome)}× income, ${String(limits.maxLtvPct)}% loan`,
+              ...(facts.termYears === null ? [] : [`${String(facts.termYears)} years`]),
+            ],
+          },
+    ]
+  }
 
   const given = (args: Record<string, unknown> | null): string[] =>
     args === null ? [] : Object.keys(args).filter((key) => args[key] !== undefined && args[key] !== null)
@@ -464,7 +553,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     )
 
   const missingFacts = (known: readonly string[]): HomeControl[] =>
-    (['firstTimeBuyer', 'propertyKind', 'monthlyRentEur'] as const).filter((key) => !known.includes(key))
+    (['monthlyRentEur'] as const).filter((key) => !known.includes(key))
 
   const homeCalculatorBody = (inputs: HomeInputs, known: readonly string[]): Record<string, unknown> => ({
     depositSavedEur: inputs.depositSavedEur,
@@ -541,10 +630,11 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     headline,
     readyHeadline,
     factLine,
+    factParts,
     progress,
     assumedLine,
-    openLine,
     rentNow,
+    tiles,
     eur,
     month,
     longMonth,

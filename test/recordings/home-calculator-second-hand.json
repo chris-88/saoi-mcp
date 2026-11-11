@@ -31,6 +31,8 @@
     "loanEur": 360000,
     "ltvPct": 90,
     "depositNeededEur": 40000,
+    "maxPriceEur": 444000,
+    "termYears": 30,
     "stampDutyEur": 4000,
     "legalAndSurveyEur": 3000,
     "helpToBuyEur": 0,
@@ -42,10 +44,36 @@
   },
   "lines": [
     "The Central Bank limit for a first-time buyer is 4 times gross income: €400,000 on €100,000 (both incomes). Lenders decide within it, and may lend above it only under the 15% allowance.",
+    "Within the Central Bank limits, up to €444,000 with a €44,400 deposit over 30 years; lenders decide.",
     "For a €400,000 home: a €360,000 mortgage (90% of the price) and a €40,000 deposit.",
     "Needed at the keys: €47,000 (the deposit, €4,000 stamp duty and about €3,000 for legal fees and a survey).",
-    "At €1,000 a month from €30,000, that is saved around April 2028, before interest: by June 2028, the date given."
+    "At €1,000 a month from €30,000, that is saved around April 2028, before interest: by June 2028, the date given.",
+    "Savings: the top rate on the market is 3.11% (bunq), about €736 interest after DIRT by June 2028 in that account; 28 accounts fit.",
+    "Mortgages: 49 fit €360,000 over 30 years, from €1,557 to €2,147 a month."
   ],
+  "market": {
+    "savings": {
+      "topRatePct": 3.11,
+      "topRateProvider": "bunq",
+      "accounts": 28,
+      "interestToTargetEur": 735.86,
+      "by": "2028-06",
+      "basis": "The highest rate on the market for money that can be reached by June 2028, among 28 accounts that take this saving; interest after DIRT; no product is picked."
+    },
+    "mortgage": {
+      "loanEur": 360000,
+      "options": 49,
+      "lowestRatePct": 3.2,
+      "lowestMonthlyEur": 1556.88,
+      "highestMonthlyEur": 2146.82,
+      "termYears": 30,
+      "basis": "Every lender’s mortgages that fit €360,000 at 90% of the price over 30 years for a first-time buyer, fixed and variable, one per lender, rate type and fixed period; the monthly repayment at each one’s initial rate; no lender is picked."
+    },
+    "lines": [
+      "Savings: the top rate on the market is 3.11% (bunq), about €736 interest after DIRT by June 2028 in that account; 28 accounts fit.",
+      "Mortgages: 49 fit €360,000 over 30 years, from €1,557 to €2,147 a month."
+    ]
+  },
   "assumed": [
     "First-time buyer, as nothing else was said: the 4 times income limit applies (3.5 times for a second or later buyer)."
   ],
@@ -259,9 +287,12 @@
   "next": "To see every eligible option, sorted by keys date, cost over the first 5 years or monthly repayment: the card’s \"Show my options\" button, or saoi_build_plan with a house_deposit goal, these figures, `homePrice`, `propertyKind` and `homePreferences`.",
   "presentation": [
     "The Central Bank limit for a first-time buyer is 4 times gross income: €400,000 on €100,000 (both incomes). Lenders decide within it, and may lend above it only under the 15% allowance.",
+    "Within the Central Bank limits, up to €444,000 with a €44,400 deposit over 30 years; lenders decide.",
     "For a €400,000 home: a €360,000 mortgage (90% of the price) and a €40,000 deposit.",
     "Needed at the keys: €47,000 (the deposit, €4,000 stamp duty and about €3,000 for legal fees and a survey).",
     "At €1,000 a month from €30,000, that is saved around April 2028, before interest: by June 2028, the date given.",
+    "Savings: the top rate on the market is 3.11% (bunq), about €736 interest after DIRT by June 2028 in that account; 28 accounts fit.",
+    "Mortgages: 49 fit €360,000 over 30 years, from €1,557 to €2,147 a month.",
     "Second-hand: keys Apr 2028, €47,000 needed at the keys",
     "Vacant property grant: up to €50,000 for works after purchase, not the deposit",
     "New build with Help to Buy: keys Nov 2026 if your tax paid covers €35,000",

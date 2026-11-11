@@ -6935,6 +6935,29 @@ export interface components {
                         lead?: string;
                     }[];
                 };
+                /** @default [] */
+                routes: {
+                    /** @enum {string} */
+                    id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                    name: string;
+                    mechanism: string;
+                    /** @enum {string} */
+                    status: "potential" | "needs_one_detail" | "not_applicable";
+                    line: string;
+                    reason: string | null;
+                    missing: string | null;
+                    keysOn: string | null;
+                    /** @default [] */
+                    conditions: string[];
+                    confirmed: boolean;
+                    /** @default [] */
+                    sources: {
+                        fact: string;
+                        /** Format: uri */
+                        url: string;
+                        checkedOn: string;
+                    }[];
+                }[];
                 createdAt: string;
                 dataCheckedAt: string;
             } | {
@@ -7642,6 +7665,29 @@ export interface components {
                             lead?: string;
                         }[];
                     };
+                    /** @default [] */
+                    routes: {
+                        /** @enum {string} */
+                        id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                        name: string;
+                        mechanism: string;
+                        /** @enum {string} */
+                        status: "potential" | "needs_one_detail" | "not_applicable";
+                        line: string;
+                        reason: string | null;
+                        missing: string | null;
+                        keysOn: string | null;
+                        /** @default [] */
+                        conditions: string[];
+                        confirmed: boolean;
+                        /** @default [] */
+                        sources: {
+                            fact: string;
+                            /** Format: uri */
+                            url: string;
+                            checkedOn: string;
+                        }[];
+                    }[];
                     createdAt: string;
                     dataCheckedAt: string;
                 } | {
@@ -7851,6 +7897,29 @@ export interface components {
                         /** @default [] */
                         conditions: string[];
                     }[];
+                    /** @default [] */
+                    routes: {
+                        /** @enum {string} */
+                        id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                        name: string;
+                        mechanism: string;
+                        /** @enum {string} */
+                        status: "potential" | "needs_one_detail" | "not_applicable";
+                        line: string;
+                        reason: string | null;
+                        missing: string | null;
+                        keysOn: string | null;
+                        /** @default [] */
+                        conditions: string[];
+                        confirmed: boolean;
+                        /** @default [] */
+                        sources: {
+                            fact: string;
+                            /** Format: uri */
+                            url: string;
+                            checkedOn: string;
+                        }[];
+                    }[];
                 };
                 /** Format: date-time */
                 createdAt: string;
@@ -7881,6 +7950,28 @@ export interface components {
                 name: string;
                 provider: string;
                 line: string;
+            }[];
+            routes: {
+                /** @enum {string} */
+                id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                name: string;
+                mechanism: string;
+                /** @enum {string} */
+                status: "potential" | "needs_one_detail" | "not_applicable";
+                line: string;
+                reason: string | null;
+                missing: string | null;
+                keysOn: string | null;
+                /** @default [] */
+                conditions: string[];
+                confirmed: boolean;
+                /** @default [] */
+                sources: {
+                    fact: string;
+                    /** Format: uri */
+                    url: string;
+                    checkedOn: string;
+                }[];
             }[];
             expiresAt: string;
         };
@@ -9925,6 +10016,10 @@ export interface components {
                 loanEur: number | null;
                 ltvPct: number | null;
                 depositNeededEur: number | null;
+                /** @description The most the Central Bank limits allow: the income limit (`maxLoanEur`) at the largest loan-to-value (`rules.maxLtvPct`), floored to the nearest €1,000. Lenders decide within it. Null: no income given. */
+                maxPriceEur: number | null;
+                /** @description The mortgage term the figures and repayments use, in years. */
+                termYears: number;
                 stampDutyEur: number | null;
                 legalAndSurveyEur: number;
                 /** @description Help to Buy at this price. With `helpToBuyConditional`, what it could be (the cap or 10% of the price), not counted in the figures. */
@@ -9940,6 +10035,43 @@ export interface components {
             };
             /** @description The figures in words, as options and facts. */
             lines: string[];
+            /** @description The savings and mortgages that fit these figures, from Saoi’s market data. Null when the market data is not available. */
+            market: {
+                /** @description Savings that fit the plan. Null: no account fits. */
+                savings: {
+                    /** @description The highest AER among the savings and deposit accounts that fit the plan, for the horizon (a fixed term’s rate for the longest term that ends by `by`). */
+                    topRatePct: number;
+                    /** @description The provider whose account pays `topRatePct`. */
+                    topRateProvider: string;
+                    /** @description How many accounts fit: open to adult saving, reachable by `by` (no fixed term or notice running past it, nothing locked without a date), and taking the whole deposit saved or the whole monthly amount within their limits. One account listed in two categories counts once. */
+                    accounts: number;
+                    /** @description Interest after DIRT (none taken on a DIRT-free product) on the deposit saved plus the monthly saving until `by`, in the account paying `topRatePct`, from the engine’s month-by-month projection. Money that account cannot take, and months after its rate stops being known, are not counted (`basis` says so). */
+                    interestToTargetEur: number;
+                    /** @description YYYY-MM the interest runs to: the date given, else the month the money at the keys is saved, else 12 months on. */
+                    by: string;
+                    /** @description How the top rate and the interest are worked out, in one sentence. */
+                    basis: string;
+                } | null;
+                /** @description Mortgages that fit the figures. Null: no price is known yet, or none fits. */
+                mortgage: {
+                    /** @description The loan the figures need: the price less the deposit. */
+                    loanEur: number;
+                    /** @description How many mortgage options fit: each lender’s options for this loan, loan-to-value, buyer and property, one per rate type and fixed period, fixed and variable, with no preference applied (the options build-plan lists without filters). */
+                    options: number;
+                    /** @description The lowest initial rate among those options. */
+                    lowestRatePct: number;
+                    /** @description The lowest monthly repayment among those options, at each one’s initial rate. */
+                    lowestMonthlyEur: number;
+                    /** @description The highest monthly repayment among those options, at each one’s initial rate. */
+                    highestMonthlyEur: number;
+                    /** @description The mortgage term the repayments use. */
+                    termYears: number;
+                    /** @description Which mortgages are counted and how, in one sentence. */
+                    basis: string;
+                } | null;
+                /** @description The two summaries in words, facts only; also appended to the result’s `lines`. */
+                lines: string[];
+            } | null;
             /** @description What the figures take as given when it was not said (first-time buyer), each correctable. */
             assumed: string[];
             /** @description Every route to a home, the customer’s own kind of property first, then potential, needs one detail, not applicable. Show the first three lines right after the headline, then "More routes: N" for the rest; the customer chooses, and none is marked best. */
@@ -10545,8 +10677,11 @@ export interface components {
                 depositEur: number;
                 stampDutyEur: number;
                 legalAndSurveyEur: number;
+                /** @description Help to Buy at this price. With `helpToBuyConditional`, what it could be, not counted in the figures. */
                 helpToBuyEur: number;
-                /** @description Deposit plus stamp duty and fees, less Help to Buy. */
+                /** @description True for a new build when tax paid was not given: the options and their keys months are without Help to Buy, as the home calculator’s headline is; the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With tax paid given, Help to Buy is counted. */
+                helpToBuyConditional: boolean;
+                /** @description Deposit plus stamp duty and fees, less Help to Buy when it is counted. */
                 neededAtKeysEur: number;
                 keysOn: string | null;
                 /** @description The period every pathway is costed over, the same for all. */
@@ -10630,6 +10765,42 @@ export interface components {
                 /** @description The statutory mortgage warnings, shown with every mortgage result. */
                 warnings: string[];
             } | null;
+            /** @description For a house deposit: every route to a home, as the home calculator gives them for the same figures, the customer’s own kind of property first. The presentation shows three lines right after the headline, then "More routes: N"; none is marked best. Empty for other goals. */
+            routes: {
+                /**
+                 * @description `second_hand`: a second-hand home with a mortgage. `new_build_help_to_buy`: a new build with the Help to Buy refund. `first_home_scheme`: shared equity on a new build. `local_authority_home_loan`: the council’s own mortgage. `affordable_purchase`: a council home sold below market value. `vacant_property_grant`: a grant for works on a vacant home.
+                 * @enum {string}
+                 */
+                id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                /** @description The route’s short name, as a heading. */
+                name: string;
+                /** @description How it helps, in plain words: a tax refund towards the deposit, shared equity, an alternative mortgage, a below-market price with a council share, a grant for works after purchase. */
+                mechanism: string;
+                /**
+                 * @description `potential`: nothing given rules it out. `needs_one_detail`: one detail would settle it (`missing`). `not_applicable`: ruled out on the figures given (`reason`). Never a pick.
+                 * @enum {string}
+                 */
+                status: "potential" | "needs_one_detail" | "not_applicable";
+                /** @description The route in one line (about 90 characters at most), a fact with its figure, date or reason. Show it as is, in the order given; never call one route best, fastest or recommended. */
+                line: string;
+                /** @description Why it is not applicable, or what makes it potential, with the figure. */
+                reason: string | null;
+                /** @description For `needs_one_detail`: the one detail that would settle it, as a plain question to ask. Null otherwise. */
+                missing: string | null;
+                /** @description YYYY-MM the deposit and buying costs are saved on this route, at this pace, before interest. Only second-hand and new build carry one; null where there is no arithmetic or it is not reached. */
+                keysOn: string | null;
+                /** @description The scheme’s main conditions, as short facts. */
+                conditions: string[];
+                /** @description False when a figure on this route rests on a rule not read from a primary page (say so when showing it). */
+                confirmed: boolean;
+                /** @description The pages the rules were read from, dated. */
+                sources: {
+                    fact: string;
+                    url: string;
+                    /** @description YYYY-MM-DD the page was read. */
+                    checkedOn: string;
+                }[];
+            }[];
             /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
             alternatives: {
                 name: string;
@@ -10882,6 +11053,29 @@ export interface components {
                         /** @default [] */
                         conditions: string[];
                     }[];
+                    /** @default [] */
+                    routes: {
+                        /** @enum {string} */
+                        id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                        name: string;
+                        mechanism: string;
+                        /** @enum {string} */
+                        status: "potential" | "needs_one_detail" | "not_applicable";
+                        line: string;
+                        reason: string | null;
+                        missing: string | null;
+                        keysOn: string | null;
+                        /** @default [] */
+                        conditions: string[];
+                        confirmed: boolean;
+                        /** @default [] */
+                        sources: {
+                            fact: string;
+                            /** Format: uri */
+                            url: string;
+                            checkedOn: string;
+                        }[];
+                    }[];
                 };
                 /** Format: date-time */
                 createdAt: string;
@@ -11092,6 +11286,13 @@ export interface components {
                  */
                 sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
             };
+            /**
+             * @description Where the home is: one of the 26 counties, or one of Dublin’s four local authorities (`dublin_city`, `dun_laoghaire_rathdown`, `fingal`, `south_dublin`). Sets the First Home Scheme and Local Authority Home Loan price limits. Absent: a price between the lowest and highest limits makes those routes ask for it.
+             * @enum {string}
+             */
+            county?: "carlow" | "cavan" | "clare" | "cork" | "donegal" | "dublin" | "galway" | "kerry" | "kildare" | "kilkenny" | "laois" | "leitrim" | "limerick" | "longford" | "louth" | "mayo" | "meath" | "monaghan" | "offaly" | "roscommon" | "sligo" | "tipperary" | "waterford" | "westmeath" | "wexford" | "wicklow" | "dublin_city" | "dun_laoghaire_rathdown" | "fingal" | "south_dublin";
+            /** @description For a house deposit: rent paid a month today. Changes no figure; kept with the plan as what they pay now. `situation.outgoings.rentMonthly` wins when both are sent. */
+            monthlyRentEur?: number;
             /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
@@ -11263,8 +11464,11 @@ export interface components {
                     depositEur: number;
                     stampDutyEur: number;
                     legalAndSurveyEur: number;
+                    /** @description Help to Buy at this price. With `helpToBuyConditional`, what it could be, not counted in the figures. */
                     helpToBuyEur: number;
-                    /** @description Deposit plus stamp duty and fees, less Help to Buy. */
+                    /** @description True for a new build when tax paid was not given: the options and their keys months are without Help to Buy, as the home calculator’s headline is; the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With tax paid given, Help to Buy is counted. */
+                    helpToBuyConditional: boolean;
+                    /** @description Deposit plus stamp duty and fees, less Help to Buy when it is counted. */
                     neededAtKeysEur: number;
                     keysOn: string | null;
                     /** @description The period every pathway is costed over, the same for all. */
@@ -11348,6 +11552,42 @@ export interface components {
                     /** @description The statutory mortgage warnings, shown with every mortgage result. */
                     warnings: string[];
                 } | null;
+                /** @description For a house deposit: every route to a home, as the home calculator gives them for the same figures, the customer’s own kind of property first. The presentation shows three lines right after the headline, then "More routes: N"; none is marked best. Empty for other goals. */
+                routes: {
+                    /**
+                     * @description `second_hand`: a second-hand home with a mortgage. `new_build_help_to_buy`: a new build with the Help to Buy refund. `first_home_scheme`: shared equity on a new build. `local_authority_home_loan`: the council’s own mortgage. `affordable_purchase`: a council home sold below market value. `vacant_property_grant`: a grant for works on a vacant home.
+                     * @enum {string}
+                     */
+                    id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                    /** @description The route’s short name, as a heading. */
+                    name: string;
+                    /** @description How it helps, in plain words: a tax refund towards the deposit, shared equity, an alternative mortgage, a below-market price with a council share, a grant for works after purchase. */
+                    mechanism: string;
+                    /**
+                     * @description `potential`: nothing given rules it out. `needs_one_detail`: one detail would settle it (`missing`). `not_applicable`: ruled out on the figures given (`reason`). Never a pick.
+                     * @enum {string}
+                     */
+                    status: "potential" | "needs_one_detail" | "not_applicable";
+                    /** @description The route in one line (about 90 characters at most), a fact with its figure, date or reason. Show it as is, in the order given; never call one route best, fastest or recommended. */
+                    line: string;
+                    /** @description Why it is not applicable, or what makes it potential, with the figure. */
+                    reason: string | null;
+                    /** @description For `needs_one_detail`: the one detail that would settle it, as a plain question to ask. Null otherwise. */
+                    missing: string | null;
+                    /** @description YYYY-MM the deposit and buying costs are saved on this route, at this pace, before interest. Only second-hand and new build carry one; null where there is no arithmetic or it is not reached. */
+                    keysOn: string | null;
+                    /** @description The scheme’s main conditions, as short facts. */
+                    conditions: string[];
+                    /** @description False when a figure on this route rests on a rule not read from a primary page (say so when showing it). */
+                    confirmed: boolean;
+                    /** @description The pages the rules were read from, dated. */
+                    sources: {
+                        fact: string;
+                        url: string;
+                        /** @description YYYY-MM-DD the page was read. */
+                        checkedOn: string;
+                    }[];
+                }[];
                 /** @description The variations asked for in `alternatives`, each worked out in this call. Empty when none were asked for. */
                 alternatives: {
                     name: string;
@@ -11600,6 +11840,29 @@ export interface components {
                             /** @default [] */
                             conditions: string[];
                         }[];
+                        /** @default [] */
+                        routes: {
+                            /** @enum {string} */
+                            id: "second_hand" | "new_build_help_to_buy" | "first_home_scheme" | "local_authority_home_loan" | "affordable_purchase" | "vacant_property_grant";
+                            name: string;
+                            mechanism: string;
+                            /** @enum {string} */
+                            status: "potential" | "needs_one_detail" | "not_applicable";
+                            line: string;
+                            reason: string | null;
+                            missing: string | null;
+                            keysOn: string | null;
+                            /** @default [] */
+                            conditions: string[];
+                            confirmed: boolean;
+                            /** @default [] */
+                            sources: {
+                                fact: string;
+                                /** Format: uri */
+                                url: string;
+                                checkedOn: string;
+                            }[];
+                        }[];
                     };
                     /** Format: date-time */
                     createdAt: string;
@@ -11755,6 +12018,13 @@ export interface components {
                  */
                 sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
             };
+            /**
+             * @description Where the home is: one of the 26 counties, or one of Dublin’s four local authorities (`dublin_city`, `dun_laoghaire_rathdown`, `fingal`, `south_dublin`). Sets the First Home Scheme and Local Authority Home Loan price limits. Absent: a price between the lowest and highest limits makes those routes ask for it.
+             * @enum {string}
+             */
+            county?: "carlow" | "cavan" | "clare" | "cork" | "donegal" | "dublin" | "galway" | "kerry" | "kildare" | "kilkenny" | "laois" | "leitrim" | "limerick" | "longford" | "louth" | "mayo" | "meath" | "monaghan" | "offaly" | "roscommon" | "sligo" | "tipperary" | "waterford" | "westmeath" | "wexford" | "wicklow" | "dublin_city" | "dun_laoghaire_rathdown" | "fingal" | "south_dublin";
+            /** @description For a house deposit: rent paid a month today. Changes no figure; kept with the plan as what they pay now. `situation.outgoings.rentMonthly` wins when both are sent. */
+            monthlyRentEur?: number;
             /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */

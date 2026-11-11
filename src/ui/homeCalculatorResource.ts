@@ -7,13 +7,14 @@ import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardRes
 /**
  * The home calculator card (decision 2026-11-10: Saoi compares; the customer sets the filters):
  * an MCP Apps UI resource that hosts which support it render with `saoi_home_calculator`.
- * Sliders with typed boxes, live figures, the customer's filters, every route to a home as facts
- * (decision 2026-11-10, every route on one screen), "Show my options", which runs saoi_build_plan
- * through the host and lists every option that fits, sortable, and "Open in Saoi".
+ * Card v5 (decision 2026-11-11): one phone screen with the month the money for the keys is ready,
+ * a progress bar, three tiles and the other routes to a home as facts; sliders with typed boxes
+ * and the customer's filters under Edit; "Open in Saoi", which runs saoi_build_plan through the
+ * host when needed and opens the comparison in the app.
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v4.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v5.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },
@@ -65,7 +66,27 @@ select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto;
   display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
 }
 .nowrap { white-space: nowrap; }
-.link.muted-link { color: var(--muted-foreground); }
+.head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 12px; }
+.head-row .badge { margin-left: 8px; }
+.facts { padding: 0 16px 12px; display: grid; gap: 8px; }
+.plan { gap: 16px; }
+.hero { display: grid; gap: 2px; }
+.caps { text-transform: uppercase; letter-spacing: 0.04em; }
+.hero-month { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+.meter { display: grid; gap: 4px; }
+.bar { height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
+.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tile { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; display: grid; gap: 2px; min-width: 0; }
+.tile p { overflow-wrap: anywhere; }
+.route-head { align-items: center; }
+.route-line { flex: 1; min-width: 0; }
+.route-head .badge { margin-left: 0; }
+.chevron {
+  flex: none; width: 7px; height: 7px; border-right: 1.5px solid var(--muted-foreground);
+  border-bottom: 1.5px solid var(--muted-foreground); transform: rotate(-45deg); transition: transform 0.15s;
+}
+.route-head[aria-expanded='true'] .chevron { transform: rotate(45deg); }
 `
 
 /** The card's document: markup, style and script all inline. */
@@ -107,7 +128,7 @@ export function registerHomeCalculatorCard(server: McpServer): void {
     {
       title: 'Saoi home calculator',
       description:
-        'The interactive calculator hosts show with saoi_home_calculator: the customer’s figures, live figures, every route to a home as facts, and every option that fits, sortable, with Open in Saoi.',
+        'The interactive calculator hosts show with saoi_home_calculator: the customer’s figures, the month the money for the keys is ready, progress, every route to a home as facts, and Open in Saoi, which compares every option that fits.',
       mimeType: MCP_APP_MIME_TYPE,
       _meta: PLAN_CARD_RESOURCE_META,
     },

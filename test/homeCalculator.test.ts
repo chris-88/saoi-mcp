@@ -20,12 +20,11 @@ describe('home calculator card document', () => {
     expect(html).toMatch(/["']month["']/)
   })
 
-  it('names the statement and the three mortgage warnings', () => {
+  it('names the statement, takes the warnings from the comparison, and never words a pick', () => {
     const html = homeCalculatorHtml()
     expect(html).toMatch(/not regulated by the Central Bank of Ireland and does not give advice/)
-    expect(html).toMatch(/you may lose your home/)
-    expect(html).toMatch(/monthly repayments may increase/)
-    expect(html).toMatch(/your account will go into arrears/)
+    expect(html).toMatch(/home\?\.warnings/)
+    expect(html).toMatch(/Estimates only; rates and offers are not confirmed/)
     expect(html).not.toMatch(/recommend|best option for you|you should/i)
   })
 })
@@ -77,17 +76,12 @@ describe('home calculator model', () => {
     expect(inputs.targetDate).toBe('2028-11')
   })
 
-  it('sorts the options by the metric the customer picks, with every option kept', () => {
+  it('finds the lowest monthly repayment across every option returned', () => {
     const home = recorded.planHome.home
     if (home === null) throw new Error('recording has no home')
-    for (const sort of ['five_year_cost', 'keys_date', 'monthly_repayment'] as const) {
-      const rows = model.rows(home, sort)
-      expect(rows).toHaveLength(home.pathways.length)
-    }
-    const monthly = model
-      .rows(home, 'monthly_repayment')
-      .map((row) => Number(row.monthly.replace(/[€,]/g, '')))
-    expect([...monthly].sort((a, b) => a - b)).toEqual(monthly)
+    const all = home.pathways.map((option) => option.mortgage.monthlyRepayment)
+    expect(model.lowestMonthly(home)).toBe(Math.min(...all))
+    expect(model.lowestMonthly({ ...home, pathways: [] })).toBeNull()
   })
 
   it('tells the model what was entered and not to pick an option', () => {
@@ -98,7 +92,7 @@ describe('home calculator model', () => {
 })
 
 describe('one step at a time (round 2)', () => {
-  it('gives one headline line and a one-line summary of the inputs', () => {
+  it('gives one headline line, and the folded card’s month, fact line and progress', () => {
     const inputs = {
       ...model.defaults('2026-11'),
       depositSavedEur: 25_000,
@@ -110,25 +104,38 @@ describe('one step at a time (round 2)', () => {
     expect(model.headline(inputs, figures)).toMatch(
       /^You could borrow up to €360,000 · deposit ready around [A-Z][a-z]{2} \d{4}/,
     )
-    expect(model.summary(inputs)).toBe('€25k saved · €1,200/mo · €90k · €350k')
+    expect(model.readyHeadline(inputs, figures)).toEqual({
+      text: model.longMonth(figures.reachedOn ?? ''),
+      note: 'Before interest',
+    })
+    expect(model.longMonth('2028-04')).toBe('April 2028')
+    expect(model.factLine(inputs, figures)).toBe(
+      `€350,000 second-hand, ${model.eur(figures.neededAtKeysEur)} needed at the keys`,
+    )
+    const progress = model.progress(inputs, figures)
+    expect(progress.toGoEur).toBe(figures.neededAtKeysEur - 25_000)
+    expect(progress.pct).toBeLessThan(100)
+    const covered = model.progress({ ...inputs, depositSavedEur: 500_000 }, figures)
+    expect(covered).toMatchObject({ covered: true, pct: 100, toGoEur: 0 })
+    const never = model.figures({ ...inputs, monthlySavingEur: 0 }, live.rules, '2026-11')
+    expect(model.readyHeadline(inputs, never)).toEqual({ text: 'Not reached at this pace', note: null })
   })
 
-  it('leads each row with the figure it is sorted by, and says when every keys date is the same', () => {
-    const home = recorded.planHome.home
-    if (home === null) throw new Error('recording has no home')
-    expect(model.rows(home, 'monthly_repayment')[0]?.lead).toMatch(/^€[\d,]+\/mo$/)
-    expect(model.rows(home, 'five_year_cost')[0]?.second).toMatch(/^€[\d,]+\/mo$/)
-    expect(model.rows(home, 'keys_date')[0]?.lead).toMatch(/^[A-Z][a-z]{2} \d{4}$/)
-    expect(model.sharedKeys(home)).toMatch(/^[A-Z][a-z]{2} \d{4}$/)
+  it('builds the footer from what was assumed, and the line under Open in Saoi', () => {
+    expect(model.assumedLine(['First-time buyer.', 'second-hand'])).toBe(
+      'Assumed: First-time buyer, second-hand. Estimates only; rates and offers are not confirmed.',
+    )
+    expect(model.assumedLine([])).toBe('Estimates only; rates and offers are not confirmed.')
+    expect(model.openLine(49, 6)).toBe('Compare the 49 options and all 6 routes with Saoirse')
+    expect(model.openLine(null, 6)).toBe('Compare every option and all 6 routes with Saoirse')
   })
 
-  it('keeps the warnings and the statement in the card, outside any expander', () => {
+  it('keeps the breakdown and the extra inputs behind their expanders', () => {
     const html = homeCalculatorHtml()
     expect(html).toMatch(/ui:\/\/saoi|Saoi/)
     expect(html).toMatch(/See the breakdown/)
     expect(html).toMatch(/More details/)
     expect(html).toMatch(/More filters/)
-    expect(html).toMatch(/How we worked this out/)
   })
 })
 
@@ -150,24 +157,17 @@ describe('round 3: the headline and the options agree', () => {
     const shown = model.headline(inputs, figures, home.keysOn)
     const ready = /deposit ready around ([A-Z][a-z]{2} \d{4})/.exec(shown)?.[1]
     expect(ready).toBe(model.month(home.keysOn))
-    for (const row of model.rows(home, 'keys_date')) {
-      const keys = home.pathways.find((option) => option.mortgage.name === row.product)?.keysOn ?? ''
-      expect(keys >= (home.keysOn ?? '')).toBe(true)
-    }
+    expect(model.readyHeadline(inputs, figures, home.keysOn).text).toBe(model.longMonth(home.keysOn ?? ''))
+    for (const option of home.pathways) expect((option.keysOn ?? '') >= (home.keysOn ?? '')).toBe(true)
   })
 
   it('labels the card’s own estimate as before interest, which is never earlier than the options’ month', () => {
     expect(model.headline(inputs, figures)).toMatch(/\(before interest\)/)
     expect((figures.reachedOn ?? '') >= (home.keysOn ?? '')).toBe(true)
   })
-
-  it('names each product in plain words and keeps the lender’s name for Conditions', () => {
-    const boi = model.rows(home, 'five_year_cost').find((row) => row.product === '4 Year Fixed HVM BER C')
-    expect(boi?.name).toBe('4-year fixed, BER C, loans €250k+')
-  })
 })
 
-describe('round 4: routes, the conditional Help to Buy and rent (card v4)', () => {
+describe('round 4: routes, the conditional Help to Buy and rent', () => {
   const secondHand = recorded.homeCalculatorSecondHand
   const newBuild = recorded.homeCalculatorNewBuild
 
@@ -233,11 +233,15 @@ describe('round 4: routes, the conditional Help to Buy and rent (card v4)', () =
     expect(model.fromArguments({ county: 'atlantis' }, '2026-11').county).toBe('')
   })
 
-  it('shows three routes in saoi-api’s order and keeps the rest behind More routes', () => {
-    const { shown, more } = model.splitRoutes(secondHand.routes)
-    expect(shown.map((route) => route.line)).toEqual(secondHand.routes.slice(0, 3).map((route) => route.line))
-    expect(more).toHaveLength(3)
-    expect(secondHand.presentation).toContain('More routes: 3')
+  it('shows the two routes after the customer’s own kind, in saoi-api’s order', () => {
+    const others = model.otherRoutes(secondHand.routes)
+    expect(others.map((route) => route.id)).toEqual(secondHand.routes.slice(1, 3).map((route) => route.id))
+    expect(others.map((route) => route.id)).not.toContain('second_hand')
+    const htb = newBuild.routes[0]
+    if (htb === undefined) throw new Error('recording has no routes')
+    expect(model.routeDetail(htb)).toBe('keys Nov 2026 if your tax paid covers €35,000')
+    expect(`${htb.name}: ${model.routeDetail(htb)}`).toBe(htb.line)
+    expect(model.routeDetail({ ...htb, line: 'Given as is' })).toBe('Given as is')
   })
 
   it('matches each missing question to the one control that answers it', () => {
@@ -251,14 +255,6 @@ describe('round 4: routes, the conditional Help to Buy and rent (card v4)', () =
     expect(
       model.controlFor('What is the gross income a year, before tax? If buying with someone, theirs too.'),
     ).toBeNull()
-  })
-
-  it('sets rent beside the repayments shown, in saoi-api’s wording', () => {
-    expect(model.rentLine(1_800, [1_634.2, 1_654.1, 1_634])).toBe(
-      'Rent €1,800 a month against a €1,634 to €1,654 repayment',
-    )
-    expect(model.rentLine(1_800, [1_620])).toBe('Rent €1,800 a month against a €1,620 repayment')
-    expect(model.rentLine(null, [1_620])).toBeNull()
   })
 
   it('never words a route as a pick', () => {

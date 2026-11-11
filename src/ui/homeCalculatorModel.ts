@@ -61,23 +61,14 @@ export interface HomeFigures {
   lines: string[]
 }
 
-export interface OptionRow {
-  lender: string
-  kind: string
-  product: string
-  rate: string
-  monthly: string
-  monthlyEur: number
-  fiveYear: string
-  keys: string
-  more: string | null
-  notes: string[]
-  unconfirmed: boolean
-  /** The figure the list is sorted by, shown large, and one other beside it. */
-  lead: string
-  second: string
-  /** "4-year fixed, BER C, loans €250k+": the product in plain words; `product` keeps the raw name. */
-  name: string
+/** The thin bar under the headline: saved against the money needed at the keys. */
+export interface HomeProgress {
+  savedEur: number
+  neededEur: number
+  /** 0 to 100, capped. */
+  pct: number
+  toGoEur: number
+  covered: boolean
 }
 
 export interface HomeCalculatorModel {
@@ -86,7 +77,8 @@ export interface HomeCalculatorModel {
   figures(inputs: HomeInputs, rules: HomeRules, asOf: string): HomeFigures
   buildPlanBody(inputs: HomeInputs, sortBy: HomeSort): Record<string, unknown>
   contextText(inputs: HomeInputs, sortBy: HomeSort, count: number): string
-  rows(home: NonNullable<BuildPlanResult['home']>, sortBy: HomeSort): OptionRow[]
+  /** The lowest monthly repayment across the options returned, or null when none came. */
+  lowestMonthly(home: NonNullable<BuildPlanResult['home']>): number | null
   /**
    * "You could borrow up to €360,000 · deposit ready around Jan 2028".
    * With `keysOn` (saoi-api's month for these same inputs, savings interest counted) the headline
@@ -95,10 +87,24 @@ export interface HomeCalculatorModel {
    * month counts Help to Buy, and the headline must not.
    */
   headline(inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string
-  /** "€25k saved · €1,200/mo · €90k · €350k". */
-  summary(inputs: HomeInputs): string
-  /** The keys month every option shares, or null when they differ. */
-  sharedKeys(home: NonNullable<BuildPlanResult['home']>): string | null
+  /**
+   * The folded card's large headline, its month chosen exactly as `headline` chooses it:
+   * "April 2028", or "Not reached at this pace"; `note` says when it is the card's own estimate
+   * (before interest) and how far past the date given it falls.
+   */
+  readyHeadline(
+    inputs: HomeInputs,
+    figures: HomeFigures,
+    keysOn?: string | null,
+  ): { text: string; note: string | null }
+  /** "€400,000 second-hand, €47,000 needed at the keys". */
+  factLine(inputs: HomeInputs, figures: HomeFigures): string
+  /** Deposit saved against the money needed at the keys. */
+  progress(inputs: HomeInputs, figures: HomeFigures): HomeProgress
+  /** "Assumed: … Estimates only; rates and offers are not confirmed." */
+  assumedLine(assumed: readonly string[]): string
+  /** The line under Open in Saoi; `count` is null before the comparison ran for these inputs. */
+  openLine(count: number | null, routes: number): string
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
@@ -113,14 +119,19 @@ export interface HomeCalculatorModel {
   chipText(control: HomeControl): string
   /** The route's status as one small muted word. */
   statusWord(status: HomeRoute['status']): string
-  /** The first three routes in the order given, and the rest behind "More routes (N)". */
-  splitRoutes(routes: readonly HomeRoute[]): { shown: HomeRoute[]; more: HomeRoute[] }
-  /** "Rent €1,800 a month against a €1,634 repayment", over the options shown; null without rent. */
-  rentLine(rent: number | null, monthlies: readonly number[]): string | null
+  /**
+   * "Other routes": the first route is the customer's own kind (it is the headline), so the next
+   * two in saoi-api's order. Every route sits behind "See all routes (N)".
+   */
+  otherRoutes(routes: readonly HomeRoute[]): HomeRoute[]
+  /** The route's line without its name in front, when saoi-api put it there; otherwise as given. */
+  routeDetail(route: HomeRoute): string
   /** saoi-api's county slugs with their names, in the order of the select. */
   counties(): (readonly [string, string])[]
   eur(value: number): string
   month(yyyyMm: string | null): string
+  /** "April 2028". */
+  longMonth(yyyyMm: string): string
   addMonths(asOf: string, months: number): string
   monthsBetween(from: string, to: string): number
 }
@@ -357,102 +368,95 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       `rates: ${inputs.rateType}; green home: ${inputs.green ? 'yes' : 'no'}; open to switching current account: ${inputs.openToCurrentAccountSwitch ? 'yes' : 'no'};`,
       `county: ${COUNTIES.find(([slug]) => slug === inputs.county)?.[1] ?? 'not given'}; rent: ${inputs.monthlyRentEur === null ? 'not given' : `${eur(inputs.monthlyRentEur)} a month`}; tax paid over the last four years: ${inputs.taxPaidLastFourYearsEur === null ? 'not given' : eur(inputs.taxPaidLastFourYearsEur)}.`,
       'The card lists every route to a home as facts, in the order saoi-api gave; relay them as given and never call one the best.',
-      `The card shows ${String(count)} options sorted by ${SORTS[sortBy]}. Talk them through as a comparison if asked;`,
+      `The comparison returned ${String(count)} options sorted by ${SORTS[sortBy]}; the card shows how many and the lowest monthly repayment, and the list opens in the Saoi app. Talk them through as a comparison if asked;`,
       'do not pick one for the customer or say which to take. Use these inputs in any later saoi_build_plan call.',
     ].join(' ')
 
-  const rows = (home: NonNullable<BuildPlanResult['home']>, sortBy: HomeSort): OptionRow[] => {
-    const options = [...home.pathways].sort((a, b) => {
-      const byCost = a.netCostEur - b.netCostEur
-      const byMonthly = a.mortgage.monthlyRepayment - b.mortgage.monthlyRepayment
-      const byKeys = (a.keysOn ?? '9999-99').localeCompare(b.keysOn ?? '9999-99')
-      if (sortBy === 'monthly_repayment') return byMonthly || byCost
-      if (sortBy === 'keys_date') return byKeys || byCost
-      return byCost || byMonthly
-    })
-    return options.map((option) => {
-      const fixed = option.mortgage.fixedYears
-      return {
-        lender: option.lenderName,
-        kind: fixed === null ? 'Variable' : `${String(fixed)}-year fixed`,
-        product: option.mortgage.name,
-        rate: `${String(Math.round(option.mortgage.ratePct * 100) / 100)}%`,
-        monthly: eur(option.mortgage.monthlyRepayment),
-        monthlyEur: option.mortgage.monthlyRepayment,
-        fiveYear: eur(option.netCostEur),
-        keys: month(option.keysOn),
-        more: option.drivers === 'the rate alone' ? null : option.drivers,
-        notes: option.conditions,
-        unconfirmed: !option.confirmed,
-        name: plainName(
-          fixed === null ? 'Variable' : `${String(fixed)}-year fixed`,
-          option.mortgage.name,
-          option.conditions,
-        ),
-        lead:
-          sortBy === 'monthly_repayment'
-            ? `${eur(option.mortgage.monthlyRepayment)}/mo`
-            : sortBy === 'keys_date'
-              ? month(option.keysOn)
-              : eur(option.netCostEur),
-        second:
-          sortBy === 'monthly_repayment'
-            ? `${eur(option.netCostEur)} over 5 yrs`
-            : sortBy === 'keys_date'
-              ? `${eur(option.netCostEur)} over 5 yrs`
-              : `${eur(option.mortgage.monthlyRepayment)}/mo`,
-      }
-    })
-  }
+  const lowestMonthly = (home: NonNullable<BuildPlanResult['home']>): number | null =>
+    home.pathways.length === 0
+      ? null
+      : Math.min(...home.pathways.map((option) => option.mortgage.monthlyRepayment))
 
-  const short = (value: number): string =>
-    value >= 1_000_000
-      ? `€${String(Math.round(value / 100_000) / 10)}m`
-      : value >= 1_000
-        ? `€${String(Math.round(value / 100) / 10)}k`
-        : eur(value)
-
-  const headline = (inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string => {
+  /** Which month the headline shows, and whether it is the card's own estimate. */
+  const readyOf = (figures: HomeFigures, keysOn?: string | null): { ready: string | null; own: boolean } => {
     // The options' month counts Help to Buy at its most; a conditional Help to Buy stays out of
     // the headline, so the card's own month (without it) is shown instead.
     const own = keysOn === undefined || figures.helpToBuyConditional
-    const ready = own ? figures.reachedOn : keysOn
+    return { ready: own ? figures.reachedOn : (keysOn ?? null), own }
+  }
+
+  const headline = (inputs: HomeInputs, figures: HomeFigures, keysOn?: string | null): string => {
+    const { ready, own } = readyOf(figures, keysOn)
     const late = ready !== null && ready > inputs.targetDate
     return `You could borrow up to ${eur(figures.maxLoanEur)} · deposit ready ${
       ready === null ? 'not reached at this pace' : `around ${month(ready)}`
     }${own && ready !== null ? ' (before interest)' : ''}${late ? `, ${String(monthsBetween(inputs.targetDate, ready))} months after your date` : ''}`
   }
 
-  /** The product in plain words, from its rate type, its name and its conditions. */
-  const plainName = (kind: string, raw: string, conditions: readonly string[]): string => {
-    const parts = [kind]
-    if (/green/i.test(raw)) parts.push('green')
-    const ber = /\bBER\s*([A-G][0-9]?)\b/i.exec(raw)?.[1]
-    if (ber !== undefined) parts.push(`BER ${ber.toUpperCase()}`)
-    const text = conditions.join(' ')
-    const min = /for loans of €([\d,]+) or more/.exec(text)?.[1]
-    if (min !== undefined) {
-      const value = Number(min.replaceAll(',', ''))
-      parts.push(`loans €${String(Math.round(value / 1000))}k+`)
-    } else if (/higher-value rate|high-value|\bHVM\b|higher value/i.test(`${raw} ${text}`)) {
-      parts.push('larger loans')
+  const LONG_MONTHS = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ]
+  const longMonth = (yyyyMm: string): string => {
+    const match = /^(\d{4})-(\d{2})/.exec(yyyyMm)
+    const name = match === null ? undefined : LONG_MONTHS[Number(match[2]) - 1]
+    return match === null || name === undefined ? yyyyMm : `${name} ${match[1] ?? ''}`
+  }
+
+  const readyHeadline = (
+    inputs: HomeInputs,
+    figures: HomeFigures,
+    keysOn?: string | null,
+  ): { text: string; note: string | null } => {
+    const { ready, own } = readyOf(figures, keysOn)
+    if (ready === null) return { text: 'Not reached at this pace', note: null }
+    const notes = [
+      ...(own ? ['Before interest'] : []),
+      ...(ready > inputs.targetDate
+        ? [
+            `${String(monthsBetween(inputs.targetDate, ready))} ${monthsBetween(inputs.targetDate, ready) === 1 ? 'month' : 'months'} after your date`,
+          ]
+        : []),
+    ]
+    return { text: longMonth(ready), note: notes.length === 0 ? null : notes.join(', ') }
+  }
+
+  const factLine = (inputs: HomeInputs, figures: HomeFigures): string =>
+    `${eur(inputs.targetPriceEur)} ${inputs.propertyKind === 'new_build' ? 'new build' : 'second-hand'}, ${eur(figures.neededAtKeysEur)} needed at the keys`
+
+  const progress = (inputs: HomeInputs, figures: HomeFigures): HomeProgress => {
+    const saved = inputs.depositSavedEur
+    const needed = figures.neededAtKeysEur
+    const covered = saved >= needed
+    return {
+      savedEur: saved,
+      neededEur: needed,
+      pct: covered ? 100 : Math.round((saved / needed) * 1000) / 10,
+      toGoEur: covered ? 0 : round2(needed - saved),
+      covered,
     }
-    return parts.join(', ')
   }
 
-  const summary = (inputs: HomeInputs): string =>
-    [
-      `${short(inputs.depositSavedEur)} saved`,
-      `${eur(inputs.monthlySavingEur)}/mo`,
-      short(inputs.annualGrossIncomeEur + inputs.secondIncomeEur),
-      short(inputs.targetPriceEur),
-    ].join(' · ')
-
-  const sharedKeys = (home: NonNullable<BuildPlanResult['home']>): string | null => {
-    const keys = new Set(home.pathways.map((option) => option.keysOn ?? 'none'))
-    const only = [...keys][0]
-    return keys.size === 1 && only !== undefined && only !== 'none' ? month(only) : null
+  const assumedLine = (assumed: readonly string[]): string => {
+    const lines = assumed.map((line) => line.trim().replace(/\.$/, '')).filter((line) => line !== '')
+    const tail = 'Estimates only; rates and offers are not confirmed.'
+    return lines.length === 0 ? tail : `Assumed: ${lines.join(', ')}. ${tail}`
   }
+
+  const openLine = (count: number | null, routes: number): string =>
+    `Compare ${count === null ? 'every option' : `the ${String(count)} options`}${
+      routes > 0 ? ` and all ${String(routes)} routes` : ''
+    } with Saoirse`
 
   const given = (args: Record<string, unknown> | null): string[] =>
     args === null ? [] : Object.keys(args).filter((key) => args[key] !== undefined && args[key] !== null)
@@ -515,16 +519,11 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     not_applicable: 'Not applicable',
   }
 
-  const splitRoutes = (routes: readonly HomeRoute[]): { shown: HomeRoute[]; more: HomeRoute[] } => ({
-    shown: routes.slice(0, 3),
-    more: routes.slice(3),
-  })
+  const otherRoutes = (routes: readonly HomeRoute[]): HomeRoute[] => routes.slice(1, 3)
 
-  const rentLine = (rent: number | null, monthlies: readonly number[]): string | null => {
-    if (rent === null || monthlies.length === 0) return null
-    const low = Math.round(Math.min(...monthlies))
-    const high = Math.round(Math.max(...monthlies))
-    return `Rent ${eur(rent)} a month against a ${low === high ? eur(low) : `${eur(low)} to ${eur(high)}`} repayment`
+  const routeDetail = (route: HomeRoute): string => {
+    const lead = `${route.name}: `
+    return route.line.startsWith(lead) ? route.line.slice(lead.length) : route.line
   }
 
   return {
@@ -537,18 +536,22 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     controlFor,
     chipText: (control) => CHIPS[control],
     statusWord: (status) => STATUS[status],
-    splitRoutes,
-    rentLine,
+    otherRoutes,
+    routeDetail,
     counties: () => COUNTIES,
     figures,
     buildPlanBody,
     contextText,
-    rows,
+    lowestMonthly,
     headline,
-    summary,
-    sharedKeys,
+    readyHeadline,
+    factLine,
+    progress,
+    assumedLine,
+    openLine,
     eur,
     month,
+    longMonth,
     addMonths,
     monthsBetween,
   }

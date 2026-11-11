@@ -69,14 +69,18 @@ afterEach(() => {
   vi.useRealTimers()
 })
 
-describe('home calculator card v4: folded when the host gave the figures', () => {
-  it('starts folded to one summary line with Edit, and chips only for the facts still missing', () => {
+/** No route or option is worded as a pick, an endorsement or an instruction. */
+const PICK = /\b(best|faster|recommended|eligible|eligibility|right for you)\b/i
+
+describe('home calculator card v5: folded when the host gave the figures', () => {
+  it('heads the plan with its title, an Estimate badge and Edit, and chips only for the facts still missing', () => {
     const card = open(recorded.homeCalculatorSecondHand)
     expect(card.doc.querySelector('#in-depositSavedEur')).toBeNull()
-    expect(card.text('.summary-row p')).toEqual(['€30k saved · €1,000/mo · €100k · €400k'])
-    expect(card.byText('Edit')).toBeDefined()
+    expect(card.text('header .title')).toEqual(['Your home-buying planEstimate'])
+    expect(card.text('header .badge')).toEqual(['Estimate'])
+    expect(card.doc.querySelector('header')?.querySelector('button')?.textContent).toBe('Edit')
     // Second-hand was given; first home and rent were not. Rent comes last.
-    expect(card.text('.summary-row ~ .chips .chip')).toEqual(['First home?', 'Rent a month? (optional)'])
+    expect(card.text('.facts .chip')).toEqual(['First home?', 'Rent a month? (optional)'])
     expect(card.doc.querySelectorAll('input, select')).toHaveLength(0)
   })
 
@@ -104,17 +108,75 @@ describe('home calculator card v4: folded when the host gave the figures', () =>
     expect(card.calls.at(-1)?.args).toMatchObject({ monthlyRentEur: 1_800 })
   })
 
-  it('keeps the statement and the three warnings in small text at the foot', () => {
+  it('opens the editing state from Edit with the same title', () => {
     const card = open(recorded.homeCalculatorSecondHand)
-    const foot = card.text('footer p').join(' ')
-    expect(foot).toMatch(/you may lose your home/)
-    expect(foot).toMatch(/monthly repayments may increase/)
-    expect(foot).toMatch(/go into arrears/)
-    expect(foot).toMatch(/not regulated by the Central Bank of Ireland/)
+    card.byText('Edit')?.click()
+    expect(card.doc.querySelector('#in-depositSavedEur')).not.toBeNull()
+    expect(card.text('header .title')).toEqual(['Your home-buying planEstimate'])
+    expect(card.byText('Edit')).toBeUndefined()
   })
 })
 
-describe('home calculator card v4: expanded without figures', () => {
+describe('home calculator card v5: the month, the facts and the progress', () => {
+  it('shows the month the money is ready, one fact line, and saved against needed at the keys', () => {
+    const result = recorded.homeCalculatorSecondHand
+    const card = open(result)
+    const { inputs, figures } = result
+    const needed = figures.neededAtKeysEur ?? 0
+    expect(card.text('.hero .eyebrow')).toEqual(['Ready to buy'])
+    // The card's own estimate: €17,000 to go at €1,000 a month from November 2026.
+    expect(figures.depositReachedOn).toBe('2028-04')
+    expect(card.text('.hero-month')).toEqual(['April 2028'])
+    expect(card.text('.hero p').join(' | ')).toContain('€400,000 second-hand, €47,000 needed at the keys')
+    expect(needed).toBe(47_000)
+    const bar = card.doc.querySelector('[role="progressbar"]')
+    expect(bar?.getAttribute('aria-valuemin')).toBe('0')
+    expect(bar?.getAttribute('aria-valuemax')).toBe(String(needed))
+    expect(bar?.getAttribute('aria-valuenow')).toBe(String(inputs.depositSavedEur))
+    expect(card.text('.meter p').join(' | ')).toBe('€30,000 of €47,000 | €1,000 a month€17,000 to go')
+    expect(card.text('.meter .kv span')).toEqual(['€1,000 a month', '€17,000 to go'])
+  })
+
+  it('says Covered when the deposit saved meets the money needed at the keys', () => {
+    const result = recorded.homeCalculatorSecondHand
+    const card = mount({ saoi_home_calculator: result })
+    const inputs = { ...result.inputs, depositSavedEur: 60_000 }
+    card.emit('ui/notifications/tool-input', { arguments: inputs })
+    card.emit('ui/notifications/tool-result', { structuredContent: { ...result, inputs } })
+    expect(card.text('.meter .kv span')).toEqual(['€1,000 a month', 'Covered'])
+    expect(card.doc.querySelector('[role="progressbar"]')?.getAttribute('aria-valuenow')).toBe('47000')
+  })
+
+  it('keeps a conditional Help to Buy out of the month, and the new-build route names it', () => {
+    const card = open(recorded.homeCalculatorNewBuild)
+    expect(card.text('.hero-month')).toEqual(['April 2028'])
+    expect(card.doc.querySelector('.hero')?.textContent).not.toMatch(/Nov(ember)? 2026/)
+    expect(card.text('.hero p').join(' | ')).toContain('€400,000 new build, €47,000 needed at the keys')
+    card.byText('See all routes (6)')?.click()
+    expect(card.text('.route-head > .route-line')[0]).toBe(
+      'New build with Help to Buy · keys Nov 2026 if your tax paid covers €35,000',
+    )
+  })
+
+  it('shows the price and the mortgage as tiles, and the options once compared', async () => {
+    const card = open(recorded.homeCalculatorSecondHand, { saoi_build_plan: recorded.planHome })
+    const tiles = (): string[] => card.text('.tile')
+    expect(tiles()).toEqual(['Home price€400,000', 'Mortgage€360,000', 'OptionsTap Open in Saoi'])
+    card.byText('Open in Saoi')?.click()
+    await card.settle()
+    const home = recorded.planHome.home
+    if (home === null) throw new Error('recording has no home')
+    const lowest = Math.round(Math.min(...home.pathways.map((option) => option.mortgage.monthlyRepayment)))
+    expect(tiles()[2]).toBe(
+      `Options${String(home.pathways.length)}, from €${lowest.toLocaleString('en-IE')}/mo`,
+    )
+    // The options are not listed on the card; they open in the app.
+    expect(card.doc.querySelectorAll('.option-head')).toHaveLength(0)
+    expect(card.byText('5-year cost')).toBeUndefined()
+  })
+})
+
+describe('home calculator card v5: expanded without figures', () => {
   it('opens the inputs as today, with Show my options as an outline button', () => {
     const card = mount({ saoi_home_calculator: recorded.homeCalculator })
     card.emit('ui/notifications/tool-input', { arguments: {} })
@@ -128,35 +190,35 @@ describe('home calculator card v4: expanded without figures', () => {
   })
 })
 
-describe('home calculator card v4: one headline, then the routes', () => {
-  it('gives one headline line without a conditional Help to Buy, and the new-build route names it', () => {
-    const card = open(recorded.homeCalculatorNewBuild)
-    const headline = card.text('.headline')
-    expect(headline).toHaveLength(1)
-    expect(headline[0]).toMatch(/deposit ready around Apr 2028 \(before interest\)/)
-    expect(headline[0]).not.toMatch(/Nov 2026/)
-    expect(card.text('.route-head > span:first-child')[0]).toBe(
-      'New build with Help to Buy: keys Nov 2026 if your tax paid covers €35,000',
-    )
-  })
-
-  it('shows the first three route lines in saoi-api’s order, then More routes (N)', () => {
+describe('home calculator card v5: other routes', () => {
+  it('shows the two routes after the customer’s own kind, then See all routes (N) with every route', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
-    const lines = (): string[] => card.text('.route-head > span:first-child')
-    expect(lines()).toEqual(result.routes.slice(0, 3).map((route) => route.line))
-    expect(card.text('.route-head > span.muted')).toEqual(['Potential', 'Potential', 'One detail'])
+    const ids = (): string[] =>
+      Array.from(card.doc.querySelectorAll('.route-head')).map(
+        (node) => node.getAttribute('aria-controls')?.replace('route-', '') ?? '',
+      )
+    expect(card.text('h3.label')).toContain('Other routes')
+    expect(ids()).toEqual(result.routes.slice(1, 3).map((route) => route.id))
+    expect(ids()).not.toContain('second_hand')
+    expect(card.text('.route-head > .route-line')).toEqual(
+      result.routes.slice(1, 3).map((route) => route.line.replace(`${route.name}: `, `${route.name} · `)),
+    )
+    expect(card.text('.route-head > .badge')).toEqual(['Potential', 'One detail'])
+    expect(card.doc.querySelectorAll('.route-head .chevron')).toHaveLength(2)
     expect(card.doc.querySelectorAll('.route-head[aria-expanded="true"]')).toHaveLength(0)
-    card.byText('More routes (3)')?.click()
-    expect(lines()).toEqual(result.routes.map((route) => route.line))
-    expect(card.byText('More routes (3)')).toBeUndefined()
+    card.byText(`See all routes (${String(result.routes.length)})`)?.click()
+    expect(ids()).toEqual(result.routes.map((route) => route.id))
+    expect(card.byText(`See all routes (${String(result.routes.length)})`)).toBeUndefined()
   })
 
   it('opens a route to its reason, conditions and first source, with nothing styled as a pick', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
-    const head = card.doc.querySelector('.route-head') as unknown as HTMLButtonElement
+    card.byText('See all routes (6)')?.click()
+    const head = card.doc.querySelector('[aria-controls="route-second_hand"]') as unknown as HTMLButtonElement
     head.click()
+    expect(head.getAttribute('aria-expanded')).toBe('true')
     const body = card.doc.querySelector('#route-second_hand') as unknown as HTMLElement
     expect(body.hidden).toBe(false)
     expect(body.textContent).toContain(result.routes[0]?.reason ?? 'missing')
@@ -164,12 +226,11 @@ describe('home calculator card v4: one headline, then the routes', () => {
     const link = body.querySelector('a')
     expect(link?.getAttribute('href')).toBe(result.routes[0]?.sources[0]?.url)
     expect(link?.textContent).toBe('Source: centralbank.ie (read 2026-11-09)')
-    expect(card.doc.querySelector('#card')?.textContent).not.toMatch(/best|faster|recommended/i)
   })
 
   it('gives a missing detail a chip that opens its control, and sends the answer', async () => {
     const card = open(recorded.homeCalculatorSecondHand)
-    card.byText('More routes (3)')?.click()
+    card.byText('See all routes (6)')?.click()
     ;(card.doc.querySelector('[aria-controls="route-first_home_scheme"]') as unknown as HTMLElement).click()
     card.byText('Which county?')?.click()
     const select = card.doc.querySelector('#ask-county') as unknown as HTMLSelectElement
@@ -183,36 +244,52 @@ describe('home calculator card v4: one headline, then the routes', () => {
   })
 })
 
-describe('home calculator card v4: options and Open in Saoi', () => {
+describe('home calculator card v5: Open in Saoi and the footer', () => {
   const responses = { saoi_build_plan: recorded.planHome, saoi_save_plan: recorded.saved }
 
   it('has one filled button, Open in Saoi, which compares, then opens the single-use link', async () => {
     const card = open(recorded.homeCalculatorSecondHand, responses)
     const filled = card.buttons().filter((node) => node.classList.contains('btn'))
     expect(filled.map((node) => node.textContent)).toEqual(['Open in Saoi'])
-    expect(card.byText('Show my options')?.className).toMatch(/btn-outline/)
+    expect(card.text('.actions p')).toContain('Compare every option and all 6 routes with Saoirse')
+    expect(card.text('.actions p')).toContain('Held for 24 hours, then deleted unless opened.')
     card.byText('Open in Saoi')?.click()
     await card.settle()
     expect(card.calls.map((call) => call.name)).toContain('saoi_build_plan')
     expect(card.opened).toEqual([recorded.planHome.saveLink?.url])
     expect(card.text('.status').join(' ')).toMatch(/Opens in the Saoi app; the link works once/)
-    expect(card.doc.querySelectorAll('.options .option-head')).toHaveLength(3)
+    expect(card.text('.actions p')).toContain(
+      `Compare the ${String(recorded.planHome.home?.pathways.length ?? 0)} options and all 6 routes with Saoirse`,
+    )
   })
 
-  it('lists the top three options with the sort chip, then rent against the repayments when given', async () => {
+  it('says what was assumed, then the warnings only once the comparison returned them, then the statement', async () => {
     const result = recorded.homeCalculatorSecondHand
-    const card = mount({ saoi_home_calculator: result, ...responses })
-    card.emit('ui/notifications/tool-input', { arguments: { ...result.inputs, monthlyRentEur: 1_800 } })
-    card.emit('ui/notifications/tool-result', { structuredContent: result })
-    expect(card.text('.chip')).not.toContain('Rent a month? (optional)')
-    card.byText('Show my options')?.click()
-    await card.settle()
-    expect(card.doc.querySelectorAll('ol.options > li')).toHaveLength(3)
-    expect(card.byText('5-year cost')?.getAttribute('aria-pressed')).toBe('true')
-    expect(card.byText(`Show all ${String(recorded.planHome.home?.pathways.length ?? 0)}`)).toBeDefined()
-    expect(card.text('p').find((line) => line.startsWith('Rent '))).toMatch(
-      /^Rent €1,800 a month against a €[\d,]+( to €[\d,]+)? repayment$/,
+    const card = open(result, responses)
+    const foot = (): string[] => card.text('footer p')
+    expect(result.assumed.length).toBeGreaterThan(0)
+    expect(foot()[0]).toBe(
+      `Assumed: ${result.assumed.map((line) => line.replace(/\.$/, '')).join(', ')}. Estimates only; rates and offers are not confirmed.`,
     )
-    expect(card.byText('Update my options')).toBeUndefined()
+    expect(foot().join(' ')).not.toMatch(/Warning:/)
+    expect(foot().at(-1)).toMatch(/not regulated by the Central Bank of Ireland/)
+    card.byText('Open in Saoi')?.click()
+    await card.settle()
+    const warnings = recorded.planHome.home?.warnings ?? []
+    expect(warnings).toHaveLength(3)
+    expect(foot().slice(1, -1)).toEqual(warnings)
+    expect(foot().at(-1)).toMatch(/not regulated by the Central Bank of Ireland/)
+  })
+
+  it('never words a route or an option as a pick, with every route open', async () => {
+    for (const result of [recorded.homeCalculatorSecondHand, recorded.homeCalculatorNewBuild]) {
+      const card = open(result, responses)
+      card.byText('Open in Saoi')?.click()
+      await card.settle()
+      card.byText('See all routes (6)')?.click()
+      for (const head of Array.from(card.doc.querySelectorAll('.route-head')))
+        (head as unknown as HTMLElement).click()
+      expect(card.doc.querySelector('#card')?.textContent).not.toMatch(PICK)
+    }
   })
 })

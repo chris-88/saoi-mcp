@@ -14,12 +14,15 @@ import type {
  * The home calculator card's browser side. Runs inside the host's sandboxed frame as this
  * function's own source, with the bridge and the model handed in.
  *
- * One phone screen (decision 2026-11-10, every route on one screen): when the host supplied the
- * figures, they start folded to one line with Edit, and only the facts still missing show, as
- * chips that each open one control. Then one headline line, the first three routes to a home in
- * the order saoi-api gave (each opening to its reason, conditions and source) with "More routes",
- * the top three options in the order the customer picks, and one filled button, "Open in Saoi".
- * Without figures from the host, the inputs open expanded and fold once the options run. No
+ * Card v5, one phone screen (decision 2026-11-11): when the host supplied the figures, the card
+ * starts folded: "Your home-buying plan" with an Estimate badge and Edit, chips for the facts
+ * still missing (each opening one control), then the month the money for the keys is ready, one
+ * fact line, a thin progress bar of deposit saved against the money needed at the keys, three
+ * tiles (home price, mortgage, options), the other routes to a home in the order saoi-api gave
+ * (two, each opening to its reason, conditions and source, then "See all routes (N)"), one filled
+ * button, "Open in Saoi", and a footer of what was assumed, the warnings the comparison returned
+ * and the statement. The options are compared for the tile and the save; their list opens in the
+ * app. Without figures from the host, the inputs open expanded and fold once the options run. No
  * route or option is picked or highlighted for them. Every string goes in with `textContent`.
  */
 export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalculatorModel): void {
@@ -29,16 +32,18 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   const asOf = new Date().toISOString().slice(0, 7)
   let inputs: HomeInputs = model.defaults(asOf)
   let rules: HomeRules | null = null
-  let sortBy: HomeSort = 'five_year_cost'
+  /** The order saoi_build_plan ranks by; the list itself opens in the app. */
+  const sortBy: HomeSort = 'five_year_cost'
   let comparison: BuildPlanResult | null = null
   let editing = true
-  let showAll = false
   let drawn = false
   let secondIncome = false
   /** The inputs the shown comparison was run on. */
   let comparedFor = ''
   /** Every route to a home, in saoi-api's order, from the last saoi_home_calculator result. */
   let routes: HomeRoute[] = []
+  /** What the figures take as given when it was not said, from the same result. */
+  let assumed: string[] = []
   /** The request keys the customer has given (the host's arguments, then their answers). */
   let given: string[] = []
   let showAllRoutes = false
@@ -52,11 +57,6 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
 
   const STATEMENT =
     'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.'
-  const WARNINGS = [
-    'Warning: if you do not keep up your repayments you may lose your home.',
-    'Warning: the cost of your monthly repayments may increase.',
-    'Warning: if you do not meet the repayments on your loan, your account will go into arrears.',
-  ]
   /** The request key each control answers. */
   const KEYS: Record<HomeControl, string> = {
     county: 'county',
@@ -581,6 +581,8 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     const content = bridge.record(result?.['structuredContent'])
     const sent = bridge.record(content?.['rules'])
     if (sent !== null) rules = sent as unknown as HomeRules
+    const said = content?.['assumed']
+    if (Array.isArray(said)) assumed = said.filter((line): line is string => typeof line === 'string')
     const next = content?.['routes']
     if (!Array.isArray(next)) return false
     routes = next as HomeRoute[]
@@ -594,7 +596,9 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     const open = openRoute === route.id
     head.setAttribute('aria-expanded', String(open))
     head.setAttribute('aria-controls', `route-${route.id}`)
-    head.append(el('span', '', route.line), el('span', 'small muted nowrap', model.statusWord(route.status)))
+    const line = el('span', 'route-line')
+    line.append(el('span', 'medium', route.name), ` · ${model.routeDetail(route)}`)
+    head.append(line, el('span', 'badge', model.statusWord(route.status)), el('span', 'chevron'))
     const body = el('div', 'option-body')
     body.id = `route-${route.id}`
     body.hidden = !open
@@ -639,16 +643,15 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   const routesView = (): HTMLElement | null => {
     if (routes.length === 0) return null
     const block = el('section', 'section')
-    block.append(el('h3', 'label', 'Routes to a home'))
+    block.append(el('h3', 'label', 'Other routes'))
     if (routesNote !== '') block.append(el('p', 'status', routesNote))
-    const { shown: first, more } = model.splitRoutes(routes)
     const list = el('ul', 'options')
     list.setAttribute('aria-label', 'Routes, in the order given')
-    for (const route of showAllRoutes ? routes : first) list.append(routeRow(route))
+    for (const route of showAllRoutes ? routes : model.otherRoutes(routes)) list.append(routeRow(route))
     block.append(list)
-    if (more.length > 0 && !showAllRoutes)
+    if (!showAllRoutes && routes.length > model.otherRoutes(routes).length)
       block.append(
-        button('link muted-link', `More routes (${String(more.length)})`, () => {
+        button('link', `See all routes (${String(routes.length)})`, () => {
           showAllRoutes = true
           draw()
         }),
@@ -656,56 +659,72 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     return block
   }
 
-  // ---- options ---------------------------------------------------------------------------------
+  // ---- the plan --------------------------------------------------------------------------------
 
-  const optionRow = (row: ReturnType<HomeCalculatorModel['rows']>[number], index: number): HTMLElement => {
-    const item = el('li', '')
-    const head = el('button', 'option-head')
-    head.type = 'button'
-    head.setAttribute('aria-expanded', 'false')
-    const id = `opt-${String(index)}`
-    head.setAttribute('aria-controls', id)
-    const left = el('span', '')
-    const lender = el('span', 'medium block', row.lender)
-    if (row.unconfirmed) lender.append(el('span', 'badge', 'Unconfirmed'))
-    left.append(lender, el('span', 'small muted block', `${row.kind} · ${row.rate}`))
-    const right = el('span', 'right')
-    right.append(el('span', 'big num block', row.lead), el('span', 'small muted num block', row.second))
-    head.append(left, right)
-    const body = el('div', 'option-body')
-    body.id = id
-    body.hidden = true
-    const kv = (label: string, value: string): void => {
-      const line = el('p', 'kv small')
-      line.append(el('span', 'muted', label), el('span', 'num', value))
-      body.append(line)
+  /** True when the comparison shown was run on these same inputs. */
+  const compared = (): boolean => comparison !== null && comparedFor === JSON.stringify(inputs)
+
+  /** The month, one fact line, progress and the three tiles. */
+  const planView = (): HTMLElement => {
+    const block = el('section', 'section plan')
+    if (rules === null) {
+      block.append(el('p', 'muted', 'Working out your figures…'))
+      return block
     }
-    kv('Product', row.name)
-    kv('Monthly', row.monthly)
-    kv('Cost over 5 years', row.fiveYear)
-    kv('Keys', row.keys)
-    if (row.more !== null) kv('Cashback and bonus', row.more)
-    if (row.unconfirmed)
-      body.append(
-        el(
-          'p',
-          'small muted',
-          'Unconfirmed: the incentives come from CCPC’s tables and are not confirmed on the lender’s own site.',
-        ),
-      )
-    body.append(
-      collapsible('Conditions', (more) => {
-        more.append(el('p', 'small muted', `The lender’s name for it: ${row.product}.`))
-        for (const note of row.notes) more.append(el('p', 'small muted', note))
-      }),
+    const figures = model.figures(inputs, rules, asOf)
+    const ready = compared()
+      ? model.readyHeadline(inputs, figures, comparison?.home?.keysOn ?? null)
+      : model.readyHeadline(inputs, figures)
+    const hero = el('div', 'hero')
+    hero.setAttribute('aria-live', 'polite')
+    hero.append(el('p', 'eyebrow caps', 'Ready to buy'), el('p', 'hero-month', ready.text))
+    if (ready.note !== null) hero.append(el('p', 'small muted', ready.note))
+    hero.append(el('p', 'num', model.factLine(inputs, figures)))
+    block.append(hero)
+
+    const progress = model.progress(inputs, figures)
+    const meter = el('div', 'meter')
+    const bar = el('div', 'bar')
+    bar.setAttribute('role', 'progressbar')
+    bar.setAttribute('aria-label', 'Deposit saved towards the money needed at the keys')
+    bar.setAttribute('aria-valuemin', '0')
+    bar.setAttribute('aria-valuemax', String(Math.round(progress.neededEur)))
+    bar.setAttribute('aria-valuenow', String(Math.round(Math.min(progress.savedEur, progress.neededEur))))
+    const fill = el('span', '')
+    fill.style.width = `${String(progress.pct)}%`
+    bar.append(fill)
+    const saved = el('p', 'small num', `${model.eur(progress.savedEur)} of ${model.eur(progress.neededEur)}`)
+    const pace = el('p', 'kv small muted num')
+    pace.append(
+      el('span', '', `${model.eur(inputs.monthlySavingEur)} a month`),
+      el('span', '', progress.covered ? 'Covered' : `${model.eur(progress.toGoEur)} to go`),
     )
-    head.onclick = () => {
-      body.hidden = !body.hidden
-      head.setAttribute('aria-expanded', String(!body.hidden))
+    meter.append(bar, saved, pace)
+    block.append(meter)
+
+    const tiles = el('div', 'tiles')
+    const tile = (label: string, value: string): void => {
+      const node = el('div', 'tile')
+      node.append(el('p', 'small muted', label), el('p', 'medium num', value))
+      tiles.append(node)
     }
-    item.append(head, body)
-    return item
+    tile('Home price', model.eur(inputs.targetPriceEur))
+    tile('Mortgage', model.eur(figures.loanEur))
+    const home = comparison?.home ?? null
+    const lowest = home === null ? null : model.lowestMonthly(home)
+    tile(
+      'Options',
+      !compared()
+        ? 'Tap Open in Saoi'
+        : home === null || lowest === null
+          ? 'None fit these filters'
+          : `${String(home.pathways.length)}, from ${model.eur(lowest)}/mo`,
+    )
+    block.append(tiles)
+    return block
   }
+
+  // ---- options ---------------------------------------------------------------------------------
 
   /** "Show my options" or "Update my options": an outline button, with its own status line. */
   const compareButton = (): HTMLElement => {
@@ -732,92 +751,6 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     return wrap
   }
 
-  const optionsView = (): HTMLElement => {
-    const wrap = el('div', '')
-    const block = el('section', 'section')
-    wrap.append(block)
-    const home = comparison?.home ?? null
-    if (comparison === null) {
-      block.append(el('h3', 'label', 'Options'), compareButton())
-      return wrap
-    }
-    if (home === null || home.pathways.length === 0) {
-      block.append(
-        el('h3', 'label', 'No options fit these filters'),
-        el('p', 'muted', 'Try fewer filters under Edit.'),
-      )
-      return wrap
-    }
-    const rows = model.rows(home, sortBy)
-    const title = el('div', '')
-    title.append(el('h3', 'label', `${String(rows.length)} options`))
-    for (const filter of home.filters) title.append(el('p', 'small muted', filter))
-    block.append(title)
-    const sort = el('div', 'segmented')
-    sort.setAttribute('role', 'group')
-    sort.setAttribute('aria-label', 'Sort by')
-    for (const [value, text] of [
-      ['keys_date', 'Keys date'],
-      ['five_year_cost', '5-year cost'],
-      ['monthly_repayment', 'Monthly'],
-    ] as const) {
-      const item = button('', text, () => {
-        sortBy = value
-        draw()
-      })
-      item.setAttribute('aria-pressed', String(value === sortBy))
-      sort.append(item)
-    }
-    block.append(sort)
-    const shared = model.sharedKeys(home)
-    if (shared !== null && sortBy === 'keys_date') {
-      block.append(
-        el(
-          'p',
-          'small muted',
-          `Every option has the same keys date, ${shared}: the deposit needed is the same at each lender. Shown by 5-year cost.`,
-        ),
-      )
-    }
-    const list = el('ol', 'options')
-    list.setAttribute('aria-label', 'Options, in the order chosen')
-    const visible = showAll ? rows : rows.slice(0, 3)
-    visible.forEach((row, index) => {
-      list.append(optionRow(row, index))
-    })
-    block.append(list)
-    if (rows.length > visible.length) {
-      block.append(
-        button('link', `Show all ${String(rows.length)}`, () => {
-          showAll = true
-          draw()
-        }),
-      )
-    }
-    const rent = model.rentLine(
-      inputs.monthlyRentEur,
-      visible.map((row) => row.monthlyEur),
-    )
-    if (rent !== null) block.append(el('p', 'small muted', rent))
-    if (comparedFor !== JSON.stringify(inputs)) block.append(compareButton())
-    const method = el('div', '')
-    method.style.padding = '0 16px'
-    method.append(
-      collapsible('How we worked this out', (body) => {
-        body.append(
-          el(
-            'p',
-            'small muted',
-            '5-year cost: interest on a 30-year term and the valuation fee, less cashback and bonuses paid within the first 5 years.',
-          ),
-          ...home.assumptions.map((line) => el('p', 'small muted', line)),
-        )
-      }),
-    )
-    wrap.append(method)
-    return wrap
-  }
-
   /** saoi_build_plan (and the routes alongside) for the current inputs; false when it failed. */
   const runComparison = async (): Promise<boolean> => {
     // In the expanded view the customer has seen and kept the first-home and kind toggles.
@@ -833,7 +766,6 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     comparison = content as unknown as BuildPlanResult
     comparedFor = JSON.stringify(inputs)
     editing = false
-    showAll = false
     openControl = null
     void bridge.updateContext(model.contextText(inputs, sortBy, comparison.home?.pathways.length ?? 0))
     return true
@@ -881,7 +813,13 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
         else finish('Open it in the Saoi app (the link works once):', url)
       })()
     })
-    block.append(open, status, el('p', 'small muted', 'Held for 24 hours, then deleted unless opened.'))
+    const count = compared() ? (comparison?.home?.pathways.length ?? null) : null
+    block.append(
+      open,
+      el('p', 'small muted', model.openLine(count, routes.length)),
+      status,
+      el('p', 'small muted', 'Held for 24 hours, then deleted unless opened.'),
+    )
     return block
   }
 
@@ -891,8 +829,18 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     drawn = true
     root.replaceChildren()
     root.removeAttribute('aria-busy')
-    const header = el('header', 'header')
-    header.append(el('p', 'eyebrow', 'Saoi'), el('h2', 'title', 'Buying a home'))
+    const header = el('header', 'header head-row')
+    const title = el('h2', 'title', 'Your home-buying plan')
+    title.append(el('span', 'badge', 'Estimate'))
+    header.append(title)
+    if (!editing)
+      header.append(
+        button('btn-outline', 'Edit', () => {
+          editing = true
+          openControl = null
+          draw()
+        }),
+      )
     root.append(header)
 
     if (editing) {
@@ -907,38 +855,25 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       actions.append(compareButton())
       root.append(live, figuresStep(), preferencesStep(), actions)
     } else {
-      const summary = el('section', 'section')
-      const line = el('div', 'summary-row')
-      line.append(
-        el('p', 'muted num', model.summary(inputs)),
-        button('btn-outline', 'Edit', () => {
-          editing = true
-          openControl = null
-          draw()
-        }),
-      )
-      summary.append(line)
       const missing = model.missingFacts(given)
       if (missing.length > 0) {
+        const facts = el('section', 'facts')
         const chips = el('div', 'chips')
         for (const control of missing) chips.append(chip(control, 'facts'))
-        summary.append(chips)
-        if (openControl?.where === 'facts') summary.append(controlView(openControl.control))
+        facts.append(chips)
+        if (openControl?.where === 'facts') facts.append(controlView(openControl.control))
+        root.append(facts)
       }
-      const live = el('section', 'section')
-      live.append(headline)
-      root.append(summary, live)
+      root.append(planView())
       const routeBlock = routesView()
       if (routeBlock !== null) root.append(routeBlock)
-      root.append(optionsView())
     }
     root.append(actionsView())
 
-    // The statement and the statutory warnings stay visible, small, at the foot.
+    // What was assumed, the warnings the comparison returned and the statement, small, at the foot.
     const foot = el('footer', 'footer')
-    const home = comparison?.home ?? null
-    for (const warning of home !== null && home.warnings.length > 0 ? home.warnings : WARNINGS)
-      foot.append(el('p', 'small', warning))
+    foot.append(el('p', 'small', model.assumedLine(assumed)))
+    for (const warning of comparison?.home?.warnings ?? []) foot.append(el('p', 'small', warning))
     foot.append(el('p', 'small', STATEMENT))
     root.append(foot)
     refresh()

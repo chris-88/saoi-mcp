@@ -103,8 +103,11 @@ describe('one step at a time (round 2)', () => {
       note: 'Before interest',
     })
     expect(model.longMonth('2028-04')).toBe('April 2028')
-    expect(model.factLine(inputs, figures)).toBe(
-      `€350,000 second-hand, ${model.eur(figures.neededAtKeysEur)} needed at the keys`,
+    expect(model.factLine(figures)).toBe(
+      `${model.eur(figures.depositNeededEur)} deposit + ${model.eur(figures.stampDutyEur)} stamp duty + €3,000 legal and survey`,
+    )
+    expect(figures.depositNeededEur + figures.stampDutyEur + figures.legalAndSurveyEur).toBe(
+      figures.neededAtKeysEur,
     )
     const progress = model.progress(inputs, figures)
     expect(progress.toGoEur).toBe(figures.neededAtKeysEur - 25_000)
@@ -115,13 +118,11 @@ describe('one step at a time (round 2)', () => {
     expect(model.readyHeadline(inputs, never)).toEqual({ text: 'Not reached at this pace', note: null })
   })
 
-  it('builds the footer from what was assumed, the line under Open in Saoi and the rent line', () => {
+  it('builds the footer from what was assumed, and the rent line', () => {
     expect(model.assumedLine(['First-time buyer.', 'second-hand'])).toBe(
       'Assumed: First-time buyer, second-hand. Estimates only; rates and offers are not confirmed.',
     )
     expect(model.assumedLine([])).toBe('Estimates only; rates and offers are not confirmed.')
-    expect(model.openLine(6)).toBe('Compare every option and all 6 routes with Saoirse')
-    expect(model.openLine(0)).toBe('Compare every option with Saoirse')
     expect(model.rentNow(2_500)).toBe('Rent now €2,500 a month')
     expect(model.rentNow(null)).toBeNull()
   })
@@ -204,9 +205,25 @@ describe('round 4: routes, the conditional Help to Buy and rent', () => {
     expect(model.startsFolded(null)).toBe(false)
   })
 
-  it('asks only the facts still missing, rent last', () => {
-    expect(model.missingFacts(model.given(secondHand.inputs))).toEqual(['firstTimeBuyer', 'monthlyRentEur'])
-    expect(model.missingFacts([])).toEqual(['firstTimeBuyer', 'propertyKind', 'monthlyRentEur'])
+  it('asks only for rent on the folded card; first-time buyer stays assumed', () => {
+    expect(model.missingFacts(model.given(secondHand.inputs))).toEqual(['monthlyRentEur'])
+    expect(model.missingFacts([])).toEqual(['monthlyRentEur'])
+    expect(model.missingFacts(['monthlyRentEur'])).toEqual([])
+  })
+
+  it('takes Help to Buy off the fact line only when it is counted', () => {
+    const built = model.fromArguments({ ...newBuild.inputs, taxPaidLastFourYearsEur: 50_000 }, '2026-11')
+    const counted = model.figures(built, newBuild.rules, '2026-11')
+    expect(model.factLine(counted)).toBe(
+      '€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey − €35,000 Help to Buy',
+    )
+    const conditional = model.figures(
+      model.fromArguments(newBuild.inputs, '2026-11'),
+      newBuild.rules,
+      '2026-11',
+    )
+    expect(conditional.helpToBuyConditional).toBe(true)
+    expect(model.factLine(conditional)).toBe('€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey')
   })
 
   it('sends county and rent to saoi_home_calculator and leaves unanswered facts for it to ask', () => {

@@ -168,7 +168,7 @@ describe('resources and prompts', () => {
     expect(uris).toEqual([
       'saoi://about/earnings',
       'saoi://about/ranking',
-      'ui://saoi/home-calculator-v7.html',
+      'ui://saoi/home-calculator-v8.html',
       'ui://saoi/plan-card-v10.html',
     ])
     const read = await asRpc(

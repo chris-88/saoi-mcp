@@ -94,8 +94,8 @@ const footDetail = (card: Card): HTMLElement =>
   card.doc.querySelector('#foot-detail') as unknown as HTMLElement
 const count = (card: Card, name: string): number => card.calls.filter((call) => call.name === name).length
 
-describe('home calculator card v7: folded when the host gave the figures', () => {
-  it('heads the plan with Saoirse’s mark, the title and Edit, no badge, and chips only for the facts still missing', () => {
+describe('home calculator card v8: folded when the host gave the figures', () => {
+  it('heads the plan with Saoirse’s mark, the title and Edit, and one chip, for rent', () => {
     const card = open(recorded.homeCalculatorSecondHand)
     expect(card.doc.querySelector('#in-depositSavedEur')).toBeNull()
     expect(card.text('header .title')).toEqual(['Your home-buying plan'])
@@ -111,8 +111,8 @@ describe('home calculator card v7: folded when the host gave the figures', () =>
     expect(mark?.getAttribute('stroke-linecap')).toBeNull()
     const edit = card.byText('Edit')
     expect(edit?.querySelector('svg.icon-pencil')).not.toBeNull()
-    // Second-hand was given; first home and rent were not. Rent comes last, without "(optional)".
-    expect(card.text('.facts .chip')).toEqual(['First home?', 'Rent a month?'])
+    // First home was not given either, but it stays assumed (the footer says so): rent is the one chip.
+    expect(card.text('.facts .chip')).toEqual(['Rent a month?'])
     expect(card.doc.querySelectorAll('input, select')).toHaveLength(0)
   })
 
@@ -136,18 +136,24 @@ describe('home calculator card v7: folded when the host gave the figures', () =>
     }
   })
 
-  it('opens only the tapped fact’s control, and asks saoi-api again with the answer', async () => {
+  it('leaves first home to the Edit state, where its control stays', () => {
     const card = open(recorded.homeCalculatorSecondHand)
-    card.byText('First home?')?.click()
+    expect(card.byText('First home?')).toBeUndefined()
+    expect(card.byText('New build or second-hand?')).toBeUndefined()
+    card.byText('Edit')?.click()
+    expect(card.text('.choice-field > p')).toContain('First home?')
+  })
+
+  it('opens only the rent chip’s control, then drops the chip once answered', async () => {
+    const card = open(recorded.homeCalculatorSecondHand)
+    card.byText('Rent a month?')?.click()
     expect(card.doc.querySelectorAll('.control')).toHaveLength(1)
-    expect(card.doc.querySelectorAll('input, select')).toHaveLength(0)
-    card.byText('Yes')?.click()
+    const box = card.doc.querySelector('#ask-monthlyRentEur') as unknown as HTMLInputElement
+    box.value = '2500'
+    card.byText('Done')?.click()
     await card.settle()
-    expect(card.text('.chip')).not.toContain('First home?')
-    expect(card.calls.at(-1)).toMatchObject({
-      name: 'saoi_home_calculator',
-      args: { firstTimeBuyer: true, propertyKind: 'second_hand' },
-    })
+    expect(card.doc.querySelector('.facts')).toBeNull()
+    expect(card.text('.meter p').at(-1)).toBe('Rent now €2,500 a month')
   })
 
   it('takes rent from its chip, saying in the control that it is optional', async () => {
@@ -170,8 +176,8 @@ describe('home calculator card v7: folded when the host gave the figures', () =>
   })
 })
 
-describe('home calculator card v7: the month, the facts, the progress and two tiles', () => {
-  it('shows the month the money is ready, one fact line, and saved against needed at the keys', () => {
+describe('home calculator card v8: the month, what is needed, the progress and three tiles', () => {
+  it('shows the month the money is ready, what that money is made of, and saved against it', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
     const { inputs, figures } = result
@@ -181,15 +187,19 @@ describe('home calculator card v7: the month, the facts, the progress and two ti
     expect(card.text('.hero p')).toEqual([
       'Ready to buy',
       'April 2028',
-      '€400,000 second-hand, €47,000 needed at the keys',
+      '€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey',
     ])
+    expect((figures.depositNeededEur ?? 0) + (figures.stampDutyEur ?? 0) + figures.legalAndSurveyEur).toBe(
+      figures.neededAtKeysEur,
+    )
     expect(needed).toBe(47_000)
     const bar = card.doc.querySelector('[role="progressbar"]')
     expect(bar?.getAttribute('aria-valuemin')).toBe('0')
     expect(bar?.getAttribute('aria-valuemax')).toBe(String(needed))
     expect(bar?.getAttribute('aria-valuenow')).toBe(String(inputs.depositSavedEur))
     expect(card.text('.meter p')[0]).toBe('€30,000 of €47,000')
-    expect(card.doc.querySelector('.meter svg.icon-piggy-bank')).not.toBeNull()
+    // The piggy bank is on the Savings tile now, not repeated here.
+    expect(card.doc.querySelector('.meter svg')).toBeNull()
     expect(card.text('.meter .kv span.muted')).toEqual(['€1,000 a month'])
     expect(card.text('.meter .kv span.medium')).toEqual(['€17,000 to go'])
     // No rent given: no rent line.
@@ -197,12 +207,13 @@ describe('home calculator card v7: the month, the facts, the progress and two ti
     expect(card.doc.querySelector('#card')?.textContent).not.toMatch(/Rent now/)
   })
 
-  it('shows two tiles only, home price and mortgage', () => {
+  it('shows three tiles: savings, mortgage and could afford', () => {
     const card = open(recorded.homeCalculatorSecondHand)
-    expect(card.text('.tile')).toEqual(['Home price€400,000', 'Mortgage€360,000'])
-    expect(card.doc.querySelector('.tile svg.icon-house')).not.toBeNull()
-    expect(card.doc.querySelector('.tile svg.icon-landmark')).not.toBeNull()
-    expect(card.doc.querySelector('#card')?.textContent).not.toMatch(/See in Saoi|Options/)
+    expect(card.doc.querySelectorAll('.tile')).toHaveLength(3)
+    expect(card.text('.tile p.muted:first-of-type')).toEqual(['Savings', 'Mortgage', 'Could afford'])
+    expect(card.text('.tile .tile-value')).toEqual(['In Saoi', '€360,000', 'In Saoi'])
+    const icons = Array.from(card.doc.querySelectorAll('.tile svg')).map((svg) => svg.getAttribute('class'))
+    expect(icons).toEqual(['icon icon-piggy-bank', 'icon icon-landmark', 'icon icon-house'])
   })
 
   it('puts the rent given as one line under the progress', () => {
@@ -228,9 +239,22 @@ describe('home calculator card v7: the month, the facts, the progress and two ti
     const card = open(recorded.homeCalculatorNewBuild)
     expect(card.text('.hero-month')).toEqual(['April 2028'])
     expect(card.doc.querySelector('.hero')?.textContent).not.toMatch(/Nov(ember)? 2026/)
-    expect(card.text('.hero p').join(' | ')).toContain('€400,000 new build, €47,000 needed at the keys')
+    // Tax paid not given: Help to Buy is not counted, so it is not taken off the line.
+    expect(card.text('.hero p').at(-1)).toBe('€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey')
     // New build is the customer's own kind here, so the two rows are the next two routes.
     expect(card.text('.route-name')).toEqual(['Second-hand', 'Vacant property grant'])
+  })
+
+  it('takes Help to Buy off the line once tax paid is given', () => {
+    const result = recorded.homeCalculatorNewBuild
+    const card = mount({ saoi_home_calculator: result })
+    const inputs = { ...result.inputs, taxPaidLastFourYearsEur: 50_000 }
+    card.emit('ui/notifications/tool-input', { arguments: inputs })
+    card.emit('ui/notifications/tool-result', { structuredContent: { ...result, inputs } })
+    expect(card.text('.hero p').at(-1)).toBe(
+      '€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey − €35,000 Help to Buy',
+    )
+    expect(card.text('.meter p')[0]).toBe('€30,000 of €12,000')
   })
 
   it('moves the before-interest note from under the month into the footer detail', () => {
@@ -240,7 +264,7 @@ describe('home calculator card v7: the month, the facts, the progress and two ti
   })
 })
 
-describe('home calculator card v7: expanded without figures', () => {
+describe('home calculator card v8: expanded without figures', () => {
   it('opens the inputs as today, with Show my options as an outline button, and runs nothing on its own', async () => {
     const card = mount({ saoi_home_calculator: recorded.homeCalculator, ...responses })
     card.emit('ui/notifications/tool-input', { arguments: {} })
@@ -267,7 +291,7 @@ describe('home calculator card v7: expanded without figures', () => {
   })
 })
 
-describe('home calculator card v7: other routes', () => {
+describe('home calculator card v8: other routes', () => {
   it('shows the two routes after the customer’s own kind as two-line rows, then a link into Saoi', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
@@ -275,7 +299,7 @@ describe('home calculator card v7: other routes', () => {
       Array.from(card.doc.querySelectorAll('.route-head')).map(
         (node) => node.getAttribute('aria-controls')?.replace('route-', '') ?? '',
       )
-    expect(card.text('h3.label')).toContain('Other routes')
+    expect(card.text('h3.label')).toContain('Other supports')
     expect(card.doc.querySelector('h3.label svg.icon-sparkles')).not.toBeNull()
     const others = result.routes.slice(1, 3)
     expect(ids()).toEqual(others.map((route) => route.id))
@@ -335,14 +359,14 @@ describe('home calculator card v7: other routes', () => {
   })
 })
 
-describe('home calculator card v7: Open in Saoi and the footer', () => {
+describe('home calculator card v8: Open in Saoi and the footer', () => {
   it('has one filled two-line button, Open in Saoi, which compares, saves and opens the single-use link', async () => {
     const card = open(recorded.homeCalculatorSecondHand, unsaved)
     const filled = card.buttons().filter((node) => node.classList.contains('btn'))
     expect(filled).toHaveLength(1)
     expect(card.text('.btn-open .btn-words > span')).toEqual([
       'Open in Saoi',
-      'Compare every option and all 6 routes with Saoirse',
+      'Compare all product options and supports',
     ])
     expect(openButton(card).querySelector('svg.icon-external-link')).not.toBeNull()
     openButton(card).click()
@@ -353,9 +377,7 @@ describe('home calculator card v7: Open in Saoi and the footer', () => {
     expect(card.opened).toEqual([recorded.saved.claimUrl])
     expect(card.text('.status').join(' ')).toMatch(/Opens in the Saoi app; the link works once/)
     // No count on the card, before or after.
-    expect(card.text('.btn-open .btn-words > span')[1]).toBe(
-      'Compare every option and all 6 routes with Saoirse',
-    )
+    expect(card.text('.btn-open .btn-words > span')[1]).toBe('Compare all product options and supports')
   })
 
   it('does not compare again for the same inputs, and uses the held link when the comparison has one', async () => {

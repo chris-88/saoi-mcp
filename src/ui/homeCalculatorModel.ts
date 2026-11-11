@@ -71,6 +71,12 @@ export interface HomeProgress {
   covered: boolean
 }
 
+/** Where the card's comparison stands for the inputs shown. */
+export type OptionsState =
+  | { kind: 'running' }
+  | { kind: 'unavailable' }
+  | { kind: 'compared'; count: number; lowestMonthlyEur: number | null }
+
 export interface HomeCalculatorModel {
   defaults(asOf: string): HomeInputs
   fromArguments(args: Record<string, unknown> | null, asOf: string): HomeInputs
@@ -106,14 +112,11 @@ export interface HomeCalculatorModel {
   /** The line under Open in Saoi; `count` is null before the comparison ran for these inputs. */
   openLine(count: number | null, routes: number): string
   /**
-   * The Options tile's figure: "49, from €1,362/mo", with " · rent €1,800" when rent was given;
-   * before the comparison ran for these inputs (`compared` null), "rent €1,800" alone, else
-   * "Tap Open in Saoi".
+   * The Options tile: the count large ("49") with "from €1,362/mo" under it, "…" while the
+   * comparison runs, "See in Saoi" when the card has none for these inputs; " · rent €1,800" (or
+   * the rent alone) on the small line when rent was given.
    */
-  optionsTile(
-    compared: { count: number; lowestMonthlyEur: number | null } | null,
-    rent: number | null,
-  ): string
+  optionsTile(state: OptionsState, rent: number | null): { value: string; line: string | null }
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
@@ -467,17 +470,15 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       routes > 0 ? ` and all ${String(routes)} routes` : ''
     } with Saoirse`
 
-  const optionsTile = (
-    compared: { count: number; lowestMonthlyEur: number | null } | null,
-    rent: number | null,
-  ): string => {
+  const optionsTile = (state: OptionsState, rent: number | null): { value: string; line: string | null } => {
     const rentText = rent === null ? null : `rent ${eur(rent)}`
-    if (compared === null) return rentText ?? 'Tap Open in Saoi'
-    const options =
-      compared.count === 0 || compared.lowestMonthlyEur === null
-        ? 'None fit these filters'
-        : `${String(compared.count)}, from ${eur(compared.lowestMonthlyEur)}/mo`
-    return rentText === null ? options : `${options} · ${rentText}`
+    const join = (line: string | null): string | null =>
+      line === null ? rentText : rentText === null ? line : `${line} · ${rentText}`
+    if (state.kind === 'running') return { value: '…', line: rentText }
+    if (state.kind === 'unavailable') return { value: 'See in Saoi', line: rentText }
+    if (state.count === 0 || state.lowestMonthlyEur === null)
+      return { value: '0', line: join('None fit these filters') }
+    return { value: String(state.count), line: join(`from ${eur(state.lowestMonthlyEur)}/mo`) }
   }
 
   const given = (args: Record<string, unknown> | null): string[] =>
@@ -532,7 +533,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     propertyKind: 'New build or second-hand?',
     joint: 'Buying with someone?',
     taxPaid: 'Tax paid, last 4 years?',
-    monthlyRentEur: 'Rent a month? (optional)',
+    monthlyRentEur: 'Rent a month?',
   }
 
   const STATUS: Record<HomeRoute['status'], string> = {

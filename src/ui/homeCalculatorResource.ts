@@ -2,19 +2,21 @@ import type { McpServer } from '@modelcontextprotocol/server'
 import { createBridge } from './bridge.js'
 import { homeCalculatorApp } from './homeCalculatorApp.js'
 import { homeCalculatorModel } from './homeCalculatorModel.js'
+import { cardIcons } from './icons.js'
 import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardResource.js'
 
 /**
  * The home calculator card (decision 2026-11-10: Saoi compares; the customer sets the filters):
  * an MCP Apps UI resource that hosts which support it render with `saoi_home_calculator`.
- * Card v5 (decision 2026-11-11): one phone screen with the month the money for the keys is ready,
- * a progress bar, three tiles and the other routes to a home as facts; sliders with typed boxes
- * and the customer's filters under Edit; "Open in Saoi", which runs saoi_build_plan through the
- * host when needed and opens the comparison in the app.
+ * Card v6 (decision 2026-11-11): one phone screen with the month the money for the keys is ready,
+ * a progress bar, three tiles (the options counted once on their own) and the other routes to a
+ * home as facts, with icons; sliders with typed boxes and the customer's filters under Edit;
+ * "Open in Saoi", which opens the comparison in the app; the assumptions, warnings and statement
+ * folded behind one footer line.
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v5.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v6.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },
@@ -61,32 +63,61 @@ select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto;
 .chip[aria-expanded='true'] { border-color: var(--foreground); }
 .control { display: grid; gap: 8px; padding-top: 4px; }
 .control .btn-outline { justify-self: end; }
-.route-head {
-  width: 100%; min-height: 44px; padding: 10px 0; border: 0; background: none; cursor: pointer; text-align: left;
-  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
-}
 .nowrap { white-space: nowrap; }
+.icon { flex: none; display: block; }
+.with-icon { display: inline-flex; align-items: center; gap: 6px; }
+.icon-box {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--muted); color: var(--foreground); border-radius: var(--radius);
+}
+.icon-box-36 { width: 36px; height: 36px; }
+.icon-box-32 { width: 32px; height: 32px; }
 .head-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-bottom: 12px; }
-.head-row .badge { margin-left: 8px; }
+.head-lead { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.head-row .title { white-space: nowrap; }
+.head-row .title .badge { display: flex; width: fit-content; margin: 4px 0 0; }
 .facts { padding: 0 16px 12px; display: grid; gap: 8px; }
 .plan { gap: 16px; }
 .hero { display: grid; gap: 2px; }
 .caps { text-transform: uppercase; letter-spacing: 0.04em; }
 .hero-month { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
 .meter { display: grid; gap: 4px; }
+.meter .with-icon { display: flex; }
+.meter .with-icon .icon { color: var(--muted-foreground); }
 .bar { height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
 .bar > span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.tile { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; display: grid; gap: 2px; min-width: 0; }
-.tile p { overflow-wrap: anywhere; }
-.route-head { align-items: center; }
-.route-line { flex: 1; min-width: 0; }
-.route-head .badge { margin-left: 0; }
-.chevron {
-  flex: none; width: 7px; height: 7px; border-right: 1.5px solid var(--muted-foreground);
-  border-bottom: 1.5px solid var(--muted-foreground); transform: rotate(-45deg); transition: transform 0.15s;
+.tile {
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; min-width: 0;
+  display: grid; gap: 2px; align-content: start;
 }
-.route-head[aria-expanded='true'] .chevron { transform: rotate(45deg); }
+.tile p { overflow-wrap: anywhere; }
+.tile-icon { color: var(--muted-foreground); padding-bottom: 2px; }
+.label.with-icon { display: flex; }
+.label.with-icon .icon { color: var(--muted-foreground); }
+.route-head {
+  width: 100%; min-height: 56px; padding: 10px 0; border: 0; background: none; cursor: pointer; text-align: left;
+  display: flex; align-items: center; gap: 12px;
+}
+.route-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.route-head .badge { margin-left: 0; }
+.route-head .chevron { color: var(--muted-foreground); transition: transform 0.15s; }
+.route-head[aria-expanded='true'] .chevron { transform: rotate(90deg); }
+.route-body { padding-left: 44px; }
+.link.with-icon { display: inline-flex; }
+.btn-open {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 56px; padding: 8px 16px; text-align: left;
+}
+.btn-words { display: grid; gap: 1px; min-width: 0; }
+.btn-sub { opacity: 0.85; }
+.foot-toggle {
+  display: flex; align-items: center; gap: 6px; width: 100%; min-height: 44px; padding: 0; border: 0;
+  background: none; cursor: pointer; text-align: left; color: var(--muted-foreground);
+}
+.footer { padding: 4px 16px; }
+.foot-detail { display: grid; gap: 4px; padding-bottom: 12px; }
+@media (prefers-reduced-motion: reduce) { .route-head .chevron { transition: none; } }
 `
 
 /** The card's document: markup, style and script all inline. */
@@ -95,7 +126,8 @@ export function homeCalculatorHtml(): string {
     '"use strict";',
     `const createBridge = ${createBridge.toString()};`,
     `const homeCalculatorModel = ${homeCalculatorModel.toString()};`,
-    `(${homeCalculatorApp.toString()})(window, createBridge(window), homeCalculatorModel());`,
+    `const cardIcons = ${cardIcons.toString()};`,
+    `(${homeCalculatorApp.toString()})(window, createBridge(window), homeCalculatorModel(), cardIcons(document));`,
   ].join('\n')
   return [
     '<!DOCTYPE html>',
@@ -128,7 +160,7 @@ export function registerHomeCalculatorCard(server: McpServer): void {
     {
       title: 'Saoi home calculator',
       description:
-        'The interactive calculator hosts show with saoi_home_calculator: the customer’s figures, the month the money for the keys is ready, progress, every route to a home as facts, and Open in Saoi, which compares every option that fits.',
+        'The interactive calculator hosts show with saoi_home_calculator: the customer’s figures, the month the money for the keys is ready, progress, the number of options that fit, every route to a home as facts, and Open in Saoi.',
       mimeType: MCP_APP_MIME_TYPE,
       _meta: PLAN_CARD_RESOURCE_META,
     },

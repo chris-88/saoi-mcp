@@ -18,12 +18,13 @@ import type {
  * starts folded: "Your home-buying plan" with an Estimate badge and Edit, chips for the facts
  * still missing (each opening one control), then the month the money for the keys is ready, one
  * fact line, a thin progress bar of deposit saved against the money needed at the keys, three
- * tiles (home price, mortgage, options), the other routes to a home in the order saoi-api gave
- * (two, each opening to its reason, conditions and source, then "See all routes (N)"), one filled
- * button, "Open in Saoi", and a footer of what was assumed, the warnings the comparison returned
- * and the statement. The options are compared for the tile and the save; their list opens in the
- * app. Without figures from the host, the inputs open expanded and fold once the options run. No
- * route or option is picked or highlighted for them. Every string goes in with `textContent`.
+ * tiles (home price, mortgage, options with the rent when given), the other routes to a home in
+ * the order saoi-api gave (two, each opening to its reason, conditions and source, then "See all
+ * routes (N)"), one filled button, "Open in Saoi", and a footer of what was assumed, the three
+ * warnings (always: the card shows a mortgage figure) and the statement. The options are
+ * compared for the tile and the save; their list opens in the app. Without figures from the
+ * host, the inputs open expanded and fold once the options run. No route or option is picked or
+ * highlighted for them. Every string goes in with `textContent`.
  */
 export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalculatorModel): void {
   const doc = win.document
@@ -57,6 +58,12 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
 
   const STATEMENT =
     'Saoi is not regulated by the Central Bank of Ireland and does not give advice; it compares products on the figures you give.'
+  /** Shown whenever the comparison has not returned its own: the card shows a mortgage figure. */
+  const WARNINGS = [
+    'Warning: if you do not keep up your repayments you may lose your home.',
+    'Warning: the cost of your monthly repayments may increase.',
+    'Warning: if you do not meet the repayments on your loan, your account will go into arrears.',
+  ]
   /** The request key each control answers. */
   const KEYS: Record<HomeControl, string> = {
     county: 'county',
@@ -714,11 +721,10 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     const lowest = home === null ? null : model.lowestMonthly(home)
     tile(
       'Options',
-      !compared()
-        ? 'Tap Open in Saoi'
-        : home === null || lowest === null
-          ? 'None fit these filters'
-          : `${String(home.pathways.length)}, from ${model.eur(lowest)}/mo`,
+      model.optionsTile(
+        compared() ? { count: home?.pathways.length ?? 0, lowestMonthlyEur: lowest } : null,
+        inputs.monthlyRentEur,
+      ),
     )
     block.append(tiles)
     return block
@@ -870,10 +876,11 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     }
     root.append(actionsView())
 
-    // What was assumed, the warnings the comparison returned and the statement, small, at the foot.
+    // What was assumed, the warnings (the comparison’s, else the statutory three) and the statement.
     const foot = el('footer', 'footer')
     foot.append(el('p', 'small', model.assumedLine(assumed)))
-    for (const warning of comparison?.home?.warnings ?? []) foot.append(el('p', 'small', warning))
+    const returned = comparison?.home?.warnings ?? []
+    for (const warning of returned.length > 0 ? returned : WARNINGS) foot.append(el('p', 'small', warning))
     foot.append(el('p', 'small', STATEMENT))
     root.append(foot)
     refresh()

@@ -20,10 +20,12 @@ describe('home calculator card document', () => {
     expect(html).toMatch(/["']month["']/)
   })
 
-  it('names the statement, takes the warnings from the comparison, and never words a pick', () => {
+  it('names the statement and the three mortgage warnings, and never words a pick', () => {
     const html = homeCalculatorHtml()
     expect(html).toMatch(/not regulated by the Central Bank of Ireland and does not give advice/)
-    expect(html).toMatch(/home\?\.warnings/)
+    expect(html).toMatch(/you may lose your home/)
+    expect(html).toMatch(/monthly repayments may increase/)
+    expect(html).toMatch(/your account will go into arrears/)
     expect(html).toMatch(/Estimates only; rates and offers are not confirmed/)
     expect(html).not.toMatch(/recommend|best option for you|you should/i)
   })
@@ -128,6 +130,13 @@ describe('one step at a time (round 2)', () => {
     expect(model.assumedLine([])).toBe('Estimates only; rates and offers are not confirmed.')
     expect(model.openLine(49, 6)).toBe('Compare the 49 options and all 6 routes with Saoirse')
     expect(model.openLine(null, 6)).toBe('Compare every option and all 6 routes with Saoirse')
+    expect(model.optionsTile(null, null)).toBe('Tap Open in Saoi')
+    expect(model.optionsTile(null, 1_800)).toBe('rent €1,800')
+    expect(model.optionsTile({ count: 49, lowestMonthlyEur: 1_362.27 }, null)).toBe('49, from €1,362/mo')
+    expect(model.optionsTile({ count: 49, lowestMonthlyEur: 1_362.27 }, 1_800)).toBe(
+      '49, from €1,362/mo · rent €1,800',
+    )
+    expect(model.optionsTile({ count: 0, lowestMonthlyEur: null }, null)).toBe('None fit these filters')
   })
 
   it('keeps the breakdown and the extra inputs behind their expanders', () => {

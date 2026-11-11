@@ -105,6 +105,15 @@ export interface HomeCalculatorModel {
   assumedLine(assumed: readonly string[]): string
   /** The line under Open in Saoi; `count` is null before the comparison ran for these inputs. */
   openLine(count: number | null, routes: number): string
+  /**
+   * The Options tile's figure: "49, from €1,362/mo", with " · rent €1,800" when rent was given;
+   * before the comparison ran for these inputs (`compared` null), "rent €1,800" alone, else
+   * "Tap Open in Saoi".
+   */
+  optionsTile(
+    compared: { count: number; lowestMonthlyEur: number | null } | null,
+    rent: number | null,
+  ): string
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
@@ -458,6 +467,19 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       routes > 0 ? ` and all ${String(routes)} routes` : ''
     } with Saoirse`
 
+  const optionsTile = (
+    compared: { count: number; lowestMonthlyEur: number | null } | null,
+    rent: number | null,
+  ): string => {
+    const rentText = rent === null ? null : `rent ${eur(rent)}`
+    if (compared === null) return rentText ?? 'Tap Open in Saoi'
+    const options =
+      compared.count === 0 || compared.lowestMonthlyEur === null
+        ? 'None fit these filters'
+        : `${String(compared.count)}, from ${eur(compared.lowestMonthlyEur)}/mo`
+    return rentText === null ? options : `${options} · ${rentText}`
+  }
+
   const given = (args: Record<string, unknown> | null): string[] =>
     args === null ? [] : Object.keys(args).filter((key) => args[key] !== undefined && args[key] !== null)
 
@@ -549,6 +571,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     progress,
     assumedLine,
     openLine,
+    optionsTile,
     eur,
     month,
     longMonth,

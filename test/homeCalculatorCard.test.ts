@@ -174,6 +174,25 @@ describe('home calculator card v5: the month, the facts and the progress', () =>
     expect(card.doc.querySelectorAll('.option-head')).toHaveLength(0)
     expect(card.byText('5-year cost')).toBeUndefined()
   })
+
+  it('puts the rent given on the Options tile, alone before the comparison and beside the lowest monthly after', async () => {
+    const result = recorded.homeCalculatorSecondHand
+    const card = mount({ saoi_home_calculator: result, saoi_build_plan: recorded.planHome })
+    card.emit('ui/notifications/tool-input', { arguments: { ...result.inputs, monthlyRentEur: 1_800 } })
+    card.emit('ui/notifications/tool-result', { structuredContent: result })
+    const options = (): HTMLElement[] =>
+      Array.from(card.doc.querySelectorAll('.tile:last-child p')) as unknown as HTMLElement[]
+    expect(options().map((node) => node.textContent)).toEqual(['Options', 'rent €1,800'])
+    card.byText('Open in Saoi')?.click()
+    await card.settle()
+    const home = recorded.planHome.home
+    if (home === null) throw new Error('recording has no home')
+    const lowest = Math.round(Math.min(...home.pathways.map((option) => option.mortgage.monthlyRepayment)))
+    expect(options().map((node) => node.textContent)).toEqual([
+      'Options',
+      `${String(home.pathways.length)}, from €${lowest.toLocaleString('en-IE')}/mo · rent €1,800`,
+    ])
+  })
 })
 
 describe('home calculator card v5: expanded without figures', () => {
@@ -263,7 +282,7 @@ describe('home calculator card v5: Open in Saoi and the footer', () => {
     )
   })
 
-  it('says what was assumed, then the warnings only once the comparison returned them, then the statement', async () => {
+  it('says what was assumed, then the three warnings at all times, then the statement', async () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result, responses)
     const foot = (): string[] => card.text('footer p')
@@ -271,7 +290,12 @@ describe('home calculator card v5: Open in Saoi and the footer', () => {
     expect(foot()[0]).toBe(
       `Assumed: ${result.assumed.map((line) => line.replace(/\.$/, '')).join(', ')}. Estimates only; rates and offers are not confirmed.`,
     )
-    expect(foot().join(' ')).not.toMatch(/Warning:/)
+    // Before the comparison: the statutory three, since the card shows a mortgage figure.
+    const statutory = foot().slice(1, -1)
+    expect(statutory).toHaveLength(3)
+    expect(statutory.join(' ')).toMatch(/you may lose your home/)
+    expect(statutory.join(' ')).toMatch(/monthly repayments may increase/)
+    expect(statutory.join(' ')).toMatch(/go into arrears/)
     expect(foot().at(-1)).toMatch(/not regulated by the Central Bank of Ireland/)
     card.byText('Open in Saoi')?.click()
     await card.settle()
@@ -279,6 +303,18 @@ describe('home calculator card v5: Open in Saoi and the footer', () => {
     expect(warnings).toHaveLength(3)
     expect(foot().slice(1, -1)).toEqual(warnings)
     expect(foot().at(-1)).toMatch(/not regulated by the Central Bank of Ireland/)
+  })
+
+  it('keeps the statutory warnings when the comparison returned none', async () => {
+    const home = recorded.planHome.home
+    if (home === null) throw new Error('recording has no home')
+    const card = open(recorded.homeCalculatorSecondHand, {
+      ...responses,
+      saoi_build_plan: { ...recorded.planHome, home: { ...home, warnings: [] } },
+    })
+    card.byText('Open in Saoi')?.click()
+    await card.settle()
+    expect(card.text('footer p').filter((line) => line.startsWith('Warning:'))).toHaveLength(3)
   })
 
   it('never words a route or an option as a pick, with every route open', async () => {

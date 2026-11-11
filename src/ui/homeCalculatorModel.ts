@@ -12,6 +12,23 @@ import type { HomeCalculatorResult } from '../saoiClient.js'
 
 export type HomeRules = HomeCalculatorResult['rules']
 export type HomeRoute = HomeCalculatorResult['routes'][number]
+export type HomeMarket = HomeCalculatorResult['market']
+
+/** What the tiles show from saoi-api's result: its market block and its affordability figures. */
+export interface HomeMarketFacts {
+  market: HomeMarket
+  /** `figures.maxPriceEur`: the most the Central Bank limits allow, worked out by saoi-api. */
+  maxPriceEur: number | null
+  /** `figures.termYears`. */
+  termYears: number | null
+}
+
+/** One tile: a label, one value, and up to two small lines. */
+export interface HomeTile {
+  label: string
+  value: string
+  lines: string[]
+}
 
 /** A fact the card can ask for with one control, from a chip. */
 export type HomeControl =
@@ -110,6 +127,18 @@ export interface HomeCalculatorModel {
   assumedLine(assumed: readonly string[]): string
   /** "Rent now €2,500 a month" under the progress, or null when rent was not given. */
   rentNow(rent: number | null): string | null
+  /**
+   * The three tiles, Savings, Mortgage and Could afford, worded from saoi-api's figures as they
+   * come (no figure is worked out here): the top savings rate with its interest by the date and how
+   * many accounts fit; the mortgage with the lowest rate and monthly and how many options fit; the
+   * most the Central Bank limits allow, with the limits that set it. "See in Saoi" when saoi-api
+   * sent none. No provider or lender is named.
+   */
+  tiles(
+    loanEur: number,
+    facts: HomeMarketFacts,
+    limits: { loanToIncome: number; maxLtvPct: number },
+  ): HomeTile[]
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
@@ -468,6 +497,52 @@ export function homeCalculatorModel(): HomeCalculatorModel {
   const rentNow = (rent: number | null): string | null =>
     rent === null ? null : `Rent now ${eur(rent)} a month`
 
+  const pct2 = (value: number): string => `${value.toFixed(2)}%`
+  const count = (n: number, one: string, many: string): string => `${String(n)} ${n === 1 ? one : many}`
+
+  const tiles = (
+    loanEur: number,
+    facts: HomeMarketFacts,
+    limits: { loanToIncome: number; maxLtvPct: number },
+  ): HomeTile[] => {
+    const savings = facts.market?.savings ?? null
+    const mortgage = facts.market?.mortgage ?? null
+    const see = ['See in Saoi']
+    return [
+      savings === null
+        ? { label: 'Savings', value: 'In Saoi', lines: see }
+        : {
+            label: 'Savings',
+            value: `up to ${pct2(savings.topRatePct)}`,
+            lines: [
+              `${eur(savings.interestToTargetEur)} interest by ${month(savings.by)}`,
+              count(savings.accounts, 'account', 'accounts'),
+            ],
+          },
+      {
+        label: 'Mortgage',
+        value: eur(loanEur),
+        lines:
+          mortgage === null
+            ? see
+            : [
+                `from ${pct2(mortgage.lowestRatePct)}, ${eur(mortgage.lowestMonthlyEur)}/mo`,
+                `${count(mortgage.options, 'option', 'options')}, ${String(mortgage.termYears)} years`,
+              ],
+      },
+      facts.maxPriceEur === null
+        ? { label: 'Could afford', value: 'In Saoi', lines: see }
+        : {
+            label: 'Could afford',
+            value: `up to ${eur(facts.maxPriceEur)}`,
+            lines: [
+              `${String(limits.loanToIncome)}× income, ${String(limits.maxLtvPct)}% loan`,
+              ...(facts.termYears === null ? [] : [`${String(facts.termYears)} years`]),
+            ],
+          },
+    ]
+  }
+
   const given = (args: Record<string, unknown> | null): string[] =>
     args === null ? [] : Object.keys(args).filter((key) => args[key] !== undefined && args[key] !== null)
 
@@ -559,6 +634,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     progress,
     assumedLine,
     rentNow,
+    tiles,
     eur,
     month,
     longMonth,

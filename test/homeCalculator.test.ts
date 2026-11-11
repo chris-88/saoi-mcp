@@ -211,6 +211,30 @@ describe('round 4: routes, the conditional Help to Buy and rent', () => {
     expect(model.missingFacts(['monthlyRentEur'])).toEqual([])
   })
 
+  it('words the tiles from saoi-api’s figures without working any out', () => {
+    const market = secondHand.market
+    const savings = market?.savings ?? null
+    const mortgage = market?.mortgage ?? null
+    if (market === null || savings === null || mortgage === null) throw new Error('recording has no market')
+    const one = {
+      market: { ...market, savings: { ...savings, accounts: 1 }, mortgage: { ...mortgage, options: 1 } },
+      maxPriceEur: 388_000,
+      termYears: 35,
+    }
+    expect(model.tiles(300_000, one, secondHand.rules.otherBuyer)).toEqual([
+      { label: 'Savings', value: 'up to 3.11%', lines: ['€736 interest by Jun 2028', '1 account'] },
+      { label: 'Mortgage', value: '€300,000', lines: ['from 3.20%, €1,557/mo', '1 option, 30 years'] },
+      { label: 'Could afford', value: 'up to €388,000', lines: ['3.5× income, 90% loan', '35 years'] },
+    ])
+    expect(
+      model.tiles(300_000, { market: null, maxPriceEur: null, termYears: null }, secondHand.rules.otherBuyer),
+    ).toEqual([
+      { label: 'Savings', value: 'In Saoi', lines: ['See in Saoi'] },
+      { label: 'Mortgage', value: '€300,000', lines: ['See in Saoi'] },
+      { label: 'Could afford', value: 'In Saoi', lines: ['See in Saoi'] },
+    ])
+  })
+
   it('takes Help to Buy off the fact line only when it is counted', () => {
     const built = model.fromArguments({ ...newBuild.inputs, taxPaidLastFourYearsEur: 50_000 }, '2026-11')
     const counted = model.figures(built, newBuild.rules, '2026-11')

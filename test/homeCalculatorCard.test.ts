@@ -56,7 +56,11 @@ function mount(responses: Record<string, unknown> = {}) {
   }
   const text = (selector: string): string[] =>
     Array.from(doc.querySelectorAll(selector)).map((node) => node.textContent)
-  return { doc, emit, calls, opened, contexts, buttons, byText, settle, text }
+  /** Changes what a tool answers from now on. */
+  const respond = (name: string, answer: unknown): void => {
+    responses[name] = answer
+  }
+  return { doc, emit, calls, opened, contexts, buttons, byText, settle, text, respond }
 }
 
 /** The host's arguments and saoi-api's answer for one recorded example. */
@@ -87,7 +91,7 @@ if (home === null) throw new Error('recording has no home')
 type Card = ReturnType<typeof mount>
 const openButton = (card: Card): HTMLButtonElement =>
   card.doc.querySelector('.btn-open') as unknown as HTMLButtonElement
-const routesLink = (card: Card): HTMLButtonElement | undefined => card.byText('See all 6 routes in Saoi')
+const routesLink = (card: Card): HTMLButtonElement | undefined => card.byText('See all 6 supports in Saoi')
 const footToggle = (card: Card): HTMLButtonElement =>
   card.doc.querySelector('.foot-toggle') as unknown as HTMLButtonElement
 const footDetail = (card: Card): HTMLElement =>
@@ -207,13 +211,44 @@ describe('home calculator card v8: the month, what is needed, the progress and t
     expect(card.doc.querySelector('#card')?.textContent).not.toMatch(/Rent now/)
   })
 
-  it('shows three tiles: savings, mortgage and could afford', () => {
-    const card = open(recorded.homeCalculatorSecondHand)
+  it('fills the three tiles from saoi-api’s market block and affordability figures, naming no provider', () => {
+    const result = recorded.homeCalculatorSecondHand
+    const card = open(result)
+    const tile = (n: number): string[] => card.text(`.tile:nth-child(${String(n)}) p`)
     expect(card.doc.querySelectorAll('.tile')).toHaveLength(3)
-    expect(card.text('.tile p.muted:first-of-type')).toEqual(['Savings', 'Mortgage', 'Could afford'])
-    expect(card.text('.tile .tile-value')).toEqual(['In Saoi', '€360,000', 'In Saoi'])
+    // From the live result: top savings rate 3.11%, €735.86 interest by 2028-06, 28 accounts; 49
+    // mortgages from 3.2% and €1,556.88 a month over 30 years; up to €444,000 within the limits.
+    expect(tile(1)).toEqual(['Savings', 'up to 3.11%', '€736 interest by Jun 2028', '28 accounts'])
+    expect(tile(2)).toEqual(['Mortgage', '€360,000', 'from 3.20%, €1,557/mo', '49 options, 30 years'])
+    expect(tile(3)).toEqual(['Could afford', 'up to €444,000', '4× income, 90% loan', '30 years'])
     const icons = Array.from(card.doc.querySelectorAll('.tile svg')).map((svg) => svg.getAttribute('class'))
     expect(icons).toEqual(['icon icon-piggy-bank', 'icon icon-landmark', 'icon icon-house'])
+    const provider = result.market?.savings?.topRateProvider ?? 'missing'
+    expect(card.doc.querySelector('#card')?.textContent).not.toContain(provider)
+  })
+
+  it('says See in Saoi on the tiles when saoi-api sent no market block', () => {
+    const result = { ...recorded.homeCalculatorSecondHand, market: null }
+    const card = open(result)
+    const tile = (n: number): string[] => card.text(`.tile:nth-child(${String(n)}) p`)
+    expect(tile(1)).toEqual(['Savings', 'In Saoi', 'See in Saoi'])
+    expect(tile(2)).toEqual(['Mortgage', '€360,000', 'See in Saoi'])
+    expect(tile(3)).toEqual(['Could afford', 'up to €444,000', '4× income, 90% loan', '30 years'])
+  })
+
+  it('takes the new market facts when a chip answer brings a new result', async () => {
+    const result = recorded.homeCalculatorSecondHand
+    const market = result.market
+    const mortgage = market?.mortgage ?? null
+    if (market === null || mortgage === null) throw new Error('recording has no mortgage market')
+    const card = open(result)
+    const newer = { ...result, market: { ...market, mortgage: { ...mortgage, options: 12 } } }
+    card.respond('saoi_home_calculator', newer)
+    card.byText('Rent a month?')?.click()
+    ;(card.doc.querySelector('#ask-monthlyRentEur') as unknown as HTMLInputElement).value = '2500'
+    card.byText('Done')?.click()
+    await card.settle()
+    expect(card.text('.tile:nth-child(2) p')[3]).toBe('12 options, 30 years')
   })
 
   it('puts the rent given as one line under the progress', () => {
@@ -239,6 +274,13 @@ describe('home calculator card v8: the month, what is needed, the progress and t
     const card = open(recorded.homeCalculatorNewBuild)
     expect(card.text('.hero-month')).toEqual(['April 2028'])
     expect(card.doc.querySelector('.hero')?.textContent).not.toMatch(/Nov(ember)? 2026/)
+    // The new build's own market: 51 mortgages from 3.10%.
+    expect(card.text('.tile:nth-child(2) p')).toEqual([
+      'Mortgage',
+      '€360,000',
+      'from 3.10%, €1,537/mo',
+      '51 options, 30 years',
+    ])
     // Tax paid not given: Help to Buy is not counted, so it is not taken off the line.
     expect(card.text('.hero p').at(-1)).toBe('€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey')
     // New build is the customer's own kind here, so the two rows are the next two routes.
@@ -341,7 +383,7 @@ describe('home calculator card v8: other routes', () => {
     })
   })
 
-  it('opens Saoi from "See all 6 routes in Saoi" exactly as the button does', async () => {
+  it('opens Saoi from "See all 6 supports in Saoi" exactly as the button does', async () => {
     const card = open(recorded.homeCalculatorSecondHand, unsaved)
     const link = routesLink(card)
     if (link === undefined) throw new Error('no routes link')

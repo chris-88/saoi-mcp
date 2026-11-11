@@ -11,7 +11,7 @@ import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardRes
  * Card v8 (decision 2026-11-11): one phone screen under Saoirse's mark with the month the money
  * for the keys is ready and what it is made of, a progress bar, three tiles (savings, mortgage,
  * could afford) and two other supports as facts, with icons; sliders with typed boxes and the
- * customer's filters under Edit; "Open in Saoi" (and "See all N routes in Saoi"), which compares,
+ * customer's filters under Edit; "Open in Saoi" (and "See all N supports in Saoi"), which compares,
  * saves and opens it in the app; the assumptions, warnings and statement folded behind one
  * footer line. No tool is called until the customer asks.
  *

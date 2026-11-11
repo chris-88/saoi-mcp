@@ -328,6 +328,14 @@ describe('tools/call', () => {
     expect(body.result?.['structuredContent']).toEqual(recorded.homeCalculatorSecondHand)
   })
 
+  it('relays the market sentences and the affordability figure as saoi-api gave them', async () => {
+    const said = text(await call('saoi_home_calculator', { targetPriceEur: 400000 }))
+    const market = recorded.homeCalculatorSecondHand.market
+    if (market === null) throw new Error('recording has no market')
+    for (const line of market.lines) expect(said).toContain(`- ${line}`)
+    expect(said).toMatch(/Within the Central Bank limits: up to €444,000 over 30 years; lenders decide/)
+  })
+
   it('relays three route lines after the headline, then More routes, with nothing that reads as a pick', async () => {
     saoi.homeCalculator.mockResolvedValueOnce(recorded.homeCalculatorNewBuild)
     const said = text(

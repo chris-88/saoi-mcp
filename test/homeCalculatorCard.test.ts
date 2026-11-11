@@ -79,32 +79,51 @@ afterEach(() => {
 const PICK = /\b(best|faster|recommended|eligible|eligibility|apply|right for you)\b/i
 
 const responses = { saoi_build_plan: recorded.planHome, saoi_save_plan: recorded.saved }
+/** A comparison without its held link, so Open in Saoi saves it through saoi_save_plan. */
+const unsaved = { saoi_build_plan: { ...recorded.planHome, saveLink: null }, saoi_save_plan: recorded.saved }
 const home = recorded.planHome.home
 if (home === null) throw new Error('recording has no home')
-const lowest = Math.round(Math.min(...home.pathways.map((option) => option.mortgage.monthlyRepayment)))
-const fromLowest = `from €${lowest.toLocaleString('en-IE')}/mo`
 
 type Card = ReturnType<typeof mount>
 const openButton = (card: Card): HTMLButtonElement =>
   card.doc.querySelector('.btn-open') as unknown as HTMLButtonElement
-const optionsTile = (card: Card): string[] => card.text('.tile:last-child p')
+const routesLink = (card: Card): HTMLButtonElement | undefined => card.byText('See all 6 routes in Saoi')
 const footToggle = (card: Card): HTMLButtonElement =>
   card.doc.querySelector('.foot-toggle') as unknown as HTMLButtonElement
 const footDetail = (card: Card): HTMLElement =>
   card.doc.querySelector('#foot-detail') as unknown as HTMLElement
+const count = (card: Card, name: string): number => card.calls.filter((call) => call.name === name).length
 
-describe('home calculator card v6: folded when the host gave the figures', () => {
-  it('heads the plan with its icon, title, Estimate badge and Edit, and chips only for the facts still missing', () => {
+describe('home calculator card v7: folded when the host gave the figures', () => {
+  it('heads the plan with Saoirse’s mark, the title and Edit, no badge, and chips only for the facts still missing', () => {
     const card = open(recorded.homeCalculatorSecondHand)
     expect(card.doc.querySelector('#in-depositSavedEur')).toBeNull()
-    expect(card.text('header .title')).toEqual(['Your home-buying planEstimate'])
-    expect(card.text('header .badge')).toEqual(['Estimate'])
-    expect(card.doc.querySelector('header .icon-box-36 svg.icon-house')).not.toBeNull()
+    expect(card.text('header .title')).toEqual(['Your home-buying plan'])
+    expect(card.doc.querySelector('header .badge')).toBeNull()
+    expect(card.doc.querySelector('header .icon-house')).toBeNull()
+    const mark = card.doc.querySelector('header .mark svg.icon-saoirse')
+    expect(mark?.getAttribute('viewBox')).toBe('0 0 64 64')
+    expect(mark?.getAttribute('width')).toBe('36')
+    expect(mark?.querySelector('g')?.getAttribute('stroke')).toBe('currentColor')
+    expect(
+      Array.from(mark?.querySelectorAll('path') ?? []).map((path) => path.getAttribute('stroke-width')),
+    ).toEqual(['14', '6', '6'])
+    expect(mark?.getAttribute('stroke-linecap')).toBeNull()
     const edit = card.byText('Edit')
     expect(edit?.querySelector('svg.icon-pencil')).not.toBeNull()
     // Second-hand was given; first home and rent were not. Rent comes last, without "(optional)".
     expect(card.text('.facts .chip')).toEqual(['First home?', 'Rent a month?'])
     expect(card.doc.querySelectorAll('input, select')).toHaveLength(0)
+  })
+
+  it('calls no tool until something is pressed', async () => {
+    const card = open(recorded.homeCalculatorSecondHand, responses)
+    await card.settle()
+    expect(card.calls).toHaveLength(0)
+    expect(card.contexts).toHaveLength(0)
+    openButton(card).click()
+    await card.settle()
+    expect(card.calls.length).toBeGreaterThan(0)
   })
 
   it('keeps every icon decorative', () => {
@@ -113,7 +132,6 @@ describe('home calculator card v6: folded when the host gave the figures', () =>
     expect(icons.length).toBeGreaterThan(8)
     for (const svg of icons) {
       expect(svg.getAttribute('aria-hidden')).toBe('true')
-      expect(svg.getAttribute('stroke')).toBe('currentColor')
       expect(svg.textContent).toBe('')
     }
   })
@@ -147,18 +165,17 @@ describe('home calculator card v6: folded when the host gave the figures', () =>
     const card = open(recorded.homeCalculatorSecondHand)
     card.byText('Edit')?.click()
     expect(card.doc.querySelector('#in-depositSavedEur')).not.toBeNull()
-    expect(card.text('header .title')).toEqual(['Your home-buying planEstimate'])
+    expect(card.text('header .title')).toEqual(['Your home-buying plan'])
     expect(card.byText('Edit')).toBeUndefined()
   })
 })
 
-describe('home calculator card v6: the month, the facts and the progress', () => {
+describe('home calculator card v7: the month, the facts, the progress and two tiles', () => {
   it('shows the month the money is ready, one fact line, and saved against needed at the keys', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
     const { inputs, figures } = result
     const needed = figures.neededAtKeysEur ?? 0
-    expect(card.text('.hero .eyebrow')).toEqual(['Ready to buy'])
     // The card's own estimate: €17,000 to go at €1,000 a month from November 2026.
     expect(figures.depositReachedOn).toBe('2028-04')
     expect(card.text('.hero p')).toEqual([
@@ -175,6 +192,26 @@ describe('home calculator card v6: the month, the facts and the progress', () =>
     expect(card.doc.querySelector('.meter svg.icon-piggy-bank')).not.toBeNull()
     expect(card.text('.meter .kv span.muted')).toEqual(['€1,000 a month'])
     expect(card.text('.meter .kv span.medium')).toEqual(['€17,000 to go'])
+    // No rent given: no rent line.
+    expect(card.doc.querySelector('.meter .rent')).toBeNull()
+    expect(card.doc.querySelector('#card')?.textContent).not.toMatch(/Rent now/)
+  })
+
+  it('shows two tiles only, home price and mortgage', () => {
+    const card = open(recorded.homeCalculatorSecondHand)
+    expect(card.text('.tile')).toEqual(['Home price€400,000', 'Mortgage€360,000'])
+    expect(card.doc.querySelector('.tile svg.icon-house')).not.toBeNull()
+    expect(card.doc.querySelector('.tile svg.icon-landmark')).not.toBeNull()
+    expect(card.doc.querySelector('#card')?.textContent).not.toMatch(/See in Saoi|Options/)
+  })
+
+  it('puts the rent given as one line under the progress', () => {
+    const result = recorded.homeCalculatorSecondHand
+    const card = mount({ saoi_home_calculator: result })
+    card.emit('ui/notifications/tool-input', { arguments: { ...result.inputs, monthlyRentEur: 2_500 } })
+    card.emit('ui/notifications/tool-result', { structuredContent: result })
+    expect(card.text('.meter p').at(-1)).toBe('Rent now €2,500 a month')
+    expect(card.doc.querySelector('.meter .rent')?.className).toMatch(/muted/)
   })
 
   it('says Covered when the deposit saved meets the money needed at the keys', () => {
@@ -192,9 +229,8 @@ describe('home calculator card v6: the month, the facts and the progress', () =>
     expect(card.text('.hero-month')).toEqual(['April 2028'])
     expect(card.doc.querySelector('.hero')?.textContent).not.toMatch(/Nov(ember)? 2026/)
     expect(card.text('.hero p').join(' | ')).toContain('€400,000 new build, €47,000 needed at the keys')
-    card.byText('See all routes (6)')?.click()
-    expect(card.text('.route-name')[0]).toBe('New build with Help to Buy')
-    expect(card.text('.route-detail')[0]).toBe('keys Nov 2026 if your tax paid covers €35,000')
+    // New build is the customer's own kind here, so the two rows are the next two routes.
+    expect(card.text('.route-name')).toEqual(['Second-hand', 'Vacant property grant'])
   })
 
   it('moves the before-interest note from under the month into the footer detail', () => {
@@ -204,63 +240,7 @@ describe('home calculator card v6: the month, the facts and the progress', () =>
   })
 })
 
-describe('home calculator card v6: the tiles and the one automatic comparison', () => {
-  it('runs the comparison once when the card first folds, and fills the Options tile with the count', async () => {
-    const card = open(recorded.homeCalculatorSecondHand, responses)
-    const tile = card.doc.querySelector('.tile:last-child')
-    expect(tile?.getAttribute('aria-busy')).toBe('true')
-    expect(optionsTile(card)).toEqual(['Options', '…'])
-    await card.settle()
-    expect(card.calls.filter((call) => call.name === 'saoi_build_plan')).toHaveLength(1)
-    expect(card.doc.querySelector('.tile:last-child')?.getAttribute('aria-busy')).toBe('false')
-    expect(card.text('.tile')).toEqual([
-      'Home price€400,000',
-      'Mortgage€360,000',
-      `Options${String(home.pathways.length)}${fromLowest}`,
-    ])
-    expect(card.doc.querySelectorAll('.tile svg')).toHaveLength(3)
-    // The options are not listed on the card; they open in the app.
-    expect(card.doc.querySelectorAll('.option-head')).toHaveLength(0)
-    // Redraws (a route opened, all routes, the footer) and Open in Saoi do not run it again.
-    card.byText('See all routes (6)')?.click()
-    footToggle(card).click()
-    openButton(card).click()
-    await card.settle()
-    expect(card.calls.filter((call) => call.name === 'saoi_build_plan')).toHaveLength(1)
-    expect(card.opened).toEqual([recorded.planHome.saveLink?.url])
-  })
-
-  it('does not tell the conversation about the automatic comparison', async () => {
-    const card = open(recorded.homeCalculatorSecondHand, responses)
-    await card.settle()
-    expect(card.contexts).toHaveLength(0)
-  })
-
-  it('shows See in Saoi on the tile when the comparison cannot be run from the card', async () => {
-    const card = open(recorded.homeCalculatorSecondHand)
-    await card.settle()
-    expect(card.calls.filter((call) => call.name === 'saoi_build_plan')).toHaveLength(1)
-    expect(optionsTile(card)).toEqual(['Options', 'See in Saoi'])
-    expect(card.text('.hero-month')).toEqual(['April 2028'])
-    expect(card.text('.status').join('')).toBe('')
-  })
-
-  it('puts the rent given on the Options tile, alone while it runs and beside the lowest monthly after', async () => {
-    const result = recorded.homeCalculatorSecondHand
-    const card = mount({ saoi_home_calculator: result, ...responses })
-    card.emit('ui/notifications/tool-input', { arguments: { ...result.inputs, monthlyRentEur: 1_800 } })
-    card.emit('ui/notifications/tool-result', { structuredContent: result })
-    expect(optionsTile(card)).toEqual(['Options', '…', 'rent €1,800'])
-    await card.settle()
-    expect(optionsTile(card)).toEqual([
-      'Options',
-      String(home.pathways.length),
-      `${fromLowest} · rent €1,800`,
-    ])
-  })
-})
-
-describe('home calculator card v6: expanded without figures', () => {
+describe('home calculator card v7: expanded without figures', () => {
   it('opens the inputs as today, with Show my options as an outline button, and runs nothing on its own', async () => {
     const card = mount({ saoi_home_calculator: recorded.homeCalculator, ...responses })
     card.emit('ui/notifications/tool-input', { arguments: {} })
@@ -274,10 +254,21 @@ describe('home calculator card v6: expanded without figures', () => {
     expect(card.doc.querySelector('.chips')).toBeNull()
     expect(card.text('label').join(' ')).toMatch(/Rent a month \(optional\)/)
   })
+
+  it('runs the comparison from Show my options and folds', async () => {
+    const card = mount({ saoi_home_calculator: recorded.homeCalculator, ...responses })
+    card.emit('ui/notifications/tool-input', { arguments: {} })
+    card.emit('ui/notifications/tool-result', { structuredContent: recorded.homeCalculator })
+    card.byText('Show my options')?.click()
+    await card.settle()
+    expect(count(card, 'saoi_build_plan')).toBe(1)
+    expect(card.contexts).toHaveLength(1)
+    expect(card.doc.querySelector('#in-depositSavedEur')).toBeNull()
+  })
 })
 
-describe('home calculator card v6: other routes', () => {
-  it('shows the two routes after the customer’s own kind as two-line rows, then See all routes (N)', () => {
+describe('home calculator card v7: other routes', () => {
+  it('shows the two routes after the customer’s own kind as two-line rows, then a link into Saoi', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
     const ids = (): string[] =>
@@ -288,7 +279,6 @@ describe('home calculator card v6: other routes', () => {
     expect(card.doc.querySelector('h3.label svg.icon-sparkles')).not.toBeNull()
     const others = result.routes.slice(1, 3)
     expect(ids()).toEqual(others.map((route) => route.id))
-    expect(ids()).not.toContain('second_hand')
     expect(card.text('.route-head .route-name')).toEqual(others.map((route) => route.name))
     expect(card.text('.route-head .route-detail')).toEqual(
       others.map((route) => route.line.replace(`${route.name}: `, '')),
@@ -298,59 +288,56 @@ describe('home calculator card v6: other routes', () => {
     expect(card.text('.route-head > .badge')).toEqual(['Potential', 'One detail'])
     expect(card.doc.querySelectorAll('.route-head svg.chevron')).toHaveLength(2)
     expect(card.doc.querySelectorAll('.route-head[aria-expanded="true"]')).toHaveLength(0)
-    const more = card.byText(`See all routes (${String(result.routes.length)})`)
-    expect(more?.querySelector('svg.icon-chevron-right')).not.toBeNull()
-    more?.click()
-    expect(ids()).toEqual(result.routes.map((route) => route.id))
-    expect(card.byText(`See all routes (${String(result.routes.length)})`)).toBeUndefined()
-    const icons = Array.from(card.doc.querySelectorAll('.route-head .icon-box-32 svg')).map(
-      (svg) => svg.getAttribute('class') ?? '',
-    )
-    expect(icons.map((name) => name.replace('icon icon-', ''))).toEqual([
-      'house',
-      'hammer',
-      'house-plus',
-      'key-round',
-      'landmark',
-      'building-2',
-    ])
+    expect(routesLink(card)?.querySelector('svg.icon-chevron-right')).not.toBeNull()
+    expect(card.text('button').some((label) => /See all routes/.test(label))).toBe(false)
   })
 
-  it('opens a route to its reason, conditions and first source', () => {
+  it('opens a shown route to its reason, missing-detail chip, conditions and first source', async () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
-    card.byText('See all routes (6)')?.click()
-    const head = card.doc.querySelector('[aria-controls="route-second_hand"]') as unknown as HTMLButtonElement
+    const htb = result.routes.find((route) => route.id === 'new_build_help_to_buy')
+    const head = card.doc.querySelector(
+      '[aria-controls="route-new_build_help_to_buy"]',
+    ) as unknown as HTMLButtonElement
     head.click()
     expect(head.getAttribute('aria-expanded')).toBe('true')
-    const body = card.doc.querySelector('#route-second_hand') as unknown as HTMLElement
+    const body = card.doc.querySelector('#route-new_build_help_to_buy') as unknown as HTMLElement
     expect(body.hidden).toBe(false)
-    expect(body.textContent).toContain(result.routes[0]?.reason ?? 'missing')
-    expect(body.textContent).toContain(result.routes[0]?.conditions[0] ?? 'missing')
-    const link = body.querySelector('a')
-    expect(link?.getAttribute('href')).toBe(result.routes[0]?.sources[0]?.url)
-    expect(link?.textContent).toBe('Source: centralbank.ie (read 2026-11-09)')
+    expect(body.textContent).toContain(htb?.missing ?? 'missing')
+    expect(body.textContent).toContain(htb?.conditions[0] ?? 'missing')
+    expect(body.querySelector('a')?.getAttribute('href')).toBe(htb?.sources[0]?.url)
+    card.byText('Tax paid, last 4 years?')?.click()
+    const box = card.doc.querySelector('#ask-taxPaid') as unknown as HTMLInputElement
+    box.value = '40000'
+    card.byText('Done')?.click()
+    await card.settle()
+    expect(card.calls.at(-1)).toMatchObject({
+      name: 'saoi_home_calculator',
+      args: { taxPaidLastFourYearsEur: 40_000 },
+    })
   })
 
-  it('gives a missing detail a chip that opens its control, and sends the answer', async () => {
-    const card = open(recorded.homeCalculatorSecondHand)
-    card.byText('See all routes (6)')?.click()
-    ;(card.doc.querySelector('[aria-controls="route-first_home_scheme"]') as unknown as HTMLElement).click()
-    card.byText('Which county?')?.click()
-    const select = card.doc.querySelector('#ask-county') as unknown as HTMLSelectElement
-    expect(select.querySelectorAll('option')).toHaveLength(31)
-    select.value = 'dublin_city'
-    select.dispatchEvent(
-      new (select.ownerDocument.defaultView as unknown as typeof globalThis).Event('change'),
-    )
+  it('opens Saoi from "See all 6 routes in Saoi" exactly as the button does', async () => {
+    const card = open(recorded.homeCalculatorSecondHand, unsaved)
+    const link = routesLink(card)
+    if (link === undefined) throw new Error('no routes link')
+    link.click()
+    // Both openers are disabled while it runs, and the line under the button says what it is doing.
+    expect(routesLink(card)?.disabled).toBe(true)
+    expect(openButton(card).disabled).toBe(true)
+    expect(card.text('.actions .status')).toEqual(['Comparing every option that fits…'])
     await card.settle()
-    expect(card.calls.at(-1)).toMatchObject({ name: 'saoi_home_calculator', args: { county: 'dublin_city' } })
+    expect(count(card, 'saoi_build_plan')).toBe(1)
+    expect(count(card, 'saoi_save_plan')).toBe(1)
+    expect(card.opened).toEqual([recorded.saved.claimUrl])
+    expect(card.text('.actions .status').join(' ')).toMatch(/Opens in the Saoi app; the link works once/)
+    expect(routesLink(card)?.disabled).toBe(false)
   })
 })
 
-describe('home calculator card v6: Open in Saoi and the footer', () => {
-  it('has one filled two-line button, Open in Saoi, which opens the single-use link', async () => {
-    const card = open(recorded.homeCalculatorSecondHand, responses)
+describe('home calculator card v7: Open in Saoi and the footer', () => {
+  it('has one filled two-line button, Open in Saoi, which compares, saves and opens the single-use link', async () => {
+    const card = open(recorded.homeCalculatorSecondHand, unsaved)
     const filled = card.buttons().filter((node) => node.classList.contains('btn'))
     expect(filled).toHaveLength(1)
     expect(card.text('.btn-open .btn-words > span')).toEqual([
@@ -358,26 +345,39 @@ describe('home calculator card v6: Open in Saoi and the footer', () => {
       'Compare every option and all 6 routes with Saoirse',
     ])
     expect(openButton(card).querySelector('svg.icon-external-link')).not.toBeNull()
-    await card.settle()
-    expect(card.text('.btn-open .btn-words > span')[1]).toBe(
-      `Compare the ${String(home.pathways.length)} options and all 6 routes with Saoirse`,
-    )
     openButton(card).click()
+    expect(openButton(card).disabled).toBe(true)
     await card.settle()
-    expect(card.opened).toEqual([recorded.planHome.saveLink?.url])
+    expect(count(card, 'saoi_build_plan')).toBe(1)
+    expect(count(card, 'saoi_save_plan')).toBe(1)
+    expect(card.opened).toEqual([recorded.saved.claimUrl])
     expect(card.text('.status').join(' ')).toMatch(/Opens in the Saoi app; the link works once/)
+    // No count on the card, before or after.
+    expect(card.text('.btn-open .btn-words > span')[1]).toBe(
+      'Compare every option and all 6 routes with Saoirse',
+    )
   })
 
-  it('compares from the button when the automatic run failed, and says so when it fails again', async () => {
-    const card = open(recorded.homeCalculatorSecondHand)
-    await card.settle()
+  it('does not compare again for the same inputs, and uses the held link when the comparison has one', async () => {
+    const card = open(recorded.homeCalculatorSecondHand, responses)
     openButton(card).click()
     await card.settle()
-    expect(card.calls.filter((call) => call.name === 'saoi_build_plan')).toHaveLength(2)
-    expect(card.text('.status').join(' ')).toMatch(/could not be fetched from the card/)
+    routesLink(card)?.click()
+    await card.settle()
+    expect(count(card, 'saoi_build_plan')).toBe(1)
+    expect(count(card, 'saoi_save_plan')).toBe(0)
+    expect(card.opened).toEqual([recorded.planHome.saveLink?.url, recorded.planHome.saveLink?.url])
   })
 
-  it('folds the footer to one line, and opens what was assumed, the warnings, the 24-hour note and the statement', async () => {
+  it('says so when the options cannot be fetched from the card', async () => {
+    const card = open(recorded.homeCalculatorSecondHand)
+    openButton(card).click()
+    await card.settle()
+    expect(card.text('.status').join(' ')).toMatch(/could not be fetched from the card/)
+    expect(openButton(card).disabled).toBe(false)
+  })
+
+  it('folds the footer to one line, and opens what was assumed, the warnings, the 24-hour note and the statement', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
     const toggle = footToggle(card)
@@ -400,11 +400,7 @@ describe('home calculator card v6: Open in Saoi and the footer', () => {
     expect(warnings.join(' ')).toMatch(/go into arrears/)
     expect(lines.at(-2)).toBe('Held for 24 hours, then deleted unless opened.')
     expect(lines.at(-1)).toMatch(/not regulated by the Central Bank of Ireland/)
-    // The 24-hour note is no longer under the button.
     expect(card.text('.actions p').join(' ')).not.toMatch(/Held for 24 hours/)
-    await card.settle()
-    // It stays open across the redraw the automatic comparison brings.
-    expect(footDetail(card).hidden).toBe(false)
   })
 
   it('takes the comparison’s own warnings once it returned them, else the statutory three', async () => {
@@ -412,6 +408,7 @@ describe('home calculator card v6: Open in Saoi and the footer', () => {
       ...responses,
       saoi_build_plan: { ...recorded.planHome, home: { ...home, warnings: ['Warning: as returned.'] } },
     })
+    openButton(card).click()
     await card.settle()
     expect(card.text('#foot-detail p').filter((line) => line.startsWith('Warning:'))).toEqual([
       'Warning: as returned.',
@@ -420,15 +417,16 @@ describe('home calculator card v6: Open in Saoi and the footer', () => {
       ...responses,
       saoi_build_plan: { ...recorded.planHome, home: { ...home, warnings: [] } },
     })
+    openButton(empty).click()
     await empty.settle()
     expect(empty.text('#foot-detail p').filter((line) => line.startsWith('Warning:'))).toHaveLength(3)
   })
 
-  it('never words a route or an option as a pick, with every route and the footer open', async () => {
+  it('never words a route or an option as a pick, with the shown routes and the footer open', async () => {
     for (const result of [recorded.homeCalculatorSecondHand, recorded.homeCalculatorNewBuild]) {
       const card = open(result, responses)
+      openButton(card).click()
       await card.settle()
-      card.byText('See all routes (6)')?.click()
       for (const head of Array.from(card.doc.querySelectorAll('.route-head')))
         (head as unknown as HTMLElement).click()
       footToggle(card).click()

@@ -78,14 +78,6 @@ describe('home calculator model', () => {
     expect(inputs.targetDate).toBe('2028-11')
   })
 
-  it('finds the lowest monthly repayment across every option returned', () => {
-    const home = recorded.planHome.home
-    if (home === null) throw new Error('recording has no home')
-    const all = home.pathways.map((option) => option.mortgage.monthlyRepayment)
-    expect(model.lowestMonthly(home)).toBe(Math.min(...all))
-    expect(model.lowestMonthly({ ...home, pathways: [] })).toBeNull()
-  })
-
   it('tells the model what was entered and not to pick an option', () => {
     const text = model.contextText(model.defaults('2026-11'), 'keys_date', 49)
     expect(text).toMatch(/49 options sorted by keys date/)
@@ -123,26 +115,15 @@ describe('one step at a time (round 2)', () => {
     expect(model.readyHeadline(inputs, never)).toEqual({ text: 'Not reached at this pace', note: null })
   })
 
-  it('builds the footer from what was assumed, and the line under Open in Saoi', () => {
+  it('builds the footer from what was assumed, the line under Open in Saoi and the rent line', () => {
     expect(model.assumedLine(['First-time buyer.', 'second-hand'])).toBe(
       'Assumed: First-time buyer, second-hand. Estimates only; rates and offers are not confirmed.',
     )
     expect(model.assumedLine([])).toBe('Estimates only; rates and offers are not confirmed.')
-    expect(model.openLine(49, 6)).toBe('Compare the 49 options and all 6 routes with Saoirse')
-    expect(model.openLine(null, 6)).toBe('Compare every option and all 6 routes with Saoirse')
-    const compared = { kind: 'compared', count: 49, lowestMonthlyEur: 1_362.27 } as const
-    expect(model.optionsTile({ kind: 'running' }, null)).toEqual({ value: '…', line: null })
-    expect(model.optionsTile({ kind: 'unavailable' }, null)).toEqual({ value: 'See in Saoi', line: null })
-    expect(model.optionsTile({ kind: 'unavailable' }, 1_800)).toEqual({
-      value: 'See in Saoi',
-      line: 'rent €1,800',
-    })
-    expect(model.optionsTile(compared, null)).toEqual({ value: '49', line: 'from €1,362/mo' })
-    expect(model.optionsTile(compared, 1_800)).toEqual({ value: '49', line: 'from €1,362/mo · rent €1,800' })
-    expect(model.optionsTile({ kind: 'compared', count: 0, lowestMonthlyEur: null }, null)).toEqual({
-      value: '0',
-      line: 'None fit these filters',
-    })
+    expect(model.openLine(6)).toBe('Compare every option and all 6 routes with Saoirse')
+    expect(model.openLine(0)).toBe('Compare every option with Saoirse')
+    expect(model.rentNow(2_500)).toBe('Rent now €2,500 a month')
+    expect(model.rentNow(null)).toBeNull()
   })
 
   it('keeps the breakdown and the extra inputs behind their expanders', () => {

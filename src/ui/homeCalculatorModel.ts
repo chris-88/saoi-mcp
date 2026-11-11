@@ -1,4 +1,4 @@
-import type { BuildPlanResult, HomeCalculatorResult } from '../saoiClient.js'
+import type { HomeCalculatorResult } from '../saoiClient.js'
 
 /**
  * The home calculator card's arithmetic and wording, as one self-contained function: the card's
@@ -71,20 +71,12 @@ export interface HomeProgress {
   covered: boolean
 }
 
-/** Where the card's comparison stands for the inputs shown. */
-export type OptionsState =
-  | { kind: 'running' }
-  | { kind: 'unavailable' }
-  | { kind: 'compared'; count: number; lowestMonthlyEur: number | null }
-
 export interface HomeCalculatorModel {
   defaults(asOf: string): HomeInputs
   fromArguments(args: Record<string, unknown> | null, asOf: string): HomeInputs
   figures(inputs: HomeInputs, rules: HomeRules, asOf: string): HomeFigures
   buildPlanBody(inputs: HomeInputs, sortBy: HomeSort): Record<string, unknown>
   contextText(inputs: HomeInputs, sortBy: HomeSort, count: number): string
-  /** The lowest monthly repayment across the options returned, or null when none came. */
-  lowestMonthly(home: NonNullable<BuildPlanResult['home']>): number | null
   /**
    * "You could borrow up to €360,000 · deposit ready around Jan 2028".
    * With `keysOn` (saoi-api's month for these same inputs, savings interest counted) the headline
@@ -109,14 +101,10 @@ export interface HomeCalculatorModel {
   progress(inputs: HomeInputs, figures: HomeFigures): HomeProgress
   /** "Assumed: … Estimates only; rates and offers are not confirmed." */
   assumedLine(assumed: readonly string[]): string
-  /** The line under Open in Saoi; `count` is null before the comparison ran for these inputs. */
-  openLine(count: number | null, routes: number): string
-  /**
-   * The Options tile: the count large ("49") with "from €1,362/mo" under it, "…" while the
-   * comparison runs, "See in Saoi" when the card has none for these inputs; " · rent €1,800" (or
-   * the rent alone) on the small line when rent was given.
-   */
-  optionsTile(state: OptionsState, rent: number | null): { value: string; line: string | null }
+  /** The line under Open in Saoi: "Compare every option and all 6 routes with Saoirse". */
+  openLine(routes: number): string
+  /** "Rent now €2,500 a month" under the progress, or null when rent was not given. */
+  rentNow(rent: number | null): string | null
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
@@ -380,14 +368,9 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       `rates: ${inputs.rateType}; green home: ${inputs.green ? 'yes' : 'no'}; open to switching current account: ${inputs.openToCurrentAccountSwitch ? 'yes' : 'no'};`,
       `county: ${COUNTIES.find(([slug]) => slug === inputs.county)?.[1] ?? 'not given'}; rent: ${inputs.monthlyRentEur === null ? 'not given' : `${eur(inputs.monthlyRentEur)} a month`}; tax paid over the last four years: ${inputs.taxPaidLastFourYearsEur === null ? 'not given' : eur(inputs.taxPaidLastFourYearsEur)}.`,
       'The card lists every route to a home as facts, in the order saoi-api gave; relay them as given and never call one the best.',
-      `The comparison returned ${String(count)} options sorted by ${SORTS[sortBy]}; the card shows how many and the lowest monthly repayment, and the list opens in the Saoi app. Talk them through as a comparison if asked;`,
+      `The comparison returned ${String(count)} options sorted by ${SORTS[sortBy]}; the list opens in the Saoi app. Talk them through as a comparison if asked;`,
       'do not pick one for the customer or say which to take. Use these inputs in any later saoi_build_plan call.',
     ].join(' ')
-
-  const lowestMonthly = (home: NonNullable<BuildPlanResult['home']>): number | null =>
-    home.pathways.length === 0
-      ? null
-      : Math.min(...home.pathways.map((option) => option.mortgage.monthlyRepayment))
 
   /** Which month the headline shows, and whether it is the card's own estimate. */
   const readyOf = (figures: HomeFigures, keysOn?: string | null): { ready: string | null; own: boolean } => {
@@ -465,21 +448,11 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     return lines.length === 0 ? tail : `Assumed: ${lines.join(', ')}. ${tail}`
   }
 
-  const openLine = (count: number | null, routes: number): string =>
-    `Compare ${count === null ? 'every option' : `the ${String(count)} options`}${
-      routes > 0 ? ` and all ${String(routes)} routes` : ''
-    } with Saoirse`
+  const openLine = (routes: number): string =>
+    `Compare every option${routes > 0 ? ` and all ${String(routes)} routes` : ''} with Saoirse`
 
-  const optionsTile = (state: OptionsState, rent: number | null): { value: string; line: string | null } => {
-    const rentText = rent === null ? null : `rent ${eur(rent)}`
-    const join = (line: string | null): string | null =>
-      line === null ? rentText : rentText === null ? line : `${line} · ${rentText}`
-    if (state.kind === 'running') return { value: '…', line: rentText }
-    if (state.kind === 'unavailable') return { value: 'See in Saoi', line: rentText }
-    if (state.count === 0 || state.lowestMonthlyEur === null)
-      return { value: '0', line: join('None fit these filters') }
-    return { value: String(state.count), line: join(`from ${eur(state.lowestMonthlyEur)}/mo`) }
-  }
+  const rentNow = (rent: number | null): string | null =>
+    rent === null ? null : `Rent now ${eur(rent)} a month`
 
   const given = (args: Record<string, unknown> | null): string[] =>
     args === null ? [] : Object.keys(args).filter((key) => args[key] !== undefined && args[key] !== null)
@@ -565,14 +538,13 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     figures,
     buildPlanBody,
     contextText,
-    lowestMonthly,
     headline,
     readyHeadline,
     factLine,
     progress,
     assumedLine,
     openLine,
-    optionsTile,
+    rentNow,
     eur,
     month,
     longMonth,

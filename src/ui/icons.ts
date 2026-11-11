@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 export type IconName =
+  | 'saoirse'
   | 'house'
   | 'house-plus'
   | 'key-round'
@@ -8,7 +9,6 @@ export type IconName =
   | 'building-2'
   | 'hammer'
   | 'piggy-bank'
-  | 'layers'
   | 'sparkles'
   | 'external-link'
   | 'chevron-right'
@@ -22,10 +22,12 @@ export type Icon = (name: IconName, size?: number) => SVGElement
  * The cards' icons, as one self-contained function: the card's script is this function's own
  * source (see `homeCalculatorResource.ts`), so nothing here may reach outside its body at runtime.
  * Every shape is a constant path set with `setAttribute('d', …)`; circles are written as two arcs.
+ * `saoirse` is Saoirse's mark (saoi-web `src/saoirse/SaoirseMark.tsx`), not a Lucide icon: a 64-unit
+ * ring with a squared top-left corner and two square eyes, stroked in the text colour.
  */
 export function cardIcons(doc: Document): Icon {
   // Path data from Lucide (https://lucide.dev), ISC licence, lucide-react 1.49.0.
-  const PATHS: Record<IconName, readonly string[]> = {
+  const PATHS: Record<Exclude<IconName, 'saoirse'>, readonly string[]> = {
     house: [
       'M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8',
       'M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
@@ -65,11 +67,6 @@ export function cardIcons(doc: Document): Icon {
       'M16 10h.01',
       'M2 8v1a2 2 0 0 0 2 2h1',
     ],
-    layers: [
-      'M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z',
-      'M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12',
-      'M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17',
-    ],
     sparkles: [
       'M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z',
       'M20 2v4',
@@ -84,8 +81,41 @@ export function cardIcons(doc: Document): Icon {
     ],
     info: ['M2 12a10 10 0 1 0 20 0a10 10 0 1 0-20 0', 'M12 16v-4', 'M12 8h.01'],
   }
+  /** Saoirse's mark: each path with its own stroke width, inside one stroked group. */
+  const MARK: readonly (readonly [string, string])[] = [
+    [
+      'M7 32C7 18.1929 18.1929 7 32 7C45.8071 7 57 18.1929 57 32C57 45.8071 45.8071 57 32 57C18.1929 57 7 45.8071 7 32ZM7 32V0',
+      '14',
+    ],
+    ['M22 29H28', '6'],
+    ['M37 29H43', '6'],
+  ]
   const NS = 'http://www.w3.org/2000/svg'
+  const mark = (size: number): SVGElement => {
+    const svg = doc.createElementNS(NS, 'svg')
+    const attrs: [string, string][] = [
+      ['width', String(size)],
+      ['height', String(size)],
+      ['viewBox', '0 0 64 64'],
+      ['fill', 'none'],
+      ['aria-hidden', 'true'],
+      ['focusable', 'false'],
+      ['class', 'icon icon-saoirse'],
+    ]
+    for (const [key, value] of attrs) svg.setAttribute(key, value)
+    const group = doc.createElementNS(NS, 'g')
+    group.setAttribute('stroke', 'currentColor')
+    for (const [d, width] of MARK) {
+      const path = doc.createElementNS(NS, 'path')
+      path.setAttribute('d', d)
+      path.setAttribute('stroke-width', width)
+      group.append(path)
+    }
+    svg.append(group)
+    return svg
+  }
   return (name, size = 16) => {
+    if (name === 'saoirse') return mark(size)
     const svg = doc.createElementNS(NS, 'svg')
     const attrs: [string, string][] = [
       ['width', String(size)],

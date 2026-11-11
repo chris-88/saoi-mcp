@@ -9,25 +9,24 @@ import type {
   HomeRoute,
   HomeRules,
   HomeSort,
-  OptionsState,
 } from './homeCalculatorModel.js'
 
 /**
  * The home calculator card's browser side. Runs inside the host's sandboxed frame as this
  * function's own source, with the bridge and the model handed in.
  *
- * Card v6, one phone screen (decision 2026-11-11, easier to take in): when the host supplied the
- * figures, the card starts folded: "Your home-buying plan" with an Estimate badge and Edit, chips
- * for the facts still missing (each opening one control), then the month the money for the keys
- * is ready, one fact line, a thin progress bar of deposit saved against the money needed at the
- * keys, three tiles (home price, mortgage, and the number of options, compared once on its own
- * when the card first folds), the other routes to a home in the order saoi-api gave (two-line
- * rows with an icon, each opening to its reason, conditions and source, then "See all routes
- * (N)"), one filled button, "Open in Saoi", and one footer line that opens what was assumed, the
- * three warnings (always: the card shows a mortgage figure), the 24-hour note and the statement.
- * The options' list opens in the app. Without figures from the host, the inputs open expanded and
- * fold once the options run. No route or option is picked or highlighted for them. Every string
- * goes in with `textContent`; icons are decorative.
+ * Card v7, one phone screen (decision 2026-11-11, after v6 on the phone): when the host supplied
+ * the figures, the card starts folded: Saoirse's mark, "Your home-buying plan" and Edit, chips for
+ * the facts still missing (each opening one control), then the month the money for the keys is
+ * ready, one fact line, a thin progress bar of deposit saved against the money needed at the keys
+ * (with the rent now, when given), two tiles (home price, mortgage), two other routes to a home in
+ * the order saoi-api gave (two-line rows with an icon, each opening to its reason, conditions and
+ * source), "See all N routes in Saoi" and one filled button, "Open in Saoi", which both save the
+ * comparison and open it in the app, and one footer line that opens what was assumed, the three
+ * warnings (always: the card shows a mortgage figure), the 24-hour note and the statement. The
+ * card calls no tool until the customer presses something. Without figures from the host, the
+ * inputs open expanded and fold once the options run. No route or option is picked or
+ * highlighted for them. Every string goes in with `textContent`; icons are decorative.
  */
 export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalculatorModel, icon: Icon): void {
   const doc = win.document
@@ -50,7 +49,6 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   let assumed: string[] = []
   /** The request keys the customer has given (the host's arguments, then their answers). */
   let given: string[] = []
-  let showAllRoutes = false
   let openRoute: string | null = null
   /** The one control a chip opened: under the fact chips ('facts') or inside a route (its id). */
   let openControl: { where: string; control: HomeControl } | null = null
@@ -58,8 +56,11 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   let routesRun = 0
   /** What "Open in Saoi" said last, kept across redraws; with a link when the host cannot open it. */
   let actionNote: { text: string; url: string | null } = { text: '', url: null }
-  /** The one automatic comparison, when the card first folds with the host's result. */
-  let autoRan = false
+  /** True while "Open in Saoi" (or the routes link, the same thing) is comparing and saving. */
+  let opening = false
+  /** The controls that open Saoi in the current drawing, and the status line under the button. */
+  let openers: HTMLButtonElement[] = []
+  let actionStatus: HTMLElement | null = null
   /** The comparison in flight, and the inputs it is for: a second ask for them waits on it. */
   let inFlight: { key: string; run: Promise<boolean> } | null = null
   let footerOpen = false
@@ -697,13 +698,11 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (routesNote !== '') block.append(el('p', 'status', routesNote))
     const list = el('ul', 'options')
     list.setAttribute('aria-label', 'Routes, in the order given')
-    for (const route of showAllRoutes ? routes : model.otherRoutes(routes)) list.append(routeRow(route))
+    for (const route of model.otherRoutes(routes)) list.append(routeRow(route))
     block.append(list)
-    if (!showAllRoutes && routes.length > model.otherRoutes(routes).length) {
-      const more = button('link with-icon', `See all routes (${String(routes.length)})`, () => {
-        showAllRoutes = true
-        draw()
-      })
+    if (routes.length > model.otherRoutes(routes).length) {
+      // Every route is in the app; this does exactly what Open in Saoi does.
+      const more = opener('link with-icon', `See all ${String(routes.length)} routes in Saoi`)
       more.append(icon('chevron-right', 16))
       block.append(more)
     }
@@ -724,21 +723,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       : model.readyHeadline(inputs, figures)
   }
 
-  /** Where the Options tile stands for these inputs. */
-  const optionsState = (): OptionsState => {
-    const key = JSON.stringify(inputs)
-    if (compared()) {
-      const home = comparison?.home ?? null
-      return {
-        kind: 'compared',
-        count: home?.pathways.length ?? 0,
-        lowestMonthlyEur: home === null ? null : model.lowestMonthly(home),
-      }
-    }
-    return inFlight?.key === key ? { kind: 'running' } : { kind: 'unavailable' }
-  }
-
-  /** The month, one fact line, progress and the three tiles. */
+  /** The month, one fact line, progress (and rent) and the two tiles. */
   const planView = (): HTMLElement => {
     const block = el('section', 'section plan')
     const ready = readyNow()
@@ -778,24 +763,20 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       el('span', 'medium', progress.covered ? 'Covered' : `${model.eur(progress.toGoEur)} to go`),
     )
     meter.append(bar, saved, pace)
+    const rent = model.rentNow(inputs.monthlyRentEur)
+    if (rent !== null) meter.append(el('p', 'small muted num rent', rent))
     block.append(meter)
 
     const tiles = el('div', 'tiles')
-    /** Every tile the same shape: icon, label, value large, one optional small line. */
-    const tile = (name: IconName, label: string, value: string, line: string | null = null): HTMLElement => {
+    /** Both tiles the same shape: icon, label, value large. */
+    const tile = (name: IconName, label: string, value: string): void => {
       const node = el('div', 'tile')
       node.append(el('span', 'tile-icon'), el('p', 'small muted', label), el('p', 'big num', value))
       node.firstElementChild?.append(icon(name, 16))
-      if (line !== null) node.append(el('p', 'small muted num', line))
       tiles.append(node)
-      return node
     }
     tile('house', 'Home price', model.eur(inputs.targetPriceEur))
     tile('landmark', 'Mortgage', model.eur(figures.loanEur))
-    const state = optionsState()
-    const options = model.optionsTile(state, inputs.monthlyRentEur)
-    const optionsNode = tile('layers', 'Options', options.value, options.line)
-    optionsNode.setAttribute('aria-busy', String(state.kind === 'running'))
     block.append(tiles)
     return block
   }
@@ -814,7 +795,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
         void (async () => {
           go.disabled = true
           status.textContent = 'Comparing every option that fits…'
-          if (await compare(true)) {
+          if (await compare()) {
             draw()
             return
           }
@@ -828,10 +809,10 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   }
 
   /**
-   * saoi_build_plan (and the routes alongside) for the current inputs; false when it failed.
-   * `told`: the customer asked for it, so the conversation is told the inputs.
+   * saoi_build_plan (and the routes alongside) for the current inputs, when the customer asked
+   * for it; false when it failed. The conversation is told the inputs.
    */
-  const runComparison = async (told: boolean): Promise<boolean> => {
+  const runComparison = async (): Promise<boolean> => {
     // In the expanded view the customer has seen and kept the first-home and kind toggles.
     if (editing) markGiven('firstTimeBuyer', 'propertyKind')
     const key = JSON.stringify(inputs)
@@ -848,83 +829,89 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     comparedFor = key
     editing = false
     openControl = null
-    if (told)
-      void bridge.updateContext(model.contextText(asked, sortBy, comparison.home?.pathways.length ?? 0))
+    void bridge.updateContext(model.contextText(asked, sortBy, comparison.home?.pathways.length ?? 0))
     return true
   }
 
   /** One comparison per set of inputs: a second ask while it runs waits on the first. */
-  const compare = (told: boolean): Promise<boolean> => {
+  const compare = (): Promise<boolean> => {
     const key = JSON.stringify(inputs)
     if (inFlight?.key === key) return inFlight.run
-    const run = runComparison(told).finally(() => {
+    const run = runComparison().finally(() => {
       if (inFlight?.key === key) inFlight = null
     })
     inFlight = { key, run }
     return run
   }
 
-  /** Once, when the card first folds with the host's result: fills the Options tile. */
-  const autoCompare = (): void => {
-    if (autoRan || editing || rules === null) return
-    autoRan = true
-    void compare(false).then(() => {
-      if (!editing) draw()
-    })
-    draw()
-  }
-
   // ---- open in Saoi ----------------------------------------------------------------------------
 
   /**
-   * The one filled button. Saves the comparison (running it first when there is none for these
-   * inputs) through the single-use link and opens it in the Saoi app.
+   * Open in Saoi: saves the comparison (running it first when there is none for these inputs)
+   * through the single-use link and opens it in the Saoi app. The button and the routes link both
+   * run this; they are disabled while it runs, and it says how it went on the line under the button.
    */
+  const openInSaoi = async (): Promise<void> => {
+    if (opening) return
+    opening = true
+    for (const node of openers) node.disabled = true
+    const say = (text: string): void => {
+      actionNote = { text, url: null }
+      if (actionStatus !== null) actionStatus.textContent = text
+    }
+    const finish = (text: string, url: string | null = null): void => {
+      opening = false
+      actionNote = { text, url }
+      draw()
+    }
+    if (!compared()) {
+      say('Comparing every option that fits…')
+      if (!(await compare())) {
+        finish('The options could not be fetched from the card. Ask in the chat instead.')
+        return
+      }
+    }
+    const held = bridge.record(bridge.record(comparison)?.['saveLink'])?.['url']
+    let url = typeof held === 'string' && held.startsWith('https://') ? held : null
+    if (url === null && comparison !== null) {
+      say('Saving to Saoi…')
+      const saved = await bridge.callTool('saoi_save_plan', { plan: comparison.plan })
+      const claim = bridge.record(saved?.['structuredContent'])?.['claimUrl']
+      url = typeof claim === 'string' && claim.startsWith('https://') ? claim : null
+    }
+    if (url === null) {
+      finish('It could not be saved from the card. Ask in the chat to save it.')
+      return
+    }
+    const opened = await bridge.openLink(url)
+    if (opened) finish('Opens in the Saoi app; the link works once.')
+    else finish('Open it in the Saoi app (the link works once):', url)
+  }
+
+  /** A control that opens Saoi, registered so a run disables every one of them. */
+  const opener = (className: string, text: string): HTMLButtonElement => {
+    const node = button(className, text, () => {
+      void openInSaoi()
+    })
+    node.disabled = opening
+    openers.push(node)
+    return node
+  }
+
+  /** The one filled button, two lines, with the line saying what Saoirse compares. */
   const actionsView = (): HTMLElement => {
     const block = el('div', 'actions')
     const status = el('p', 'status', actionNote.text)
     status.setAttribute('role', 'status')
     if (actionNote.url !== null) status.append(' ', outLink(actionNote.url, actionNote.url))
-    const count = compared() ? (comparison?.home?.pathways.length ?? null) : null
-    const open = el('button', 'btn btn-open')
-    open.type = 'button'
+    actionStatus = status
+    const open = opener('btn btn-open', '')
     const words = el('span', 'btn-words')
     words.append(
       el('span', 'medium', 'Open in Saoi'),
-      el('span', 'small btn-sub', model.openLine(count, routes.length)),
+      el('span', 'small btn-sub', model.openLine(routes.length)),
     )
     open.append(words, icon('external-link', 18))
-    open.onclick = () => {
-      void (async () => {
-        open.disabled = true
-        const finish = (text: string, url: string | null = null): void => {
-          actionNote = { text, url }
-          draw()
-        }
-        if (!compared()) {
-          status.textContent = 'Comparing every option that fits…'
-          if (!(await compare(true))) {
-            finish('The options could not be fetched from the card. Ask in the chat instead.')
-            return
-          }
-        }
-        const held = bridge.record(bridge.record(comparison)?.['saveLink'])?.['url']
-        let url = typeof held === 'string' && held.startsWith('https://') ? held : null
-        if (url === null && comparison !== null) {
-          status.textContent = 'Saving to Saoi…'
-          const saved = await bridge.callTool('saoi_save_plan', { plan: comparison.plan })
-          const claim = bridge.record(saved?.['structuredContent'])?.['claimUrl']
-          url = typeof claim === 'string' && claim.startsWith('https://') ? claim : null
-        }
-        if (url === null) {
-          finish('It could not be saved from the card. Ask in the chat to save it.')
-          return
-        }
-        const opened = await bridge.openLink(url)
-        if (opened) finish('Opens in the Saoi app; the link works once.')
-        else finish('Open it in the Saoi app (the link works once):', url)
-      })()
-    }
     block.append(open, status)
     return block
   }
@@ -969,11 +956,13 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     drawn = true
     root.replaceChildren()
     root.removeAttribute('aria-busy')
+    openers = []
+    actionStatus = null
     const header = el('header', 'header head-row')
     const lead = el('div', 'head-lead')
-    const title = el('h2', 'title', 'Your home-buying plan')
-    title.append(el('span', 'badge', 'Estimate'))
-    lead.append(iconBox('house', 36, 20), title)
+    const mark = el('span', 'mark')
+    mark.append(icon('saoirse', 36))
+    lead.append(mark, el('h2', 'title', 'Your home-buying plan'))
     header.append(lead)
     if (!editing) {
       const edit = button('btn-outline with-icon', 'Edit', () => {
@@ -1038,7 +1027,6 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     }
     if (!drawn || !editing) draw()
     else refresh()
-    autoCompare()
   })
   bridge.on('ui/notifications/tool-cancelled', () => {
     if (!drawn) draw()

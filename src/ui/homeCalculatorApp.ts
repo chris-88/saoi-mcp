@@ -1056,8 +1056,8 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (closed || (drawn && rules !== null)) return
     const args = bridge.record(params?.['arguments'])
     hostArgs = args
-    // Without the core figures the gate may hold the card back: wait for the result to say.
-    if (!model.startsFolded(args)) return
+    // Drawn at once from the arguments, as every host delivers those (ChatGPT, 2026-11-12: a card
+    // that waited for the result stayed blank there). A gated result then hides it.
     take(args)
     draw()
   })
@@ -1081,5 +1081,14 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   bridge.on('ui/notifications/tool-cancelled', () => {
     if (!drawn && !closed) draw()
   })
-  void bridge.start('saoi-home-calculator')
+  void bridge.start('saoi-home-calculator').then(() => {
+    // A host that sends neither notification in this shape still gets the card, from whatever
+    // arguments came, rather than an empty frame.
+    win.setTimeout(() => {
+      if (!drawn && !closed) {
+        take(hostArgs)
+        draw()
+      }
+    }, 1500)
+  })
 }

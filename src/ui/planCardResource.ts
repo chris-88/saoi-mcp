@@ -32,12 +32,15 @@ export function claudeUiDomain(publicUrl: string): string {
  * assets.claude.ai (its design guidance asks for it so the card reads as native); elsewhere the
  * system font is used.
  */
-export function cardResourceMeta(publicUrl: string) {
+export function cardResourceMeta() {
+  // No `ui.domain` (2026-11-12): ChatGPT reads the same field and tries to serve the card from
+  // that domain, which it cannot, so the frame stays empty there (Chris's test 13). Claude shows
+  // the card without it. `claudeUiDomain` stays for the directory listing, which needs it; when
+  // it goes back, it must be host-specific or ChatGPT-verified first.
   return {
     ui: {
       prefersBorder: false,
       csp: { connectDomains: [], resourceDomains: ['https://assets.claude.ai'] },
-      domain: claudeUiDomain(publicUrl),
     },
   }
 }
@@ -208,7 +211,7 @@ let html: string | undefined
 export function registerPlanCard(server: McpServer, publicUrl: string): void {
   html ??= planCardHtml()
   const text = html
-  const meta = cardResourceMeta(publicUrl)
+  const meta = cardResourceMeta()
   server.registerResource(
     'saoi-plan-card',
     PLAN_CARD_URI,

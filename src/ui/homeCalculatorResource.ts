@@ -156,7 +156,7 @@ let html: string | undefined
 export function registerHomeCalculatorCard(server: McpServer, publicUrl: string): void {
   html ??= homeCalculatorHtml()
   const text = html
-  const meta = cardResourceMeta(publicUrl)
+  const meta = cardResourceMeta()
   server.registerResource(
     'saoi-home-calculator',
     HOME_CALCULATOR_URI,

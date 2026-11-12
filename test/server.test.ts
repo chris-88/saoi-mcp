@@ -553,6 +553,19 @@ describe('tools/call', () => {
     })
   })
 
+  it('sends buyingTogether on the comparison and calculator bodies only with a second income', () => {
+    const model = homeCalculatorModel()
+    const single = model.defaults('2026-11')
+    const joint = { ...single, secondIncomeEur: 40_000 }
+    expect(model.buildPlanBody(single, 'keys_date')).not.toHaveProperty('buyingTogether')
+    expect(model.buildPlanBody(joint, 'keys_date')).toMatchObject({ buyingTogether: true })
+    expect(model.homeCalculatorBody(single, [])).not.toHaveProperty('buyingTogether')
+    expect(model.homeCalculatorBody(joint, [])).toMatchObject({
+      buyingTogether: true,
+      secondIncomeEur: 40_000,
+    })
+  })
+
   it('saoi_save_plan returns a 24-hour link', async () => {
     const body = await call('saoi_save_plan', { plan: recorded.plan.plan })
     expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined)

@@ -124,6 +124,18 @@ describe('golden check: the core-information gate in saoi_home_calculator', () =
     })
   })
 
+  it('(a, live order) the price question asked now covers the date: the date is not asked again after it', async () => {
+    saoi.homeCalculator.mockResolvedValueOnce(
+      closed('annualGrossIncomeEur', 'targetPriceEur', 'targetDate', 'depositSavedEur', 'monthlySavingEur'),
+    )
+    const said = text(await call({}))
+    expect(present(said)).toHaveLength(2)
+    expect(said).toMatch(
+      /Still to ask after these, one or two at a time: How much have you saved[^\n]*How much can you put aside/,
+    )
+    expect(said).not.toMatch(/Still to ask after these[^\n]*When would you like the keys/)
+  })
+
   it('(b) funds, monthly saving, income and price: the card, as today', async () => {
     saoi.homeCalculator.mockResolvedValueOnce(open)
     const args = {

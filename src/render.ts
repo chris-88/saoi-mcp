@@ -511,7 +511,10 @@ export function homeGate(result: HomeCalculatorResult): HomeGate | null {
 export function renderHomeGate(gate: HomeGate): string {
   const flagged = gate.missing.filter((item) => item.askNow)
   const now = (flagged.length > 0 ? flagged : gate.missing).slice(0, 2)
-  const later = gate.missing.filter((item) => !now.includes(item))
+  // A price or a date completes the pair: a question asked now for one covers the other.
+  const pair = ['targetPriceEur', 'targetDate']
+  const asked = now.some((item) => pair.includes(item.key))
+  const later = gate.missing.filter((item) => !now.includes(item) && !(asked && pair.includes(item.key)))
   return [
     'Present to the customer (these questions are the whole reply; no figure until the card):',
     ...now.map((item) => `- ${item.question} ${item.moves}`),

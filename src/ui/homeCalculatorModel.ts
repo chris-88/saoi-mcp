@@ -141,7 +141,10 @@ export interface HomeCalculatorModel {
   ): HomeTile[]
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
-  /** True when the host supplied deposit, monthly saving, income and price: the card starts folded. */
+  /**
+   * True when the host supplied deposit, monthly saving, income and price (and the second income
+   * when buying together): the card starts folded, and draws before the result arrives.
+   */
   startsFolded(args: Record<string, unknown> | null): boolean
   /**
    * The facts still to ask on the folded card, as chips: rent only. First-time buyer stays assumed
@@ -406,8 +409,10 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       `rates: ${inputs.rateType}; green home: ${inputs.green ? 'yes' : 'no'}; open to switching current account: ${inputs.openToCurrentAccountSwitch ? 'yes' : 'no'};`,
       `county: ${COUNTIES.find(([slug]) => slug === inputs.county)?.[1] ?? 'not given'}; rent: ${inputs.monthlyRentEur === null ? 'not given' : `${eur(inputs.monthlyRentEur)} a month`}; tax paid over the last four years: ${inputs.taxPaidLastFourYearsEur === null ? 'not given' : eur(inputs.taxPaidLastFourYearsEur)}.`,
       'The card lists every route to a home as facts, in the order saoi-api gave; relay them as given and never call one the best.',
-      `The comparison returned ${String(count)} options sorted by ${SORTS[sortBy]}; the list opens in the Saoi app. Talk them through as a comparison if asked;`,
-      'do not pick one for the customer or say which to take. Use these inputs in any later saoi_build_plan call.',
+      `The comparison returned ${String(count)} options sorted by ${SORTS[sortBy]}; the list opens in the Saoi app.`,
+      'The card is the end of the conversation in this chat: a follow-up about the options or the supports is answered by pointing at the card’s button,',
+      '"Compare all product options and supports", which opens Saoi; not by another tool call or a narrative. Never pick one for the customer.',
+      'Call saoi_home_calculator again only when the customer changes a figure, with these inputs and the change.',
     ].join(' ')
 
   /** Which month the headline shows, and whether it is the card's own estimate. */
@@ -550,7 +555,8 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     args !== null &&
     ['depositSavedEur', 'monthlySavingEur', 'annualGrossIncomeEur', 'targetPriceEur'].every(
       (key) => optional(args[key]) !== null,
-    )
+    ) &&
+    (args['buyingTogether'] !== true || optional(args['secondIncomeEur']) !== null)
 
   const missingFacts = (known: readonly string[]): HomeControl[] =>
     (['monthlyRentEur'] as const).filter((key) => !known.includes(key))

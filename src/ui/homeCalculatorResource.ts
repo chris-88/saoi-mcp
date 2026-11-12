@@ -13,11 +13,12 @@ import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.j
  * could afford) and two other supports as facts, with icons; sliders with typed boxes and the
  * customer's filters under Edit; "Open in Saoi" (and "See all N supports in Saoi"), which compares,
  * saves and opens it in the app; the assumptions, warnings and statement folded behind one
- * footer line. No tool is called until the customer asks.
+ * footer line. No tool is called until the customer asks. v9 (2026-11-12): while the
+ * core-information gate is closed (`gate.ready` false) the card draws nothing at all.
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v8.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v9.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },

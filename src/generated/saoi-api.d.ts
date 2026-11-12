@@ -3865,7 +3865,7 @@ export interface paths {
         put?: never;
         /**
          * The home calculator: what the limits allow, the deposit, and when it is saved
-         * @description Buying a home in Ireland. Takes whatever of the customer’s figures and circumstances have been given, however partial, and returns what the Central Bank limits allow, the deposit and cash needed at the keys, the month that is saved at this pace, and the inputs still missing as plain questions. On a new build with tax paid not given, the headline leaves Help to Buy out (`helpToBuyConditional`). `routes` lists every route to a home, each potential, needing one detail, or not applicable, with dated sources; none is marked best. `rules` lets a calculator card recompute the figures as sliders move. No products: the mortgage options come from build-plan with a house_deposit goal and `homePreferences`. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Stored: one anonymous row per run with the day (no time), income band, months-to-the-keys band, whether the date is met, county and rent band when given, kind of home and first-time buyer. No figures, no identifiers, no IP address, no free text. Nothing else sent is stored.
+         * @description Buying a home in Ireland. Takes whatever of the customer’s figures and circumstances have been given, however partial, and returns what the Central Bank limits allow, the deposit and cash needed at the keys, the month that is saved at this pace, and the inputs still missing as plain questions. `gate` says whether the core information is in (the funds saved, the monthly saving, the income, both incomes when `buyingTogether`, and a price or a date); until it is, `presentation` holds only one or two plain questions, each with what it moves, and no figures, while `figures`, `rules` and `inputs` still come back for the card. On a new build with tax paid not given, the headline leaves Help to Buy out (`helpToBuyConditional`). `routes` lists every route to a home, each potential, needing one detail, or not applicable, with dated sources; none is marked best. `rules` lets a calculator card recompute the figures as sliders move. No products: the mortgage options come from build-plan with a house_deposit goal and `homePreferences`. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Stored: one anonymous row per run with the day (no time), income band, months-to-the-keys band, whether the date is met, county and rent band when given, kind of home and first-time buyer. No figures, no identifiers, no IP address, no free text. Nothing else sent is stored.
          */
         post: {
             parameters: {
@@ -10737,6 +10737,8 @@ export interface components {
                 annualGrossIncomeEur?: number;
                 /** @description A second applicant’s gross income a year, for a joint mortgage. */
                 secondIncomeEur?: number;
+                /** @description True when the customer is buying with someone else: the second income (`secondIncomeEur`) is then core information for the gate. Absent or false: a second income is counted when given and never asked for in `gate`. */
+                buyingTogether?: boolean;
                 /** @description The price in mind for the home. */
                 targetPriceEur?: number;
                 /** @description Existing loan and card repayments a month (not rent). */
@@ -10909,7 +10911,7 @@ export interface components {
                     checkedOn: string;
                 }[];
             }[];
-            /** @description The inputs not given yet, as plain questions, most useful first. */
+            /** @description The inputs not given yet, as plain questions, most useful first: the card’s chips. The core ones are also in `gate`. */
             questions: {
                 /** @enum {string} */
                 key: "depositSavedEur" | "monthlySavingEur" | "annualGrossIncomeEur" | "targetPriceEur" | "targetDate" | "firstTimeBuyer" | "propertyKind" | "currentBank" | "rateType" | "monthlyRentEur";
@@ -10917,9 +10919,25 @@ export interface components {
                 /** @description True when the answer changes no figure (rent): ask it at most once, as a chip. */
                 optional: boolean;
             }[];
+            /** @description The core information the figures wait for. Kind of home, first-time status, bank, rate type and rent never hold the figures back: they are assumed (`assumed`) or asked as chips (`questions`). */
+            gate: {
+                /** @description True when the funds saved, the monthly saving, the income (both incomes when `buyingTogether`) and a price or a date are given. False: `presentation` holds only the `askNow` questions, with no figures. */
+                ready: boolean;
+                /** @description The core inputs not given yet, most useful first; empty when `ready`. With neither a price nor a date, `targetPriceEur` is asked and `targetDate` follows it, never `askNow`: either answer completes the pair. `secondIncomeEur` appears only when `buyingTogether`. */
+                missing: {
+                    /** @enum {string} */
+                    key: "annualGrossIncomeEur" | "secondIncomeEur" | "targetPriceEur" | "targetDate" | "depositSavedEur" | "monthlySavingEur";
+                    /** @description The plain question for this input. */
+                    question: string;
+                    /** @description One factual sentence: what the answer changes in the figures. */
+                    moves: string;
+                    /** @description True for at most two items: the questions for this reply. */
+                    askNow: boolean;
+                }[];
+            };
             /** @description How to see the options: the card’s "Show my options" button, or saoi_build_plan with these inputs. */
             next: string;
-            /** @description Present to the customer, in this order: the headline figures, then three route lines and "More routes: N", then what is assumed and still to know. No route is picked. */
+            /** @description Present to the customer. When `gate.ready`, in this order: the headline figures, then three route lines and "More routes: N", then what is assumed and still to know. When not, only the `askNow` questions, each with what it moves, and the statement: no figures. No route is picked. */
             presentation: string[];
             /** @description The statutory mortgage warnings. */
             warnings: string[];
@@ -10936,6 +10954,8 @@ export interface components {
             annualGrossIncomeEur?: number;
             /** @description A second applicant’s gross income a year, for a joint mortgage. */
             secondIncomeEur?: number;
+            /** @description True when the customer is buying with someone else: the second income (`secondIncomeEur`) is then core information for the gate. Absent or false: a second income is counted when given and never asked for in `gate`. */
+            buyingTogether?: boolean;
             /** @description The price in mind for the home. */
             targetPriceEur?: number;
             /** @description Existing loan and card repayments a month (not rent). */

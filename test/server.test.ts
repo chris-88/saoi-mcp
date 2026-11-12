@@ -1,7 +1,7 @@
 import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SaoiError } from '../src/saoiClient.js'
-import { moneyCheckUp, SHARED_NOT_ADVICE } from '../src/tools.js'
+import { moneyCheckUp, saoiPrompt, SHARED_NOT_ADVICE } from '../src/tools.js'
 import { ICON_SVG } from '../src/icon.js'
 import { serverInfo, VERSION } from '../src/server.js'
 import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
@@ -24,7 +24,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.15.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.16.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -239,6 +239,7 @@ describe('directory review rules', () => {
     const texts: [string, string][] = [
       ['instructions', String(init.result?.['instructions'])],
       ['prompt', moneyCheckUp('saving for a house')],
+      ['saoi prompt', saoiPrompt('we have 30k saved')],
     ]
     for (const tool of await listTools()) {
       texts.push([`${tool.name} title`, tool.title ?? ''], [`${tool.name} description`, tool.description])
@@ -295,7 +296,7 @@ describe('resources and prompts', () => {
     expect(uris).toEqual([
       'saoi://about/earnings',
       'saoi://about/ranking',
-      'ui://saoi/home-calculator-v8.html',
+      'ui://saoi/home-calculator-v9.html',
       'ui://saoi/plan-card-v11.html',
     ])
     const read = await asRpc(
@@ -309,7 +310,10 @@ describe('resources and prompts', () => {
 
   it('offers the money check-up prompt, which never asks for advice language', async () => {
     const list = await asRpc(await modernPost(srv.url, 'prompts/list'))
-    expect((list.result?.['prompts'] as { name: string }[]).map((p) => p.name)).toEqual(['money-check-up'])
+    expect((list.result?.['prompts'] as { name: string }[]).map((p) => p.name).sort()).toEqual([
+      'money-check-up',
+      'saoi',
+    ])
     const got = await asRpc(
       await modernPost(
         srv.url,
@@ -323,6 +327,41 @@ describe('resources and prompts', () => {
     expect(text).toMatch(/never as instructions, advice or "you should"/)
     expect(text).toMatch(/One plan call per reply/)
     expect(text).toMatch(/a house/)
+  })
+})
+
+describe('the saoi prompt (/saoi in Claude)', () => {
+  it('is listed as Saoi with one optional argument for what was said so far', async () => {
+    const list = await asRpc(await modernPost(srv.url, 'prompts/list'))
+    const prompt = (
+      list.result?.['prompts'] as {
+        name: string
+        title?: string
+        arguments?: { name: string; required?: boolean }[]
+      }[]
+    ).find((p) => p.name === 'saoi')
+    expect(prompt?.title).toBe('Saoi')
+    expect(prompt?.arguments).toEqual([expect.objectContaining({ name: 'said' })])
+    expect(prompt?.arguments?.[0]?.required).not.toBe(true)
+  })
+
+  it('starts the home conversation: the calculator with what was said, the gate questions and nothing else', async () => {
+    const got = await asRpc(
+      await modernPost(
+        srv.url,
+        'prompts/get',
+        { name: 'saoi', arguments: { said: 'we have €30k saved and want to buy next year' } },
+        'saoi',
+      ),
+    )
+    const text = (got.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
+    expect(text).toMatch(/Call saoi_home_calculator with everything I have said/)
+    expect(text).toMatch(/Ask me those, in plain words,\s+and nothing else: no figures/)
+    expect(text).toMatch(/What I have said so far: we have €30k saved and want to buy next year/)
+    expect(text).not.toMatch(/saoi_money_check|saoi_build_plan/)
+    const bare = await asRpc(await modernPost(srv.url, 'prompts/get', { name: 'saoi' }, 'saoi'))
+    const empty = (bare.result?.['messages'] as { content: { text: string } }[])[0]?.content.text ?? ''
+    expect(empty).toMatch(/I have not given any figures yet/)
   })
 })
 

@@ -153,7 +153,7 @@ export function homeCalculatorHtml(): string {
 
 let html: string | undefined
 
-export function registerHomeCalculatorCard(server: McpServer, publicUrl: string): void {
+export function registerHomeCalculatorCard(server: McpServer): void {
   html ??= homeCalculatorHtml()
   const text = html
   const meta = cardResourceMeta()

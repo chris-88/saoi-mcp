@@ -208,7 +208,7 @@ export function planCardHtml(): string {
 
 let html: string | undefined
 
-export function registerPlanCard(server: McpServer, publicUrl: string): void {
+export function registerPlanCard(server: McpServer): void {
   html ??= planCardHtml()
   const text = html
   const meta = cardResourceMeta()

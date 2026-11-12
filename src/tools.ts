@@ -448,8 +448,8 @@ export const ABOUT_RESOURCES = {
 
 /** `publicUrl` is the exact connector URL; Claude's card sandbox origin is derived from it. */
 export function registerResources(server: McpServer, saoi: SaoiApi, publicUrl: string, ip?: string): void {
-  registerPlanCard(server, publicUrl)
-  registerHomeCalculatorCard(server, publicUrl)
+  registerPlanCard(server)
+  registerHomeCalculatorCard(server)
   for (const [topic, resource] of Object.entries(ABOUT_RESOURCES) as [
     keyof typeof ABOUT_RESOURCES,
     (typeof ABOUT_RESOURCES)[keyof typeof ABOUT_RESOURCES],

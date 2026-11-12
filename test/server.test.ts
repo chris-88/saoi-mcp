@@ -1,6 +1,7 @@
 import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SaoiError } from '../src/saoiClient.js'
+import { moneyCheckUp, neutral } from '../src/tools.js'
 import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
 import { legacyPost, mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
@@ -79,9 +80,9 @@ describe('protocol eras', () => {
     const instructions = String(body.result?.['instructions'])
     expect(instructions).toMatch(/Never present a single option as right for the customer/)
     expect(instructions).toMatch(/Saoi is not regulated by the Central/)
-    expect(instructions).toMatch(/call saoi_home_calculator/)
+    expect(instructions).toMatch(/- saoi_home_calculator: the customer asks about buying a home/)
     expect(instructions).toMatch(
-      /every route to a home as\s+facts, schemes included, and the customer chooses between them: relay the route lines as given, in their order,\s+and never call one the best\./,
+      /every route to a home as facts, schemes included, and\s+the customer chooses between them: relay the route lines as given, in their order, and never call one the best\./,
     )
     expect(instructions).not.toMatch(/recommendation into an option|only €24/)
     expect(instructions).toMatch(/Present to the customer/)
@@ -94,10 +95,15 @@ describe('protocol eras', () => {
       /not "Clear the €9,000 car loan", but "Clearing the €9,000 car loan from savings leaves/,
     )
     expect(instructions).not.toMatch(/call the tool again with the/)
-    expect(instructions).toMatch(/Call saoi_money_check as soon as the customer talks about their own money/)
-    expect(instructions).toMatch(/searching the web/)
+    expect(instructions).toMatch(
+      /- saoi_money_check: the customer asks about, or gives figures for, their own money in Ireland/,
+    )
+    expect(instructions).toMatch(
+      /Irish product rates, deposit guarantees, Help to Buy and the Central Bank\s+lending limits, each with its source and the date it was checked\. Where a tool does not have a fact, say so\./,
+    )
     expect(instructions).toMatch(/one single-use link .* held for 24/)
-    expect(instructions).toMatch(/coming, not built/)
+    expect(instructions).toMatch(/the app also offers rate-change alerts and goal-date\s+reminders/)
+    expect(instructions).not.toMatch(/coming, not built/)
     expect(instructions).not.toMatch(/partner/)
     expect(instructions).toMatch(/Nothing else is stored/)
   })
@@ -157,6 +163,67 @@ describe('tools/list', () => {
     )
     expect(tools.find((t) => t.name === 'saoi_save_plan')?.inputSchema.properties).not.toHaveProperty(
       'client',
+    )
+  })
+})
+
+describe('directory review rules', () => {
+  /** Calling a tool unprompted, or steering away from other tools (Anthropic and OpenAI review). */
+  const BANNED = ['without waiting', 'as soon as', 'searching the web', 'is the source', 'start here']
+
+  type Listed = { name: string; title?: string; description: string }
+  const listTools = async (): Promise<Listed[]> =>
+    (await asRpc(await legacyPost(srv.url, { jsonrpc: '2.0', id: 1, method: 'tools/list' }))).result?.[
+      'tools'
+    ] as Listed[]
+
+  it('no banned phrase in the instructions, any tool title or description (generated parts included), or the prompt', async () => {
+    const init = await asRpc(
+      await legacyPost(srv.url, {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'initialize',
+        params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
+      }),
+    )
+    const texts: [string, string][] = [
+      ['instructions', String(init.result?.['instructions'])],
+      ['prompt', moneyCheckUp('saving for a house')],
+    ]
+    for (const tool of await listTools()) {
+      texts.push([`${tool.name} title`, tool.title ?? ''], [`${tool.name} description`, tool.description])
+    }
+    for (const [where, text] of texts) {
+      for (const phrase of BANNED) expect(text.toLowerCase(), `${where}: "${phrase}"`).not.toContain(phrase)
+    }
+  })
+
+  it('starts every tool description with "Use this when"', async () => {
+    for (const tool of await listTools()) {
+      expect(tool.description, tool.name).toMatch(/^Use this when /)
+      expect(tool.description, tool.name).toMatch(/Do not use it /)
+    }
+  })
+
+  it('states the 24-hour draft on the three tools that write, and only on them', async () => {
+    const tools = await listTools()
+    const draft =
+      /Side effect: (when a plan comes back, )?a draft of the comparison is held for 24 hours behind a single-use link, then deleted unless opened/
+    for (const tool of tools) {
+      const writes = ['saoi_money_check', 'saoi_build_plan', 'saoi_save_plan'].includes(tool.name)
+      if (writes) expect(tool.description, tool.name).toMatch(draft)
+      else expect(tool.description, tool.name).not.toMatch(/Side effect:/)
+    }
+    expect(tools.find((t) => t.name === 'saoi_money_check')?.title).toBe('Money check')
+  })
+
+  it('drops only the steering sentences from saoi-api’s text', () => {
+    expect(neutral('Start here: a money check on what was said')).toBe('A money check on what was said')
+    expect(neutral('Call this as soon as they ask. Takes figures. Returns a plan.')).toBe(
+      'Takes figures. Returns a plan.',
+    )
+    expect(neutral('Ranks products. Information, not advice.')).toBe(
+      'Ranks products. Information, not advice.',
     )
   })
 })

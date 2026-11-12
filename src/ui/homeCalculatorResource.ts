@@ -19,6 +19,15 @@ import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.j
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
 export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v10.html'
+/**
+ * Earlier addresses of the same card, still served (2026-11-12): a host that cached the tool
+ * list when the card was v8 or v9 (ChatGPT keeps a connector's list until it is refreshed) asks
+ * for those and would otherwise get nothing. Each read is logged, so the log says which.
+ */
+export const HOME_CALCULATOR_PREVIOUS_URIS = [
+  'ui://saoi/home-calculator-v8.html',
+  'ui://saoi/home-calculator-v9.html',
+] as const
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },
@@ -157,6 +166,11 @@ export function registerHomeCalculatorCard(server: McpServer): void {
   html ??= homeCalculatorHtml()
   const text = html
   const meta = cardResourceMeta()
+  const serve = (uri: { href: string }) => {
+    // Which card a host fetches, and when: no customer data (2026-11-12, the ChatGPT blank frame).
+    console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
+    return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }
+  }
   server.registerResource(
     'saoi-home-calculator',
     HOME_CALCULATOR_URI,
@@ -167,10 +181,19 @@ export function registerHomeCalculatorCard(server: McpServer): void {
       mimeType: MCP_APP_MIME_TYPE,
       _meta: meta,
     },
-    (uri) => {
-      // Which card a host fetches, and when: no customer data (2026-11-12, the ChatGPT blank frame).
-      console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
-      return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }
-    },
+    serve,
   )
+  HOME_CALCULATOR_PREVIOUS_URIS.forEach((previous, index) => {
+    server.registerResource(
+      `saoi-home-calculator-previous-${String(index)}`,
+      previous,
+      {
+        title: 'Saoi home calculator (earlier address)',
+        description: 'The same card at an address a host may still hold from an earlier version.',
+        mimeType: MCP_APP_MIME_TYPE,
+        _meta: meta,
+      },
+      serve,
+    )
+  })
 }

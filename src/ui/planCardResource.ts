@@ -12,6 +12,8 @@ import { planCardModel } from './planCardModel.js'
  * hosts may treat the URI as a cache key.
  */
 export const PLAN_CARD_URI = 'ui://saoi/plan-card-v11.html'
+/** The previous address, still served for hosts that cached the tool list (2026-11-12). */
+export const PLAN_CARD_PREVIOUS_URI = 'ui://saoi/plan-card-v10.html'
 export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 
 /** On a tool: the card that renders its result. The flat key is the spec's legacy spelling. */
@@ -212,6 +214,10 @@ export function registerPlanCard(server: McpServer): void {
   html ??= planCardHtml()
   const text = html
   const meta = cardResourceMeta()
+  const serve = (uri: { href: string }) => {
+    console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
+    return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }
+  }
   server.registerResource(
     'saoi-plan-card',
     PLAN_CARD_URI,
@@ -222,10 +228,17 @@ export function registerPlanCard(server: McpServer): void {
       mimeType: MCP_APP_MIME_TYPE,
       _meta: meta,
     },
-    (uri) => {
-      // Which card a host fetches, and when: no customer data (2026-11-12, the ChatGPT blank frame).
-      console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
-      return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }
+    serve,
+  )
+  server.registerResource(
+    'saoi-plan-card-previous',
+    PLAN_CARD_PREVIOUS_URI,
+    {
+      title: 'Saoi plan card (earlier address)',
+      description: 'The same card at the address a host may still hold from an earlier version.',
+      mimeType: MCP_APP_MIME_TYPE,
+      _meta: meta,
     },
+    serve,
   )
 }

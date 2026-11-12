@@ -24,7 +24,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.16.4' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.16.5' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -297,6 +297,10 @@ describe('resources and prompts', () => {
       'saoi://about/earnings',
       'saoi://about/ranking',
       'ui://saoi/home-calculator-v10.html',
+      // Earlier addresses, still served for hosts that cached the tool list (2026-11-12).
+      'ui://saoi/home-calculator-v8.html',
+      'ui://saoi/home-calculator-v9.html',
+      'ui://saoi/plan-card-v10.html',
       'ui://saoi/plan-card-v11.html',
     ])
     const read = await asRpc(

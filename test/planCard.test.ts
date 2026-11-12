@@ -2,7 +2,7 @@ import { Script } from 'node:vm'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { planCardModel } from '../src/ui/planCardModel.js'
 import { HOME_CALCULATOR_URI } from '../src/ui/homeCalculatorResource.js'
-import { MCP_APP_MIME_TYPE, PLAN_CARD_URI, planCardHtml } from '../src/ui/planCardResource.js'
+import { claudeUiDomain, MCP_APP_MIME_TYPE, PLAN_CARD_URI, planCardHtml } from '../src/ui/planCardResource.js'
 import { mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
 type Result = Record<string, unknown>
@@ -55,11 +55,38 @@ describe('plan card over the protocol', () => {
       ui: {
         prefersBorder: false,
         csp: { connectDomains: [], resourceDomains: ['https://assets.claude.ai'] },
+        domain: '9235ca3f8bcb93b4fb0ef0094165a0d9.claudemcpcontent.com',
       },
     })
     expect(content?.text).toMatch(/^<!DOCTYPE html>/)
     expect(content?.text).not.toMatch(/<script[^>]+src=/)
     expect(content?.text).not.toMatch(/<link[^>]+href=/)
+  })
+
+  it('derives Claude’s ui.domain from the exact connector URL, as Claude’s guide computes it', () => {
+    // The guide's own worked example.
+    expect(claudeUiDomain('https://example.com/mcp')).toBe(
+      'c3d80a4ed901ee05b21755a88273b4a4.claudemcpcontent.com',
+    )
+    expect(claudeUiDomain('https://mcp.saoi.ie/mcp')).toBe(
+      '9235ca3f8bcb93b4fb0ef0094165a0d9.claudemcpcontent.com',
+    )
+    // A trailing slash is a different URL, so a different origin.
+    expect(claudeUiDomain('https://mcp.saoi.ie/mcp/')).not.toBe(claudeUiDomain('https://mcp.saoi.ie/mcp'))
+  })
+
+  it('sets the same ui.domain on both cards, in the listing and the read', async () => {
+    const domain = '9235ca3f8bcb93b4fb0ef0094165a0d9.claudemcpcontent.com'
+    const list = (await result(await modernPost(srv.url, 'resources/list')))['resources'] as {
+      uri: string
+      _meta?: { ui?: { domain?: string } }
+    }[]
+    for (const uri of [PLAN_CARD_URI, HOME_CALCULATOR_URI]) {
+      expect(list.find((r) => r.uri === uri)?._meta?.ui?.domain, uri).toBe(domain)
+      const read = await result(await modernPost(srv.url, 'resources/read', { uri }, uri))
+      const [content] = read['contents'] as { _meta?: { ui?: { domain?: string } } }[]
+      expect(content?._meta?.ui?.domain, uri).toBe(domain)
+    }
   })
 
   it('returns the plan as structured content for the card, and the text for everyone else', async () => {

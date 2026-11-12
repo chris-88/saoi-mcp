@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type { McpServer } from '@modelcontextprotocol/server'
 import { planCardApp } from './planCardApp.js'
 import { planCardModel } from './planCardModel.js'
@@ -17,12 +18,28 @@ export const MCP_APP_MIME_TYPE = 'text/html;profile=mcp-app'
 export const PLAN_CARD_TOOL_META = { ui: { resourceUri: PLAN_CARD_URI }, 'ui/resourceUri': PLAN_CARD_URI }
 
 /**
+ * Claude's sandbox origin for the cards (`_meta.ui.domain`): the first 32 hex characters of the
+ * SHA-256 of the exact connector URL, then `.claudemcpcontent.com`. Claude checks it against the
+ * URL the connector was added with and refuses the card on a mismatch.
+ * https://claude.com/docs/connectors/building/mcp-apps/getting-started#set-ui-domain-for-claude
+ */
+export function claudeUiDomain(publicUrl: string): string {
+  return `${createHash('sha256').update(publicUrl).digest('hex').slice(0, 32)}.claudemcpcontent.com`
+}
+
+/**
  * On the resource. No external origins: everything is inline. Claude's fonts come from
  * assets.claude.ai (its design guidance asks for it so the card reads as native); elsewhere the
  * system font is used.
  */
-export const PLAN_CARD_RESOURCE_META = {
-  ui: { prefersBorder: false, csp: { connectDomains: [], resourceDomains: ['https://assets.claude.ai'] } },
+export function cardResourceMeta(publicUrl: string) {
+  return {
+    ui: {
+      prefersBorder: false,
+      csp: { connectDomains: [], resourceDomains: ['https://assets.claude.ai'] },
+      domain: claudeUiDomain(publicUrl),
+    },
+  }
 }
 
 /** The cards' shared style: Claude's variables where the host sends them, Saoi's colours otherwise. */
@@ -188,9 +205,10 @@ export function planCardHtml(): string {
 
 let html: string | undefined
 
-export function registerPlanCard(server: McpServer): void {
+export function registerPlanCard(server: McpServer, publicUrl: string): void {
   html ??= planCardHtml()
   const text = html
+  const meta = cardResourceMeta(publicUrl)
   server.registerResource(
     'saoi-plan-card',
     PLAN_CARD_URI,
@@ -199,10 +217,10 @@ export function registerPlanCard(server: McpServer): void {
       description:
         'The interactive card hosts show with saoi_build_plan results, with a button to save the plan.',
       mimeType: MCP_APP_MIME_TYPE,
-      _meta: PLAN_CARD_RESOURCE_META,
+      _meta: meta,
     },
     (uri) => ({
-      contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: PLAN_CARD_RESOURCE_META }],
+      contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }],
     }),
   )
 }

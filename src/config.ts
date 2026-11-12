@@ -8,6 +8,8 @@ export interface Config {
   readonly keepAliveMs: number
   /** The exact URL connectors are configured with; the server's icons are served from its origin. */
   readonly publicUrl: string
+  /** OpenAI's domain verification token, served at `/.well-known/openai-apps-challenge` when set. */
+  readonly openaiAppsChallenge: string | undefined
 }
 
 export const DEFAULT_PUBLIC_URL = 'https://mcp.saoi.ie/mcp'
@@ -54,5 +56,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ]),
     keepAliveMs: Number(env['KEEPALIVE_MS'] ?? 25_000),
     publicUrl: url(optional(env['PUBLIC_URL']) ?? DEFAULT_PUBLIC_URL),
+    openaiAppsChallenge: optional(env['OPENAI_APPS_CHALLENGE']),
   }
 }

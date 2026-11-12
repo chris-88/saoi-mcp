@@ -78,13 +78,14 @@ export interface Running {
   close(): Promise<void>
 }
 
-export async function run(saoi: SaoiApi): Promise<Running> {
+export async function run(saoi: SaoiApi, openaiAppsChallenge?: string): Promise<Running> {
   const server = createHttpServer(
     {
       allowedHosts: ['mcp.saoi.ie', 'localhost', '127.0.0.1'],
       allowedOrigins: ['claude.ai', 'localhost'],
       keepAliveMs: 25_000,
       publicUrl: 'https://mcp.saoi.ie/mcp',
+      openaiAppsChallenge,
     },
     saoi,
   )

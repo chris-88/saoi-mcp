@@ -60,12 +60,16 @@ const json = (
 }
 
 /**
- * HTTP front: `GET /health`, `GET /icon.svg` and `/icon.png` (the server's icons), `POST /mcp`. Host and Origin are validated on every request.
+ * HTTP front: `GET /health`, `GET /icon.svg` and `/icon.png` (the server's icons),
+ * `GET /.well-known/openai-apps-challenge` (OpenAI's domain check, when configured), `POST /mcp`. Host and Origin are validated on every request.
  * The MCP handler serves both the 2026-07-28 per-request path and the legacy `initialize`
  * path statelessly; a fresh server instance is built per request.
  */
 export function createHttpServer(
-  config: Pick<Config, 'allowedHosts' | 'allowedOrigins' | 'keepAliveMs' | 'publicUrl'>,
+  config: Pick<
+    Config,
+    'allowedHosts' | 'allowedOrigins' | 'keepAliveMs' | 'publicUrl' | 'openaiAppsChallenge'
+  >,
   saoi: SaoiApi,
 ): Server {
   const handler = createMcpHandler(
@@ -94,6 +98,16 @@ export function createHttpServer(
 
       if (path === '/health' && req.method === 'GET') {
         json(res, 200, { ok: true, version: VERSION })
+        return
+      }
+      if (path === '/.well-known/openai-apps-challenge' && req.method === 'GET') {
+        const token = config.openaiAppsChallenge
+        if (token === undefined) {
+          json(res, 404, { error: 'Not found' })
+          return
+        }
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' })
+        res.end(token)
         return
       }
       if ((path === '/icon.svg' || path === '/icon.png') && req.method === 'GET') {

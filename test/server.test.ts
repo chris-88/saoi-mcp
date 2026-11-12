@@ -76,6 +76,19 @@ describe('http surface', () => {
     expect((await fetch(`${srv.url}/favicon.ico`)).status).toBe(404)
   })
 
+  it('answers the OpenAI domain challenge only when a token is configured', async () => {
+    expect((await fetch(`${srv.url}/.well-known/openai-apps-challenge`)).status).toBe(404)
+    const withToken = await run(mockSaoi(), 'token-123')
+    try {
+      const res = await fetch(`${withToken.url}/.well-known/openai-apps-challenge`)
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toMatch(/^text\/plain/)
+      expect(await res.text()).toBe('token-123')
+    } finally {
+      await withToken.close()
+    }
+  })
+
   it('lists the icons on the public URL’s origin', () => {
     expect(serverInfo('https://mcp.chrisquinn.ie/mcp').icons.map((icon) => icon.src)).toEqual([
       'https://mcp.chrisquinn.ie/icon.svg',

@@ -56,15 +56,16 @@ No authentication and no secrets: the routes it calls are public. saoi-api rate-
 
 ## Environment
 
-| Variable          | Required | Meaning                                                                                               |
-| ----------------- | -------- | ----------------------------------------------------------------------------------------------------- |
-| `SAOI_API_URL`    | no       | The `saoi-api` service, default `http://saoi-api:3000`                                                |
-| `PORT`            | no       | Default `3000`                                                                                        |
-| `SAOI_TIMEOUT_MS` | no       | Per-call timeout to saoi-api, default `30000`                                                         |
-| `ALLOWED_HOSTS`   | no       | Comma-separated Host names, default `mcp.saoi.ie,mcp.chrisquinn.ie,localhost,127.0.0.1,[::1]`         |
-| `ALLOWED_ORIGINS` | no       | Comma-separated Origin host names, default includes `claude.ai`, `claude.com`                         |
-| `KEEPALIVE_MS`    | no       | SSE keep-alive interval, default `25000`                                                              |
-| `PUBLIC_URL`      | no       | The exact URL connectors use, default `https://mcp.saoi.ie/mcp`; the icons are served from its origin |
+| Variable                | Required | Meaning                                                                                                                |
+| ----------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `SAOI_API_URL`          | no       | The `saoi-api` service, default `http://saoi-api:3000`                                                                 |
+| `PORT`                  | no       | Default `3000`                                                                                                         |
+| `SAOI_TIMEOUT_MS`       | no       | Per-call timeout to saoi-api, default `30000`                                                                          |
+| `ALLOWED_HOSTS`         | no       | Comma-separated Host names, default `mcp.saoi.ie,mcp.chrisquinn.ie,localhost,127.0.0.1,[::1]`                          |
+| `ALLOWED_ORIGINS`       | no       | Comma-separated Origin host names, default includes `claude.ai`, `claude.com`                                          |
+| `KEEPALIVE_MS`          | no       | SSE keep-alive interval, default `25000`                                                                               |
+| `OPENAI_APPS_CHALLENGE` | no       | OpenAI's domain verification token, served as `text/plain` at `GET /.well-known/openai-apps-challenge`; 404 when unset |
+| `PUBLIC_URL`            | no       | The exact URL connectors use, default `https://mcp.saoi.ie/mcp`; the icons are served from its origin                  |
 
 ## Run
 

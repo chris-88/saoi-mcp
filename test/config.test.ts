@@ -13,4 +13,10 @@ describe('loadConfig', () => {
     )
     expect(() => loadConfig({ PUBLIC_URL: 'mcp.saoi.ie' })).toThrow(/PUBLIC_URL/)
   })
+
+  it('reads the OpenAI challenge token, unset when empty', () => {
+    expect(loadConfig({}).openaiAppsChallenge).toBeUndefined()
+    expect(loadConfig({ OPENAI_APPS_CHALLENGE: '  ' }).openaiAppsChallenge).toBeUndefined()
+    expect(loadConfig({ OPENAI_APPS_CHALLENGE: 'abc' }).openaiAppsChallenge).toBe('abc')
+  })
 })

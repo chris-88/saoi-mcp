@@ -16,7 +16,9 @@ import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.j
  * footer line. No tool is called until the customer asks. v9 (2026-11-12): while the
  * core-information gate is closed (`gate.ready` false) the card draws nothing at all.
  *
- * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
+ * Bump the version in the URI when the card changes in a way a cached copy would get wrong, and
+ * keep every earlier address served (`HOME_CALCULATOR_PREVIOUS_URIS`): ChatGPT keeps a connector's
+ * tool list until the customer refreshes it, and asked for v8 all afternoon on 2026-11-12.
  */
 export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v10.html'
 /**

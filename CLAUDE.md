@@ -27,6 +27,7 @@ Keep the surface lean (no speculative features or dependencies); keep the floor 
 
 - TypeScript `strict`, `noUncheckedIndexedAccess`, no `any`, no `@ts-ignore` without a reason.
 - Stateless: no sessions, no in-memory state. Nothing about a customer is stored until `saoi_save_plan`.
+- A card's address (`ui://saoi/...-vN.html`) is never retired. Bump N when a cached copy would be wrong, add the old address to the card's previous-addresses list, and keep serving it: ChatGPT holds a connector's tool list until the customer refreshes it, and a retired address shows as an empty frame (2026-11-12).
 - Forward the end user's address (`CF-Connecting-IP`) to saoi-api as `X-Forwarded-For`: its rate limits are per address.
 - Serve both protocol eras (2026-07-28 and legacy `initialize`) via `createMcpHandler`; do not hand-roll JSON-RPC.
 - Keep Origin and Host validation on every request. `X-Accel-Buffering: no` on `/mcp`.

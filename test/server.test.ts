@@ -1,7 +1,7 @@
 import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SaoiError } from '../src/saoiClient.js'
-import { moneyCheckUp, neutral } from '../src/tools.js'
+import { moneyCheckUp, SHARED_NOT_ADVICE } from '../src/tools.js'
 import { ICON_SVG } from '../src/icon.js'
 import { serverInfo, VERSION } from '../src/server.js'
 import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
@@ -24,7 +24,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.14.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.15.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -149,7 +149,13 @@ describe('protocol eras', () => {
     expect(instructions).toMatch(/the app also offers rate-change alerts and goal-date\s+reminders/)
     expect(instructions).not.toMatch(/coming, not built/)
     expect(instructions).not.toMatch(/partner/)
-    expect(instructions).toMatch(/Nothing else is stored/)
+    expect(instructions).toMatch(
+      /held for 24\s+hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens\s+into\./,
+    )
+    expect(instructions).toMatch(
+      /the home calculator records one anonymous, banded row per run \(no figures, no\s+identifiers\); nothing else is stored\./,
+    )
+    expect(instructions).not.toMatch(/Nothing else is stored\./)
   })
 
   it('serves server/discover on the 2026-07-28 path', async () => {
@@ -249,26 +255,36 @@ describe('directory review rules', () => {
     }
   })
 
-  it('states the 24-hour draft on the three tools that write, and only on them', async () => {
+  it('states what is stored once per tool, in saoi-api’s words, and the 24-hour link on the three that write', async () => {
     const tools = await listTools()
-    const draft =
-      /Side effect: (when a plan comes back, )?a draft of the comparison is held for 24 hours behind a single-use link, then deleted unless opened/
     for (const tool of tools) {
-      const writes = ['saoi_money_check', 'saoi_build_plan', 'saoi_save_plan'].includes(tool.name)
-      if (writes) expect(tool.description, tool.name).toMatch(draft)
-      else expect(tool.description, tool.name).not.toMatch(/Side effect:/)
+      const storage =
+        tool.description.match(
+          /Nothing (else )?sent is stored|Stored: |nothing is stored|kept with the Saoi app conversation/g,
+        ) ?? []
+      expect(storage.length, tool.name).toBeGreaterThan(0)
+      expect(tool.description, tool.name).not.toMatch(
+        /Reads only; nothing is stored\..*Nothing sent is stored/,
+      )
+      if (['saoi_money_check', 'saoi_build_plan', 'saoi_save_plan'].includes(tool.name)) {
+        expect(tool.description, tool.name).toMatch(/24 hours/)
+        expect(tool.description, tool.name).toMatch(/kept with the Saoi app conversation it opened into/)
+      }
     }
     expect(tools.find((t) => t.name === 'saoi_money_check')?.title).toBe('Money check')
   })
 
-  it('drops only the steering sentences from saoi-api’s text', () => {
-    expect(neutral('Start here: a money check on what was said')).toBe('A money check on what was said')
-    expect(neutral('Call this as soon as they ask. Takes figures. Returns a plan.')).toBe(
-      'Takes figures. Returns a plan.',
+  it('says the not-advice paragraph once, in the instructions, and one short sentence per tool', async () => {
+    for (const tool of await listTools()) {
+      expect(tool.description, tool.name).not.toContain(SHARED_NOT_ADVICE)
+      expect(tool.description, tool.name).not.toMatch(/Saoi is not regulated/)
+      expect(tool.description.match(/not advice/gi)?.length ?? 0, tool.name).toBeLessThanOrEqual(1)
+    }
+    const replaced = (await listTools()).filter((t) =>
+      t.description.includes('Information, not advice; never picks a product.'),
     )
-    expect(neutral('Ranks products. Information, not advice.')).toBe(
-      'Ranks products. Information, not advice.',
-    )
+    // saoi-api rewording the paragraph would bring it back in full; this fails first.
+    expect(replaced.length).toBeGreaterThanOrEqual(9)
   })
 })
 
@@ -280,7 +296,7 @@ describe('resources and prompts', () => {
       'saoi://about/earnings',
       'saoi://about/ranking',
       'ui://saoi/home-calculator-v8.html',
-      'ui://saoi/plan-card-v10.html',
+      'ui://saoi/plan-card-v11.html',
     ])
     const read = await asRpc(
       await modernPost(srv.url, 'resources/read', { uri: 'saoi://about/ranking' }, 'saoi://about/ranking'),
@@ -502,7 +518,9 @@ describe('tools/call', () => {
     const body = await call('saoi_save_plan', { plan: recorded.plan.plan })
     expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined)
     expect(text(body)).toMatch(/app\.saoi\.ie\/#\/plan\//)
-    expect(text(body)).toMatch(/held for 24 hours, then deleted unless opened/)
+    expect(text(body)).toMatch(
+      /held for 24 hours and deleted then if unopened; once opened, it is kept with the Saoi app conversation it opens into/,
+    )
   })
 
   it('turns a saoi-api refusal into an isError result with its details', async () => {

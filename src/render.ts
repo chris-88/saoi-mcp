@@ -594,7 +594,7 @@ export function renderMoneyCheck(result: MoneyCheckResult): string {
 export function renderSaved(result: SavePlanResult): string {
   return [
     ...present([
-      `Saved: this comparison can be opened in the Saoi app: ${result.claimUrl} (held for 24 hours, then deleted unless opened).`,
+      `Saved: this comparison can be opened in the Saoi app: ${result.claimUrl} (held for 24 hours and deleted then if unopened; once opened, it is kept with the Saoi app conversation it opens into).`,
     ]),
     `It works once and expires ${result.expiresAt}. Nothing else about the customer is stored.`,
   ].join('\n')

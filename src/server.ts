@@ -6,7 +6,7 @@ import { DEFAULT_PUBLIC_URL, type Config } from './config.js'
 import { ICON_PNG, ICON_SVG } from './icon.js'
 import { registerPrompts, registerResources, registerTools, SERVER_INSTRUCTIONS } from './tools.js'
 
-export const VERSION = '0.14.0'
+export const VERSION = '0.15.0'
 
 /** What a host shows for this server: its name, the website and the mark, served from `publicUrl`'s origin. */
 export function serverInfo(publicUrl: string) {

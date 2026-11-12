@@ -1,6 +1,6 @@
 {
   "name": "saoi-mcp",
-  "version": "0.16.0",
+  "version": "0.16.1",
   "description": "MCP server for Saoi: compare Irish savings, deposit, mortgage and loan products against the customer's own figures",
   "license": "AGPL-3.0-only",
   "author": "Chris Quinn",

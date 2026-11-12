@@ -377,6 +377,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       },
     ],
     homePrice: inputs.targetPriceEur,
+    ...(inputs.secondIncomeEur > 0 ? { buyingTogether: true } : {}),
     propertyKind: inputs.propertyKind,
     ...(inputs.taxPaidLastFourYearsEur === null
       ? {}
@@ -565,7 +566,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     depositSavedEur: inputs.depositSavedEur,
     monthlySavingEur: inputs.monthlySavingEur,
     annualGrossIncomeEur: inputs.annualGrossIncomeEur,
-    ...(inputs.secondIncomeEur > 0 ? { secondIncomeEur: inputs.secondIncomeEur } : {}),
+    ...(inputs.secondIncomeEur > 0 ? { buyingTogether: true, secondIncomeEur: inputs.secondIncomeEur } : {}),
     targetPriceEur: inputs.targetPriceEur,
     ...(inputs.monthlyDebtRepaymentsEur > 0
       ? { monthlyDebtRepaymentsEur: inputs.monthlyDebtRepaymentsEur }

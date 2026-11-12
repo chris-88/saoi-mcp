@@ -50,20 +50,21 @@ Every result's text opens with **Present to the customer**: the headline sentenc
 
 ## Protocol
 
-Built on the official TypeScript SDK v2 (`@modelcontextprotocol/server` 2.4.0, `@modelcontextprotocol/node` 2.1.2) using `createMcpHandler`. Stateless Streamable HTTP, `POST /mcp` only. It serves both the 2026-07-28 per-request path (`server/discover`, `_meta` envelope, `Mcp-Method`/`Mcp-Name` headers) and the legacy `initialize` path; `GET /mcp` is 405. `Origin` (when present) and `Host` are validated, `X-Accel-Buffering: no` is set, and SSE keep-alive comments go out every 25 seconds. `GET /health` returns `{ ok, version }`.
+Built on the official TypeScript SDK v2 (`@modelcontextprotocol/server` 2.4.0, `@modelcontextprotocol/node` 2.1.2) using `createMcpHandler`. Stateless Streamable HTTP, `POST /mcp` only. It serves both the 2026-07-28 per-request path (`server/discover`, `_meta` envelope, `Mcp-Method`/`Mcp-Name` headers) and the legacy `initialize` path; `GET /mcp` is 405. `Origin` (when present) and `Host` are validated, `X-Accel-Buffering: no` is set, and SSE keep-alive comments go out every 25 seconds. `GET /health` returns `{ ok, version }`. The server identifies itself as `saoi`, titled `Saoi`, with `websiteUrl` `https://saoi.ie` and two `icons`: Saoi's mark as saoi.ie and app.saoi.ie serve it (`src/icon.ts`), at `GET /icon.svg` and `GET /icon.png` (192 by 192) on `PUBLIC_URL`'s origin.
 
 No authentication and no secrets: the routes it calls are public. saoi-api rate-limits per address, so the end user's address (`CF-Connecting-IP`, set by the Cloudflare Tunnel) is forwarded as `X-Forwarded-For`; otherwise every user of this server would share one bucket.
 
 ## Environment
 
-| Variable          | Required | Meaning                                                                                       |
-| ----------------- | -------- | --------------------------------------------------------------------------------------------- |
-| `SAOI_API_URL`    | no       | The `saoi-api` service, default `http://saoi-api:3000`                                        |
-| `PORT`            | no       | Default `3000`                                                                                |
-| `SAOI_TIMEOUT_MS` | no       | Per-call timeout to saoi-api, default `30000`                                                 |
-| `ALLOWED_HOSTS`   | no       | Comma-separated Host names, default `mcp.saoi.ie,mcp.chrisquinn.ie,localhost,127.0.0.1,[::1]` |
-| `ALLOWED_ORIGINS` | no       | Comma-separated Origin host names, default includes `claude.ai`, `claude.com`                 |
-| `KEEPALIVE_MS`    | no       | SSE keep-alive interval, default `25000`                                                      |
+| Variable          | Required | Meaning                                                                                               |
+| ----------------- | -------- | ----------------------------------------------------------------------------------------------------- |
+| `SAOI_API_URL`    | no       | The `saoi-api` service, default `http://saoi-api:3000`                                                |
+| `PORT`            | no       | Default `3000`                                                                                        |
+| `SAOI_TIMEOUT_MS` | no       | Per-call timeout to saoi-api, default `30000`                                                         |
+| `ALLOWED_HOSTS`   | no       | Comma-separated Host names, default `mcp.saoi.ie,mcp.chrisquinn.ie,localhost,127.0.0.1,[::1]`         |
+| `ALLOWED_ORIGINS` | no       | Comma-separated Origin host names, default includes `claude.ai`, `claude.com`                         |
+| `KEEPALIVE_MS`    | no       | SSE keep-alive interval, default `25000`                                                              |
+| `PUBLIC_URL`      | no       | The exact URL connectors use, default `https://mcp.saoi.ie/mcp`; the icons are served from its origin |
 
 ## Run
 

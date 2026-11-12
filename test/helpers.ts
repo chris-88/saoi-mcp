@@ -84,6 +84,7 @@ export async function run(saoi: SaoiApi): Promise<Running> {
       allowedHosts: ['mcp.saoi.ie', 'localhost', '127.0.0.1'],
       allowedOrigins: ['claude.ai', 'localhost'],
       keepAliveMs: 25_000,
+      publicUrl: 'https://mcp.saoi.ie/mcp',
     },
     saoi,
   )

@@ -2,6 +2,8 @@ import { request } from 'node:http'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SaoiError } from '../src/saoiClient.js'
 import { moneyCheckUp, neutral } from '../src/tools.js'
+import { ICON_SVG } from '../src/icon.js'
+import { serverInfo, VERSION } from '../src/server.js'
 import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
 import { legacyPost, mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
@@ -61,6 +63,26 @@ describe('http surface', () => {
     expect((await fetch(`${srv.url}/nope`)).status).toBe(404)
   })
 
+  it('serves the Saoi mark at /icon.svg and /icon.png', async () => {
+    const svg = await fetch(`${srv.url}/icon.svg`)
+    expect(svg.status).toBe(200)
+    expect(svg.headers.get('content-type')).toBe('image/svg+xml')
+    expect(await svg.text()).toBe(ICON_SVG)
+    const png = await fetch(`${srv.url}/icon.png`)
+    expect(png.status).toBe(200)
+    expect(png.headers.get('content-type')).toBe('image/png')
+    const bytes = new Uint8Array(await png.arrayBuffer())
+    expect(Array.from(bytes.slice(0, 4))).toEqual([0x89, 0x50, 0x4e, 0x47])
+    expect((await fetch(`${srv.url}/favicon.ico`)).status).toBe(404)
+  })
+
+  it('lists the icons on the public URL’s origin', () => {
+    expect(serverInfo('https://mcp.chrisquinn.ie/mcp').icons.map((icon) => icon.src)).toEqual([
+      'https://mcp.chrisquinn.ie/icon.svg',
+      'https://mcp.chrisquinn.ie/icon.png',
+    ])
+  })
+
   it('sets X-Accel-Buffering: no on /mcp', async () => {
     const res = await legacyPost(srv.url, { jsonrpc: '2.0', id: 1, method: 'tools/list' })
     expect(res.headers.get('x-accel-buffering')).toBe('no')
@@ -76,7 +98,16 @@ describe('protocol eras', () => {
       params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
     })
     const body = await asRpc(res)
-    expect(body.result?.['serverInfo']).toMatchObject({ name: 'saoi' })
+    expect(body.result?.['serverInfo']).toEqual({
+      name: 'saoi',
+      title: 'Saoi',
+      version: VERSION,
+      websiteUrl: 'https://saoi.ie',
+      icons: [
+        { src: 'https://mcp.saoi.ie/icon.svg', mimeType: 'image/svg+xml', sizes: ['any'] },
+        { src: 'https://mcp.saoi.ie/icon.png', mimeType: 'image/png', sizes: ['192x192'] },
+      ],
+    })
     const instructions = String(body.result?.['instructions'])
     expect(instructions).toMatch(/Never present a single option as right for the customer/)
     expect(instructions).toMatch(/Saoi is not regulated by the Central/)

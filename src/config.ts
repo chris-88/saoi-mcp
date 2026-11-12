@@ -6,7 +6,11 @@ export interface Config {
   readonly allowedHosts: readonly string[]
   readonly allowedOrigins: readonly string[]
   readonly keepAliveMs: number
+  /** The exact URL connectors are configured with; the server's icons are served from its origin. */
+  readonly publicUrl: string
 }
+
+export const DEFAULT_PUBLIC_URL = 'https://mcp.saoi.ie/mcp'
 
 const list = (value: string | undefined, fallback: readonly string[]): readonly string[] => {
   if (value === undefined || value.trim() === '') return fallback
@@ -14,6 +18,17 @@ const list = (value: string | undefined, fallback: readonly string[]): readonly 
     .split(',')
     .map((entry) => entry.trim())
     .filter((entry) => entry !== '')
+}
+
+const optional = (value: string | undefined): string | undefined => {
+  const trimmed = value?.trim()
+  return trimmed === undefined || trimmed === '' ? undefined : trimmed
+}
+
+/** A URL kept exactly as written (Claude hashes the string), checked once at start-up. */
+const url = (value: string): string => {
+  if (!URL.canParse(value)) throw new Error(`PUBLIC_URL is not a URL: ${value}`)
+  return value
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
@@ -38,5 +53,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       '[::1]',
     ]),
     keepAliveMs: Number(env['KEEPALIVE_MS'] ?? 25_000),
+    publicUrl: url(optional(env['PUBLIC_URL']) ?? DEFAULT_PUBLIC_URL),
   }
 }

@@ -517,7 +517,8 @@ describe('home calculator card: the core-information gate', () => {
   it('shows nothing, not even its height, while the gate holds the card back', async () => {
     const card = mount({ saoi_home_calculator: recorded.homeCalculatorSecondHand })
     card.emit('ui/notifications/tool-input', { arguments: { targetDate: '2028-06' } })
-    expect(card.doc.querySelector('.head-row')).toBeNull()
+    // Drawn from the arguments first (every host sends those); the gated result then hides it.
+    expect(card.doc.body.hidden).toBe(false)
     card.emit('ui/notifications/tool-result', {
       structuredContent: { gate, statement: 'Saoi is not regulated.' },
     })

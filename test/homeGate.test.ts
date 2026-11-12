@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { HomeCalculatorResult } from '../src/saoiClient.js'
-import { SERVER_INSTRUCTIONS } from '../src/tools.js'
+import { saoiPrompt, SERVER_INSTRUCTIONS } from '../src/tools.js'
 import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
 import { mockSaoi, modernPost, recorded, rpc, run, type Running } from './helpers.js'
 
@@ -198,7 +198,7 @@ describe('golden check: the core-information gate in saoi_home_calculator', () =
 })
 
 describe('the card is the end of the conversation in the host', () => {
-  it('says so in the instructions, the tool description and the card’s context', async () => {
+  it('says so in the instructions, the tool description, the prompt and the card’s context', async () => {
     const listed = (await rpc(await modernPost(srv.url, 'tools/list'))) as Rpc
     const tool = (listed.result?.['tools'] as { name: string; description: string }[]).find(
       (t) => t.name === 'saoi_home_calculator',
@@ -211,6 +211,7 @@ describe('the card is the end of the conversation in the host', () => {
     for (const [where, words] of [
       ['instructions', SERVER_INSTRUCTIONS],
       ['description', tool?.description ?? ''],
+      ['prompt', saoiPrompt(undefined)],
       ['context', context],
     ] as const) {
       const flat = words.replace(/\s+/g, ' ')

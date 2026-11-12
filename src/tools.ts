@@ -107,7 +107,9 @@ export const SERVER_INSTRUCTIONS = [
   '  reminders.',
   '- saoi_save_plan is only for a plan that came back without a link.',
   '',
-  'The money-check-up prompt is optional; it walks the same path: saoi_money_check first, saoi_build_plan after.',
+  'The prompts are optional. money-check-up walks the same path: saoi_money_check first, saoi_build_plan after.',
+  'saoi (shown as /saoi in Claude) starts the home conversation: saoi_home_calculator with what was said, then the',
+  'gate questions until the card.',
 ].join('\n')
 
 const READ_ONLY: ToolAnnotations = {
@@ -518,7 +520,53 @@ export function moneyCheckUp(focus: string | undefined): string {
   ].join('\n')
 }
 
+export const saoiArgs = z.object({
+  said: z
+    .string()
+    .trim()
+    .max(1000)
+    .optional()
+    .describe(
+      'Optional: what the customer has said so far about buying a home, in their words, e.g. "we have €30k saved and put away €1,200 a month".',
+    ),
+})
+
+/**
+ * The `saoi` prompt (`/saoi` in Claude): stage 1 of the first-home journey. What the customer said
+ * goes to saoi_home_calculator; until the core figures are in, the reply is its one or two
+ * questions and nothing else; the card, once shown, is the end of the conversation here.
+ */
+export function saoiPrompt(said: string | undefined): string {
+  return [
+    'I am thinking about buying a home in Ireland. Use Saoi for it.',
+    '',
+    '1. Call saoi_home_calculator with everything I have said, and on every later call pass all of it again with my new answers.',
+    '2. Until the core figures are in, it returns one or two questions instead of the card. Ask me those, in plain words,',
+    '   and nothing else: no figures, no estimates, no list of other questions.',
+    '3. Once the card is shown, it is the end here. For anything more about it, point me at its button, "Compare all product',
+    '   options and supports", which opens Saoi. Call saoi_home_calculator again only when I change a figure.',
+    '',
+    'Throughout: quote the tools’ figures and never work them out yourself. Never pick a product, lender or route for me',
+    'and never say "you should": I decide.',
+    ...(said === undefined || said === ''
+      ? ['', 'I have not given any figures yet.']
+      : ['', `What I have said so far: ${said}`]),
+  ].join('\n')
+}
+
 export function registerPrompts(server: McpServer): void {
+  server.registerPrompt(
+    'saoi',
+    {
+      title: 'Saoi',
+      description:
+        'Buying a home: Saoi asks for the few figures it needs, one or two questions at a time, then shows the card with what the limits allow, the money needed at the keys and the month it is saved.',
+      argsSchema: saoiArgs,
+    },
+    ({ said }) => ({
+      messages: [{ role: 'user' as const, content: { type: 'text' as const, text: saoiPrompt(said) } }],
+    }),
+  )
   server.registerPrompt(
     'money-check-up',
     {

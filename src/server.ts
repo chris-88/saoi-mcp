@@ -31,7 +31,7 @@ export function createSaoiServer(
 ): McpServer {
   const server = new McpServer(serverInfo(publicUrl), { instructions: SERVER_INSTRUCTIONS })
   registerTools(server, saoi, ip)
-  registerResources(server, saoi, ip)
+  registerResources(server, saoi, publicUrl, ip)
   registerPrompts(server)
   return server
 }

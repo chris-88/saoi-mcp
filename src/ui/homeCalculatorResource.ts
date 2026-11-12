@@ -3,7 +3,7 @@ import { createBridge } from './bridge.js'
 import { homeCalculatorApp } from './homeCalculatorApp.js'
 import { homeCalculatorModel } from './homeCalculatorModel.js'
 import { cardIcons } from './icons.js'
-import { MCP_APP_MIME_TYPE, PLAN_CARD_RESOURCE_META, STYLE } from './planCardResource.js'
+import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.js'
 
 /**
  * The home calculator card (decision 2026-11-10: Saoi compares; the customer sets the filters):
@@ -152,9 +152,10 @@ export function homeCalculatorHtml(): string {
 
 let html: string | undefined
 
-export function registerHomeCalculatorCard(server: McpServer): void {
+export function registerHomeCalculatorCard(server: McpServer, publicUrl: string): void {
   html ??= homeCalculatorHtml()
   const text = html
+  const meta = cardResourceMeta(publicUrl)
   server.registerResource(
     'saoi-home-calculator',
     HOME_CALCULATOR_URI,
@@ -163,10 +164,10 @@ export function registerHomeCalculatorCard(server: McpServer): void {
       description:
         'The interactive calculator hosts show with saoi_home_calculator: the customer’s figures, the month the money for the keys is ready, progress, routes to a home as facts, and Open in Saoi, which compares every option that fits in the app.',
       mimeType: MCP_APP_MIME_TYPE,
-      _meta: PLAN_CARD_RESOURCE_META,
+      _meta: meta,
     },
     (uri) => ({
-      contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: PLAN_CARD_RESOURCE_META }],
+      contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }],
     }),
   )
 }

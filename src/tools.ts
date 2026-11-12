@@ -434,9 +434,10 @@ export const ABOUT_RESOURCES = {
   earnings: { uri: 'saoi://about/earnings', name: 'how-saoi-earns', title: 'How Saoi earns' },
 } as const
 
-export function registerResources(server: McpServer, saoi: SaoiApi, ip?: string): void {
-  registerPlanCard(server)
-  registerHomeCalculatorCard(server)
+/** `publicUrl` is the exact connector URL; Claude's card sandbox origin is derived from it. */
+export function registerResources(server: McpServer, saoi: SaoiApi, publicUrl: string, ip?: string): void {
+  registerPlanCard(server, publicUrl)
+  registerHomeCalculatorCard(server, publicUrl)
   for (const [topic, resource] of Object.entries(ABOUT_RESOURCES) as [
     keyof typeof ABOUT_RESOURCES,
     (typeof ABOUT_RESOURCES)[keyof typeof ABOUT_RESOURCES],

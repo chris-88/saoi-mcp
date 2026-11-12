@@ -222,8 +222,10 @@ export function registerPlanCard(server: McpServer): void {
       mimeType: MCP_APP_MIME_TYPE,
       _meta: meta,
     },
-    (uri) => ({
-      contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }],
-    }),
+    (uri) => {
+      // Which card a host fetches, and when: no customer data (2026-11-12, the ChatGPT blank frame).
+      console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
+      return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }
+    },
   )
 }

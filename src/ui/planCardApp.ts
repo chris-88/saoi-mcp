@@ -96,7 +96,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
             content: [
               {
                 type: 'text',
-                text: `The customer saved this comparison to the Saoi app from the card. Their one-time link (valid seven days): ${claim}. Do not call saoi_save_plan again for this plan.`,
+                text: `The customer saved this comparison to the Saoi app from the card. Their single-use link: ${claim}. It is held for 24 hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens into. Do not call saoi_save_plan again for this plan.`,
               },
             ],
           })

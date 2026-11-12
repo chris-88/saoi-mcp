@@ -433,11 +433,12 @@ describe('home calculator card v8: Open in Saoi and the footer', () => {
     expect(card.opened).toEqual([recorded.planHome.saveLink?.url, recorded.planHome.saveLink?.url])
   })
 
-  it('says so when the options cannot be fetched from the card', async () => {
+  it('says so when the options cannot be fetched from the card, without inviting a follow-up in the chat', async () => {
     const card = open(recorded.homeCalculatorSecondHand)
     openButton(card).click()
     await card.settle()
-    expect(card.text('.status').join(' ')).toMatch(/could not be fetched from the card/)
+    expect(card.text('.status').join(' ')).toMatch(/could not be fetched just now/)
+    expect(card.doc.body.textContent).not.toMatch(/\bask\b|in the chat/i)
     expect(openButton(card).disabled).toBe(false)
   })
 
@@ -497,5 +498,41 @@ describe('home calculator card v8: Open in Saoi and the footer', () => {
       expect(footDetail(card).hidden).toBe(false)
       expect(card.doc.querySelector('#card')?.textContent).not.toMatch(PICK)
     }
+  })
+})
+
+describe('home calculator card: the core-information gate', () => {
+  const gate = {
+    ready: false,
+    missing: [
+      {
+        key: 'annualGrossIncomeEur',
+        question: 'What is your gross income a year?',
+        moves: 'It sets how much the limits allow.',
+        askNow: true,
+      },
+    ],
+  }
+
+  it('shows nothing, not even its height, while the gate holds the card back', async () => {
+    const card = mount({ saoi_home_calculator: recorded.homeCalculatorSecondHand })
+    card.emit('ui/notifications/tool-input', { arguments: { targetDate: '2028-06' } })
+    expect(card.doc.querySelector('.head-row')).toBeNull()
+    card.emit('ui/notifications/tool-result', {
+      structuredContent: { gate, statement: 'Saoi is not regulated.' },
+    })
+    card.emit('ui/notifications/tool-cancelled', {})
+    await card.settle()
+    expect(card.doc.body.hidden).toBe(true)
+    expect(card.doc.getElementById('card')?.childElementCount).toBe(0)
+    expect(card.doc.getElementById('card')?.hasAttribute('aria-busy')).toBe(false)
+    expect(card.calls).toHaveLength(0)
+  })
+
+  it('draws as before once the gate is open', () => {
+    const result = { ...recorded.homeCalculatorSecondHand, gate: { ready: true, missing: [] } }
+    const card = open(result)
+    expect(card.doc.body.hidden).toBe(false)
+    expect(card.doc.querySelector('.hero-month')).not.toBeNull()
   })
 })

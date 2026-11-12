@@ -9938,6 +9938,8 @@ export interface components {
                 annualGrossIncomeEur?: number;
                 /** @description A second applicant’s gross income a year, for a joint mortgage. */
                 secondIncomeEur?: number;
+                /** @description True when the customer is buying with someone: their gross income (`secondIncomeEur`) is then one of the core inputs the gate waits for. */
+                buyingTogether?: boolean;
                 /** @description The price in mind for the home. */
                 targetPriceEur?: number;
                 /** @description Existing loan and card repayments a month (not rent). */
@@ -10118,6 +10120,22 @@ export interface components {
                 /** @description True when the answer changes no figure (rent): ask it at most once, as a chip. */
                 optional: boolean;
             }[];
+            /** @description Whether the core inputs are in (funds saved, monthly saving, income, a second income when buying together, and a price or a date). Until they are, `presentation` holds only the questions to ask now and no figure. */
+            gate: {
+                /** @description True when every core input is in: the card and the figures can be shown. */
+                ready: boolean;
+                /** @description The core inputs still missing, most useful first, each as a plain question with what it moves. */
+                missing: {
+                    /** @enum {string} */
+                    key: "depositSavedEur" | "monthlySavingEur" | "annualGrossIncomeEur" | "secondIncomeEur" | "targetPriceEur" | "targetDate";
+                    /** @description The question, in plain words. */
+                    question: string;
+                    /** @description One short sentence saying what the answer moves. */
+                    moves: string;
+                    /** @description True for the one or two to ask in the next reply; the rest come after. */
+                    askNow: boolean;
+                }[];
+            };
             /** @description How to see the options: the card’s "Show my options" button, or saoi_build_plan with these inputs. */
             next: string;
             /** @description Present to the customer, in this order: the headline figures, then three route lines and "More routes: N", then what is assumed and still to know. No route is picked. */
@@ -10137,6 +10155,8 @@ export interface components {
             annualGrossIncomeEur?: number;
             /** @description A second applicant’s gross income a year, for a joint mortgage. */
             secondIncomeEur?: number;
+            /** @description True when the customer is buying with someone: their gross income (`secondIncomeEur`) is then one of the core inputs the gate waits for. */
+            buyingTogether?: boolean;
             /** @description The price in mind for the home. */
             targetPriceEur?: number;
             /** @description Existing loan and card repayments a month (not rent). */

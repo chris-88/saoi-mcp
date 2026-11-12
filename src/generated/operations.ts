@@ -1714,6 +1714,10 @@ export const OPERATIONS = {
           "maximum": 100000000,
           "description": "A second applicant’s gross income a year, for a joint mortgage."
         },
+        "buyingTogether": {
+          "type": "boolean",
+          "description": "True when the customer is buying with someone: their gross income (`secondIncomeEur`) is then one of the core inputs the gate waits for."
+        },
         "targetPriceEur": {
           "type": "number",
           "minimum": 0,

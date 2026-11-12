@@ -69,6 +69,10 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   /** The comparison in flight, and the inputs it is for: a second ask for them waits on it. */
   let inFlight: { key: string; run: Promise<boolean> } | null = null
   let footerOpen = false
+  /** True once the gate held the card back: nothing is drawn for this result. */
+  let closed = false
+  /** The host's arguments from tool-input, kept until the result says whether to draw. */
+  let hostArgs: Record<string, unknown> | null = null
   const ROUTE_ICONS: Record<HomeRoute['id'], IconName> = {
     second_hand: 'house',
     new_build_help_to_buy: 'house-plus',
@@ -825,7 +829,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
             draw()
             return
           }
-          status.textContent = 'The options could not be fetched from the card. Ask in the chat instead.'
+          status.textContent = 'The options could not be fetched just now.'
           go.disabled = false
         })()
       },
@@ -893,7 +897,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (!compared()) {
       say('Comparing every option that fits…')
       if (!(await compare())) {
-        finish('The options could not be fetched from the card. Ask in the chat instead.')
+        finish('The options could not be fetched just now.')
         return
       }
     }
@@ -906,12 +910,12 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       url = typeof claim === 'string' && claim.startsWith('https://') ? claim : null
     }
     if (url === null) {
-      finish('It could not be saved from the card. Ask in the chat to save it.')
+      finish('It could not be saved just now.')
       return
     }
     const opened = await bridge.openLink(url)
     if (opened) finish('Opens in the Saoi app; the link works once.')
-    else finish('Open it in the Saoi app (the link works once):', url)
+    else finish('The link into the Saoi app (it works once):', url)
   }
 
   /** A control that opens Saoi, registered so a run disables every one of them. */
@@ -1037,14 +1041,34 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     editing = !model.startsFolded(args)
   }
 
+  /**
+   * The core-information gate held the card back (`gate.ready` false): the reply in the chat is
+   * one or two questions, so the card shows nothing at all, not even its frame's height.
+   */
+  const close = (): void => {
+    closed = true
+    root.replaceChildren()
+    root.removeAttribute('aria-busy')
+    doc.body.hidden = true
+  }
+
   bridge.on('ui/notifications/tool-input', (params) => {
-    if (drawn && rules !== null) return
-    take(bridge.record(params?.['arguments']))
+    if (closed || (drawn && rules !== null)) return
+    const args = bridge.record(params?.['arguments'])
+    hostArgs = args
+    // Without the core figures the gate may hold the card back: wait for the result to say.
+    if (!model.startsFolded(args)) return
+    take(args)
     draw()
   })
   bridge.on('ui/notifications/tool-result', (params) => {
+    if (closed) return
     const content = bridge.record(params?.['structuredContent'])
-    if (!drawn) take(bridge.record(content?.['inputs']))
+    if (bridge.record(content?.['gate'])?.['ready'] === false) {
+      close()
+      return
+    }
+    if (!drawn) take(hostArgs ?? bridge.record(content?.['inputs']))
     // The host's result, unless the card has already asked for newer routes itself.
     if (routesRun === 0) takeRoutes({ structuredContent: content })
     else {
@@ -1055,7 +1079,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     else refresh()
   })
   bridge.on('ui/notifications/tool-cancelled', () => {
-    if (!drawn) draw()
+    if (!drawn && !closed) draw()
   })
   void bridge.start('saoi-home-calculator')
 }

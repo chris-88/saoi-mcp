@@ -492,6 +492,44 @@ function renderRoutes(routes: readonly HomeRoute[] | undefined): string[] {
   ]
 }
 
+type HomeGate = HomeCalculatorResult['gate']
+
+/**
+ * The core-information gate (spec "The first thought"): funds saved, monthly saving, income (a
+ * second income when buying together) and a price or a date. Null when saoi-api sent no gate
+ * (before it carried one): the result is then shown as it always was.
+ */
+export function homeGate(result: HomeCalculatorResult): HomeGate | null {
+  const gate = (result as Partial<Pick<HomeCalculatorResult, 'gate'>>).gate
+  return gate ?? null
+}
+
+/**
+ * While the gate is closed: the one or two questions for this reply, each with what it moves, and
+ * nothing else. No figure, tile, assumption or link reaches the text, so none can be quoted.
+ */
+export function renderHomeGate(gate: HomeGate): string {
+  const flagged = gate.missing.filter((item) => item.askNow)
+  const now = (flagged.length > 0 ? flagged : gate.missing).slice(0, 2)
+  const later = gate.missing.filter((item) => !now.includes(item))
+  return [
+    'Present to the customer (these questions are the whole reply; no figure until the card):',
+    ...now.map((item) => `- ${item.question} ${item.moves}`),
+    '',
+    'Detail:',
+    'The card, with every figure, opens once the core figures are in. Ask only the questions above, in plain words.',
+    ...(later.length === 0
+      ? []
+      : [`Still to ask after these, one or two at a time: ${later.map((item) => item.question).join(' ')}`]),
+    'On the next call to saoi_home_calculator, pass everything the customer has said so far, these answers included.',
+  ].join('\n')
+}
+
+/** What the result carries while the gate is closed: the gate and the statement, no figure. */
+export function gatedHomeContent(result: HomeCalculatorResult, gate: HomeGate): Record<string, unknown> {
+  return { gate, statement: result.statement }
+}
+
 /** The home calculator: the figures that move with the inputs, and what is still to ask. */
 export function renderHomeCalculator(result: HomeCalculatorResult): string {
   const f = result.figures

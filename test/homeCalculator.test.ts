@@ -78,10 +78,14 @@ describe('home calculator model', () => {
     expect(inputs.targetDate).toBe('2028-11')
   })
 
-  it('tells the model what was entered and not to pick an option', () => {
+  it('tells the model what was entered, not to pick an option, and that the card ends it here', () => {
     const text = model.contextText(model.defaults('2026-11'), 'keys_date', 49)
     expect(text).toMatch(/49 options sorted by keys date/)
-    expect(text).toMatch(/do not pick one for the customer/)
+    expect(text).toMatch(/Never pick one for the customer/)
+    expect(text).toMatch(/the end of the conversation in this chat/)
+    expect(text).toMatch(/"Compare all product options and supports"/)
+    expect(text).toMatch(/again only when the customer changes a figure/)
+    expect(text).not.toMatch(/Talk them through|later saoi_build_plan/)
   })
 })
 
@@ -203,6 +207,14 @@ describe('round 4: routes, the conditional Help to Buy and rent', () => {
     expect(model.startsFolded(secondHand.inputs)).toBe(true)
     expect(model.startsFolded({ depositSavedEur: 30_000, targetPriceEur: 400_000 })).toBe(false)
     expect(model.startsFolded(null)).toBe(false)
+    const four = {
+      depositSavedEur: 30_000,
+      monthlySavingEur: 1_000,
+      annualGrossIncomeEur: 60_000,
+      targetPriceEur: 400_000,
+    }
+    expect(model.startsFolded({ ...four, buyingTogether: true })).toBe(false)
+    expect(model.startsFolded({ ...four, buyingTogether: true, secondIncomeEur: 40_000 })).toBe(true)
   })
 
   it('asks only for rent on the folded card; first-time buyer stays assumed', () => {

@@ -5,8 +5,11 @@ import { OPERATIONS } from './generated/operations.js'
 import {
   renderAbout,
   renderDebt,
+  gatedHomeContent,
+  homeGate,
   renderFirstHome,
   renderHomeCalculator,
+  renderHomeGate,
   renderMoneyCheck,
   renderMortgage,
   renderPlan,
@@ -36,13 +39,21 @@ export const SERVER_INSTRUCTIONS = [
   '  current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching,',
   '  Help to Buy, where to put savings, whether they are paying too much. Pass whatever they have said, however',
   '  partial; it returns what Saoi finds, a plan or the questions that unlock one, and a link to save the plan.',
-  '- saoi_home_calculator: the customer asks about buying a home. Pass whatever they have already said (deposit,',
-  '  monthly saving, income and a second income, price, debts, date, their bank and whether to stay with it, fixed',
-  '  or variable, first-time buyer, new build). Hosts that show cards open the calculator, where the customer moves',
-  '  the sliders and taps "Show my options". Elsewhere, ask its questions in plain words, one or two at a time,',
-  '  then call saoi_build_plan with a house_deposit goal, `homePrice`, `propertyKind` and `homePreferences` (their',
-  '  own filters and the sort order they pick). Results list every route to a home as facts, schemes included, and',
+  '- saoi_home_calculator: the customer asks about buying a home. On every call, pass everything they have said',
+  '  so far in the conversation (deposit, monthly saving, income, `buyingTogether` and the second income, price,',
+  '  date, debts, their bank and whether to stay with it, fixed or variable, first-time buyer, new build).',
+  '  The card waits for four core figures: funds saved, monthly saving, income (both incomes when buying',
+  '  together), and a price or a date. Until they are in, the result is one or two questions and nothing else:',
+  '  ask those in plain words, with no figures, and call again with everything said once they answer.',
+  '  Once they are in, hosts that show cards show the card. In a host without cards the figures come as text;',
+  '  saoi_build_plan with a house_deposit goal, `homePrice`, `propertyKind` and `homePreferences` (their own',
+  '  filters and the sort order they pick) then returns the link into Saoi, which plays the part of the button.',
+  '  Results list every route to a home as facts, schemes included, and',
   '  the customer chooses between them: relay the route lines as given, in their order, and never call one the best.',
+  '- The home card is the end of the conversation in this chat. After it, every follow-up ("tell me more", "what',
+  '  about the other supports", "which mortgage") is answered by pointing at the card\'s button, "Compare all',
+  '  product options and supports", which opens Saoi with everything behind the tiles: not by another tool call',
+  '  and not by a narrative. Call saoi_home_calculator again only when the customer changes a figure.',
   '- saoi_first_home: a question about Help to Buy, the Central Bank lending limits or a deposit for a first home.',
   '- The other tools answer a follow-up on one part: one category ranked, one product, a projection, a mortgage,',
   '  debts.',
@@ -58,7 +69,8 @@ export const SERVER_INSTRUCTIONS = [
   'How to present results:',
   "- Ask one question per reply: the result's `nextQuestion` (its last presentation line), the one whose answer",
   '  would change the plan most. Never ask a list of questions, and never ask before the first plan: the first',
-  '  call already returns a plan on stated assumptions.',
+  "  call already returns a plan on stated assumptions. The home card's gate is the one exception: its one or",
+  '  two questions come before the card.',
   '- Every result starts with "Present to the customer". Relay that block first, in its own words and order: it',
   '  holds the money found, one net figure per scenario (savings less what is still owed), and for a plan the',
   '  link that opens it in the Saoi app. The detail below it is for questions.',
@@ -182,6 +194,12 @@ export function toolCallLine(entry: {
   return JSON.stringify({ event: 'tool_call', ...entry })
 }
 
+/** True when the home calculator's gate held the card back: the result carries `gate.ready` false. */
+function gateClosed(result: CallToolResult): boolean {
+  const gate = (result.structuredContent as { gate?: { ready?: unknown } } | undefined)?.gate
+  return gate?.ready === false
+}
+
 async function guarded(tool: string, work: () => Promise<CallToolResult>): Promise<CallToolResult> {
   const started = performance.now()
   const result = await attempt(work)
@@ -191,7 +209,7 @@ async function guarded(tool: string, work: () => Promise<CallToolResult>): Promi
       tool,
       ms: Math.round(performance.now() - started),
       outcome,
-      ui: outcome === 'ok' && CARD_TOOLS.has(tool),
+      ui: outcome === 'ok' && CARD_TOOLS.has(tool) && !gateClosed(result),
     }),
   )
   return result
@@ -365,7 +383,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Home calculator: buying a home',
       description: describe(
         'saoi_home_calculator',
-        'Use this when the customer asks about buying a home; pass whatever they have already said (all optional). Hosts that show cards open an interactive calculator prefilled with it: sliders for deposit, monthly saving, income (single or joint), price, debts and date, the customer’s preferences, live figures as they move, and "Show my options", which compares every eligible option. Elsewhere, ask the questions it returns in plain words, then call saoi_build_plan with a house_deposit goal and `homePreferences`. Do not use it for a single question on Help to Buy or the lending limits (saoi_first_home) or for an existing mortgage (saoi_mortgage). It never picks a product. Nothing the customer sends is stored; each run is counted anonymously in bands, with no figures and no identifiers.',
+        'Use this when the customer asks about buying a home. On every call, pass everything they have said so far in the conversation (all optional; `buyingTogether` when they buy with someone), so the call after they answer a question passes the gate. The card waits for four core figures: funds saved, monthly saving, income (both incomes when buying together), and a price or a date. Until they are in, it returns only the one or two questions for the next reply, each with what it moves, and no card: ask those in plain words and nothing else, with no figures. Once they are in, hosts that show cards show the calculator prefilled with it: the month the money for the keys is ready, three tiles, the other supports, and one button, "Compare all product options and supports", which opens Saoi. The card is the end of the conversation in this chat: a follow-up about it ("tell me more", "what about the other supports", "which mortgage") is answered by pointing at that button, not by another tool call or a narrative; call again only when the customer changes a figure. In a host without cards the same figures come as text, and saoi_build_plan with a house_deposit goal and `homePreferences` returns the link into Saoi. Do not use it for a single question on Help to Buy or the lending limits (saoi_first_home), for an existing mortgage (saoi_mortgage), or to answer a follow-up once the card is shown. It never picks a product. Nothing the customer sends is stored; each run is counted anonymously in bands, with no figures and no identifiers.',
       ),
       inputSchema: input('saoi_home_calculator'),
       annotations: READ_ONLY,
@@ -374,6 +392,9 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
     (args) =>
       guarded('saoi_home_calculator', async () => {
         const result = await saoi.homeCalculator(args, ip)
+        const gate = homeGate(result)
+        // The gate closed: the questions only, and no figure for the text or the card to show.
+        if (gate !== null && !gate.ready) return ok(renderHomeGate(gate), gatedHomeContent(result, gate))
         return ok(renderHomeCalculator(result), result)
       }),
   )

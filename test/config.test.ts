@@ -14,6 +14,15 @@ describe('loadConfig', () => {
     expect(() => loadConfig({ PUBLIC_URL: 'mcp.saoi.ie' })).toThrow(/PUBLIC_URL/)
   })
 
+  it('allows Claude’s and ChatGPT’s web origins by default, as exact host names', () => {
+    const { allowedOrigins } = loadConfig({})
+    expect(allowedOrigins).toEqual(
+      expect.arrayContaining(['claude.ai', 'claude.com', 'chatgpt.com', 'chat.openai.com']),
+    )
+    // The card sandboxes call no server directly (connectDomains is empty), so none is listed.
+    expect(allowedOrigins.some((origin) => /claudemcpcontent|oaiusercontent|\*/.test(origin))).toBe(false)
+  })
+
   it('reads the OpenAI challenge token, unset when empty', () => {
     expect(loadConfig({}).openaiAppsChallenge).toBeUndefined()
     expect(loadConfig({ OPENAI_APPS_CHALLENGE: '  ' }).openaiAppsChallenge).toBeUndefined()

@@ -233,18 +233,126 @@ describe('round 4: routes, the conditional Help to Buy and rent', () => {
       maxPriceEur: 388_000,
       termYears: 35,
     }
-    expect(model.tiles(300_000, one, secondHand.rules.otherBuyer)).toEqual([
-      { label: 'Savings', value: 'up to 3.11%', lines: ['€736 interest by Jun 2028', '1 account'] },
-      { label: 'Mortgage', value: '€300,000', lines: ['from 3.20%, €1,557/mo', '1 option, 30 years'] },
-      { label: 'Could afford', value: 'up to €388,000', lines: ['3.5× income, 90% loan', '35 years'] },
+    const context = {
+      loanEur: 300_000,
+      readyOn: '2028-06',
+      limits: secondHand.rules.otherBuyer,
+      firstTimeBuyer: false,
+      depositForMaxPriceEur: 38_800,
+    }
+    // The interest runs to the month shown as ready to buy: it goes on the face.
+    expect(model.tiles(one, context)).toEqual([
+      {
+        label: 'Savings',
+        qualifier: 'up to',
+        value: '3.11%',
+        sub: ['€736 interest', 'by Jun 2028'],
+        quiet: ['1 account'],
+        detail: ['The interest runs to June 2028, the month shown as ready to buy.', savings.basis],
+      },
+      {
+        label: 'Mortgage',
+        qualifier: 'from',
+        value: '€1,557/mo',
+        sub: ['€360,000 loan', 'from 3.20%'],
+        quiet: ['1 option'],
+        detail: [
+          '€1,557 to €2,147 a month over 30 years, at each option’s initial rate.',
+          mortgage.basis,
+          'Lenders decide what they lend and at what rate.',
+        ],
+      },
+      {
+        label: 'Could afford',
+        qualifier: 'up to',
+        value: '€388,000',
+        sub: ['3.5× income', '90% loan'],
+        quiet: [],
+        detail: [
+          'The Central Bank limits for a buyer who has owned a home: 3.5 × income, and a loan of up to 90% of the price.',
+          'That price needs a €38,800 deposit.',
+        ],
+      },
     ])
+    expect(model.tiles({ market: null, maxPriceEur: null, termYears: null }, context)).toEqual([
+      { label: 'Savings', qualifier: null, value: 'In Saoi', sub: [], quiet: ['See in Saoi'], detail: [] },
+      {
+        label: 'Mortgage',
+        qualifier: null,
+        value: '€300,000',
+        sub: ['loan'],
+        quiet: ['See in Saoi'],
+        detail: [],
+      },
+      {
+        label: 'Could afford',
+        qualifier: null,
+        value: 'In Saoi',
+        sub: [],
+        quiet: ['See in Saoi'],
+        detail: [],
+      },
+    ])
+  })
+
+  it('keeps the savings interest off the face when it runs to another month than the one shown', () => {
+    const savings = secondHand.market?.savings ?? null
+    if (savings === null) throw new Error('recording has no savings market')
+    const context = {
+      loanEur: 360_000,
+      readyOn: '2028-04',
+      limits: secondHand.rules.firstTimeBuyer,
+      firstTimeBuyer: true,
+      depositForMaxPriceEur: null,
+    }
+    const [tile] = model.tiles({ market: secondHand.market, maxPriceEur: null, termYears: null }, context)
+    expect(tile?.sub).toEqual([])
+    expect(tile?.detail[0]).toBe(
+      '€736 interest by June 2028: worked out to that month, not to April 2028, the month shown as ready to buy.',
+    )
+    const never = model.tiles(
+      { market: secondHand.market, maxPriceEur: null, termYears: null },
+      {
+        ...context,
+        readyOn: null,
+      },
+    )
+    expect(never[0]?.detail[0]).toBe('€736 interest by June 2028: worked out to that month.')
     expect(
-      model.tiles(300_000, { market: null, maxPriceEur: null, termYears: null }, secondHand.rules.otherBuyer),
-    ).toEqual([
-      { label: 'Savings', value: 'In Saoi', lines: ['See in Saoi'] },
-      { label: 'Mortgage', value: '€300,000', lines: ['See in Saoi'] },
-      { label: 'Could afford', value: 'In Saoi', lines: ['See in Saoi'] },
-    ])
+      JSON.stringify(
+        model.tiles({ market: secondHand.market, maxPriceEur: 444_000, termYears: 30 }, context),
+      ),
+    ).not.toContain(savings.topRateProvider)
+  })
+
+  it('keeps every secondary line short enough for one line in a third of a phone (14 characters)', () => {
+    for (const live of [secondHand, newBuild]) {
+      const savings = live.market?.savings ?? null
+      if (live.market === null || savings === null) throw new Error('recording has no market')
+      // At the keys month, so the interest lines are on the face too.
+      const market = { ...live.market, savings: { ...savings, by: '2028-04' } }
+      const specs = model.tiles(
+        { market, maxPriceEur: live.figures.maxPriceEur, termYears: null },
+        {
+          loanEur: 360_000,
+          readyOn: '2028-04',
+          limits: live.rules.firstTimeBuyer,
+          firstTimeBuyer: true,
+          depositForMaxPriceEur: 44_400,
+        },
+      )
+      const subs = specs.flatMap((tile) => tile.sub)
+      expect(subs).toHaveLength(6)
+      for (const line of subs) expect(line.length).toBeLessThanOrEqual(14)
+    }
+  })
+
+  it('reads the month the tiles hold the interest to exactly as the headline does', () => {
+    const inputs = model.fromArguments(secondHand.inputs, '2026-11')
+    const figures = model.figures(inputs, secondHand.rules, '2026-11')
+    expect(model.readyOn(figures)).toBe('2028-04')
+    expect(model.readyOn(figures, '2028-03')).toBe('2028-03')
+    expect(model.readyOn(figures, null)).toBeNull()
   })
 
   it('takes Help to Buy off the fact line only when it is counted', () => {

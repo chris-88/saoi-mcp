@@ -14,21 +14,24 @@ import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.j
  * customer's filters under Edit; "Open in Saoi" (and "See all N supports in Saoi"), which compares,
  * saves and opens it in the app; the assumptions, warnings and statement folded behind one
  * footer line. No tool is called until the customer asks. v9 (2026-11-12): while the
- * core-information gate is closed (`gate.ready` false) the card draws nothing at all.
+ * core-information gate is closed (`gate.ready` false) the card draws nothing at all. v11
+ * (2026-11-12): the tiles in saoi-api's tile shape, the qualifier above the value, the mortgage
+ * headed by its monthly repayment, and each tile opening to its detail.
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong, and
  * keep every earlier address served (`HOME_CALCULATOR_PREVIOUS_URIS`): ChatGPT keeps a connector's
  * tool list until the customer refreshes it, and asked for v8 all afternoon on 2026-11-12.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v10.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v11.html'
 /**
  * Earlier addresses of the same card, still served (2026-11-12): a host that cached the tool
- * list when the card was v8 or v9 (ChatGPT keeps a connector's list until it is refreshed) asks
+ * list when the card was v8, v9 or v10 (ChatGPT keeps a connector's list until it is refreshed) asks
  * for those and would otherwise get nothing. Each read is logged, so the log says which.
  */
 export const HOME_CALCULATOR_PREVIOUS_URIS = [
   'ui://saoi/home-calculator-v8.html',
   'ui://saoi/home-calculator-v9.html',
+  'ui://saoi/home-calculator-v10.html',
 ] as const
 
 export const HOME_CALCULATOR_TOOL_META = {
@@ -97,15 +100,47 @@ select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto;
 .meter { display: grid; gap: 4px; }
 .bar { height: 6px; border-radius: 999px; background: var(--muted); overflow: hidden; }
 .bar > span { display: block; height: 100%; background: var(--primary); border-radius: 999px; }
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.tile {
-  border: 1px solid var(--border); border-radius: var(--radius); padding: 8px; min-width: 0;
-  display: grid; gap: 2px; align-content: start;
+/*
+ * The tiles (2026-11-12): every row at a fixed height down to the value, so the three values start
+ * level whether or not a tile has a qualifier; "up to" sits above the value, never on its line.
+ * Secondary lines are one line each (saoi-api keeps them to about 14 characters), a step darker
+ * than the quiet ones in light and a step under the value in dark. The foot sits at the bottom:
+ * the quiet count on the left, the chevron on the right. 6px padding leaves a 100px column at
+ * 390px for "€2,147/mo" at 15px.
+ */
+.tiles {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
+  --tile-secondary: color-mix(in srgb, var(--foreground) 78%, var(--background));
 }
-.tile p { overflow-wrap: anywhere; }
-/* One step under .big (15px): "up to €444,000" stays on one line in a third of 390px. */
-.tile .tile-value { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow-wrap: normal; }
-.tile-icon { color: var(--muted-foreground); padding-bottom: 2px; }
+.tile {
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 6px; min-width: 0; margin: 0;
+  display: flex; flex-direction: column; align-items: stretch; text-align: left;
+  background: var(--background); color: var(--foreground); font: inherit;
+}
+button.tile { cursor: pointer; }
+.tile[aria-expanded='true'] { border-color: var(--foreground); }
+.tile > span { display: block; min-width: 0; overflow-wrap: anywhere; }
+.tile .tile-label {
+  display: flex; align-items: center; gap: 4px; height: 18px; overflow: hidden; white-space: nowrap;
+  font-size: 12px; font-weight: 500; color: var(--tile-secondary);
+}
+.tile-label .icon { color: var(--muted-foreground); }
+.tile .tile-qualifier { height: 14px; margin-top: 4px; font-size: 11px; line-height: 14px; color: var(--tile-secondary); white-space: nowrap; }
+.tile .tile-value {
+  font-size: 15px; font-weight: 600; line-height: 20px; letter-spacing: -0.01em; white-space: nowrap;
+  overflow-wrap: normal; margin-bottom: 2px;
+}
+.tile-sub, .tile-quiet { font-size: 12px; line-height: 1.35; }
+.tile .tile-sub { color: var(--tile-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; overflow-wrap: normal; }
+.tile-quiet { display: block; color: var(--muted-foreground); }
+.tile .tile-foot { margin-top: auto; padding-top: 2px; display: flex; align-items: flex-end; justify-content: space-between; gap: 4px; min-height: 16px; }
+.tile-quiets { min-width: 0; }
+.tile-chevron { flex: none; margin-bottom: 1px; color: var(--muted-foreground); transition: transform 0.15s; }
+.tile[aria-expanded='true'] .tile-chevron { transform: rotate(180deg); }
+.tile-detail {
+  grid-column: 1 / -1; display: grid; gap: 4px; padding: 8px 10px; border-radius: var(--radius);
+  background: var(--muted); color: var(--tile-secondary); font-size: 12px; line-height: 1.4;
+}
 .label.with-icon { display: flex; }
 .label.with-icon .icon { color: var(--muted-foreground); }
 .route-head {
@@ -130,7 +165,7 @@ select.input { width: 100%; text-align: left; padding: 0 10px; appearance: auto;
 }
 .footer { padding: 4px 16px; }
 .foot-detail { display: grid; gap: 4px; padding-bottom: 12px; }
-@media (prefers-reduced-motion: reduce) { .route-head .chevron { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .route-head .chevron, .tile-chevron { transition: none; } }
 `
 
 /** The card's document: markup, style and script all inline. */

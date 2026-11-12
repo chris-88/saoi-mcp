@@ -23,11 +23,33 @@ export interface HomeMarketFacts {
   termYears: number | null
 }
 
-/** One tile: a label, one value, and up to two small lines. */
+/**
+ * One tile, in saoi-api's tile contract (saoi `feat/tile-structure`), so the wording can later come
+ * from saoi-api as is: the label beside its icon; the qualifier ("up to", "from") in small text
+ * above the value, never on its line (null leaves the row empty, so every value starts at the same
+ * height); the value; the secondary lines under it; the quiet lines (counts and assumptions only);
+ * and the detail the tile opens to when tapped (empty: the tile does not open).
+ */
 export interface HomeTile {
   label: string
+  qualifier: string | null
   value: string
-  lines: string[]
+  sub: string[]
+  quiet: string[]
+  detail: string[]
+}
+
+/** What the tiles take from the card itself, beside saoi-api's market facts. */
+export interface HomeTileContext {
+  /** The card's loan, shown when saoi-api sent no mortgage market. */
+  loanEur: number
+  /** "YYYY-MM" the card shows as ready to buy, or null when it is not reached. */
+  readyOn: string | null
+  /** The Central Bank limits the figures use. */
+  limits: { loanToIncome: number; maxLtvPct: number }
+  firstTimeBuyer: boolean
+  /** The deposit the most the limits allow needs, on the same rules; null without that price. */
+  depositForMaxPriceEur: number | null
 }
 
 /** A fact the card can ask for with one control, from a chip. */
@@ -127,18 +149,19 @@ export interface HomeCalculatorModel {
   assumedLine(assumed: readonly string[]): string
   /** "Rent now €2,500 a month" under the progress, or null when rent was not given. */
   rentNow(rent: number | null): string | null
+  /** The month `readyHeadline` shows, as "YYYY-MM", or null when it is not reached. */
+  readyOn(figures: HomeFigures, keysOn?: string | null): string | null
   /**
-   * The three tiles, Savings, Mortgage and Could afford, worded from saoi-api's figures as they
-   * come (no figure is worked out here): the top savings rate with its interest by the date and how
-   * many accounts fit; the mortgage with the lowest rate and monthly and how many options fit; the
-   * most the Central Bank limits allow, with the limits that set it. "See in Saoi" when saoi-api
-   * sent none. No provider or lender is named.
+   * The three tiles, Savings, Mortgage and Could afford (direction 2026-11-12), worded from
+   * saoi-api's figures as they come: the top savings rate, "up to" above it, with how many accounts
+   * fit, and its interest on the face only when saoi-api worked it out to the month shown as ready
+   * to buy (otherwise the detail states the period it covers); the lowest monthly repayment, "from"
+   * above it, with the loan and the lowest rate under it and how many options fit; the most the
+   * Central Bank limits allow. Each opens to its detail: the horizon and basis; the term, the basis
+   * and that lenders decide; the limits and the deposit that price needs. "See in Saoi" when
+   * saoi-api sent none. No provider or lender is named.
    */
-  tiles(
-    loanEur: number,
-    facts: HomeMarketFacts,
-    limits: { loanToIncome: number; maxLtvPct: number },
-  ): HomeTile[]
+  tiles(facts: HomeMarketFacts, context: HomeTileContext): HomeTile[]
   /** The facts the arguments carried, by their request keys. */
   given(args: Record<string, unknown> | null): string[]
   /**
@@ -506,47 +529,75 @@ export function homeCalculatorModel(): HomeCalculatorModel {
   const pct2 = (value: number): string => `${value.toFixed(2)}%`
   const count = (n: number, one: string, many: string): string => `${String(n)} ${n === 1 ? one : many}`
 
-  const tiles = (
-    loanEur: number,
-    facts: HomeMarketFacts,
-    limits: { loanToIncome: number; maxLtvPct: number },
-  ): HomeTile[] => {
+  const tiles = (facts: HomeMarketFacts, context: HomeTileContext): HomeTile[] => {
     const savings = facts.market?.savings ?? null
     const mortgage = facts.market?.mortgage ?? null
-    const see = ['See in Saoi']
-    return [
+    const see = (label: string, value: string, sub: string[] = []): HomeTile => ({
+      label,
+      qualifier: null,
+      value,
+      sub,
+      quiet: ['See in Saoi'],
+      detail: [],
+    })
+    // The interest goes on the face only when it runs to the month shown as ready to buy: to any
+    // other month it sits beside that headline and disagrees with it (2026-11-12).
+    const atKeys = savings !== null && context.readyOn !== null && savings.by === context.readyOn
+    const savingsTile: HomeTile =
       savings === null
-        ? { label: 'Savings', value: 'In Saoi', lines: see }
+        ? see('Savings', 'In Saoi')
         : {
             label: 'Savings',
-            value: `up to ${pct2(savings.topRatePct)}`,
-            lines: [
-              `${eur(savings.interestToTargetEur)} interest by ${month(savings.by)}`,
-              count(savings.accounts, 'account', 'accounts'),
+            qualifier: 'up to',
+            value: pct2(savings.topRatePct),
+            sub: atKeys ? [`${eur(savings.interestToTargetEur)} interest`, `by ${month(savings.by)}`] : [],
+            quiet: [count(savings.accounts, 'account', 'accounts')],
+            detail: [
+              atKeys
+                ? `The interest runs to ${longMonth(savings.by)}, the month shown as ready to buy.`
+                : `${eur(savings.interestToTargetEur)} interest by ${longMonth(savings.by)}: worked out to that month${
+                    context.readyOn === null
+                      ? ''
+                      : `, not to ${longMonth(context.readyOn)}, the month shown as ready to buy`
+                  }.`,
+              savings.basis,
             ],
-          },
-      {
-        label: 'Mortgage',
-        value: eur(loanEur),
-        lines:
-          mortgage === null
-            ? see
-            : [
-                `from ${pct2(mortgage.lowestRatePct)}, ${eur(mortgage.lowestMonthlyEur)}/mo`,
-                `${count(mortgage.options, 'option', 'options')}, ${String(mortgage.termYears)} years`,
-              ],
-      },
+          }
+    const mortgageTile: HomeTile =
+      mortgage === null
+        ? see('Mortgage', eur(context.loanEur), ['loan'])
+        : {
+            label: 'Mortgage',
+            qualifier: 'from',
+            value: `${eur(mortgage.lowestMonthlyEur)}/mo`,
+            sub: [`${eur(mortgage.loanEur)} loan`, `from ${pct2(mortgage.lowestRatePct)}`],
+            quiet: [count(mortgage.options, 'option', 'options')],
+            detail: [
+              `${eur(mortgage.lowestMonthlyEur)} to ${eur(mortgage.highestMonthlyEur)} a month over ${String(mortgage.termYears)} years, at each option’s initial rate.`,
+              mortgage.basis,
+              'Lenders decide what they lend and at what rate.',
+            ],
+          }
+    const affordTile: HomeTile =
       facts.maxPriceEur === null
-        ? { label: 'Could afford', value: 'In Saoi', lines: see }
+        ? see('Could afford', 'In Saoi')
         : {
             label: 'Could afford',
-            value: `up to ${eur(facts.maxPriceEur)}`,
-            lines: [
-              `${String(limits.loanToIncome)}× income, ${String(limits.maxLtvPct)}% loan`,
-              ...(facts.termYears === null ? [] : [`${String(facts.termYears)} years`]),
+            qualifier: 'up to',
+            value: eur(facts.maxPriceEur),
+            sub: [
+              `${String(context.limits.loanToIncome)}× income`,
+              `${String(context.limits.maxLtvPct)}% loan`,
             ],
-          },
-    ]
+            quiet: [],
+            detail: [
+              `The Central Bank limits ${context.firstTimeBuyer ? 'for a first-time buyer' : 'for a buyer who has owned a home'}: ${String(context.limits.loanToIncome)} × income, and a loan of up to ${String(context.limits.maxLtvPct)}% of the price.`,
+              ...(context.depositForMaxPriceEur === null
+                ? []
+                : [`That price needs a ${eur(context.depositForMaxPriceEur)} deposit.`]),
+            ],
+          }
+    return [savingsTile, mortgageTile, affordTile]
   }
 
   const given = (args: Record<string, unknown> | null): string[] =>
@@ -641,6 +692,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     progress,
     assumedLine,
     rentNow,
+    readyOn: (figures, keysOn) => readyOf(figures, keysOn).ready,
     tiles,
     eur,
     month,

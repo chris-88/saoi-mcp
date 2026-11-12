@@ -957,6 +957,488 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cases/{caseId}/alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The case’s alerts and reminders
+         * @description Alerts newest first (a rate changed or a product was withdrawn on a claimed plan, or a date the customer gave is coming up), and the open reminders by date. Facts with a date and a source, never advice. Returning them marks them seen. Primary customer only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Alerts and reminders. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CaseAlerts"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{caseId}/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set a reminder for a date the customer gave
+         * @description A fixed rate ending, a deposit maturing, or anything else. Alerts follow 90, 60, 30 and 7 days before it and on the day. The date must be today or later (Europe/Dublin).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateReminder"];
+                };
+            };
+            responses: {
+                /** @description Set. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Reminder"];
+                    };
+                };
+                /** @description The body is not valid, or the date has passed. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{caseId}/reminders/{reminderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a reminder
+         * @description No further alerts for it. Alerts already raised stay.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                    reminderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, or no such reminder on it. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{caseId}/holdings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The case’s holdings and progress against the plan
+         * @description The accounts and debts on the case (not deleted), and progress against the claimed plan’s house-deposit or debt goal: held now against what is needed, the month at this pace and the difference from the plan’s own path, before interest. Facts, never advice. Primary customer only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Holdings and progress. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CaseHoldings"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add an account or a debt
+         * @description Noted today unless `notedOn` says otherwise. A `fixedUntil` date of today or later keeps a reminder for it (a fixed rate ending, a deposit maturing).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateHolding"];
+                };
+            };
+            responses: {
+                /** @description Added. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Holding"];
+                    };
+                };
+                /** @description The body is not valid. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{caseId}/holdings/{holdingId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete an account or a debt
+         * @description Its reminder is deleted with it.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                    holdingId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, or no such holding on it. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Change an account or a debt
+         * @description Fields left out stay as they are; null clears an optional one. A new balance is noted today unless `notedOn` is given. A changed `fixedUntil` replaces its reminder; null deletes it.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                    holdingId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateHolding"];
+                };
+            };
+            responses: {
+                /** @description Changed. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Holding"];
+                    };
+                };
+                /** @description The body is not valid. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, or no such holding on it. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
     "/api/cases/{caseId}/products/select": {
         parameters: {
             query?: never;
@@ -2633,7 +3115,7 @@ export interface paths {
         put?: never;
         /**
          * Save a plan made in the customer’s own AI, behind a one-time link
-         * @description Public: no sign-in. Called by the Saoi MCP server (`saoi_save_plan`) with the plan `saoi_build_plan` returned (`MarketPlan`, version 1). Holds it and returns a claim link into app.saoi.ie that works once, for 24 hours; unopened, it is then deleted. `saoi_build_plan` already returns such a link with every plan. The body is capped at 64 KiB; saves are rate-limited per address and capped per day.
+         * @description Public: no sign-in. Called by the Saoi MCP server (`saoi_save_plan`) with the plan `saoi_build_plan` returned (`MarketPlan`, version 1). Holds it and returns a claim link into app.saoi.ie that works once, for 24 hours; unopened, it is then deleted, and once opened it is kept with the Saoi app conversation it opened into. `saoi_build_plan` already returns such a link with every plan. The body is capped at 64 KiB; saves are rate-limited per address and capped per day.
          */
         post: {
             parameters: {
@@ -2888,7 +3370,7 @@ export interface paths {
         put?: never;
         /**
          * Search and rank Irish financial products for the customer’s own figures
-         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), its deposit guarantee, and eligibility to check. Providers that operate in Ireland only. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description Ranks the products in one category (savings, deposit, mortgage, loan, credit_card, current_account) with the figures for the amounts given: interest after DIRT for savings and deposits, monthly repayment and total cost for mortgages and loans. Default objective: highest net return for savings and deposits, lowest total cost for debt; `objective` changes it and the result states the basis. Top 5 by default (`limit` up to 25). Every product carries its source (`bank` or `ccpc`), when it was checked and last changed, the CCPC attribution where it applies, the fields the source does not give (never treated as zero), its deposit guarantee, and eligibility to check. Providers that operate in Ireland only. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored.
          */
         post: {
             parameters: {
@@ -3033,7 +3515,7 @@ export interface paths {
         };
         /**
          * How Saoi ranks, and how Saoi earns
-         * @description `ranking`: how results are ordered and every figure worked out. `earnings`: referral fees (disclosed, never used in ranking), information not advice, and the CCPC attribution. Markdown, static.
+         * @description `ranking`: how results are ordered and every figure worked out. `earnings`: Saoi is free and earns nothing from any provider, what is stored, information not advice, and the CCPC attribution. Markdown, static.
          */
         get: {
             parameters: {
@@ -3103,7 +3585,7 @@ export interface paths {
         put?: never;
         /**
          * Deterministic findings on a customer’s situation, with euro figures
-         * @description Given income, outgoings, savings (with what they earn) and debts (with rates and terms), returns findings with the figures behind each: money earning little against the best instant-access rate, no emergency fund (three months of outgoings), a debt costing more than savings earn, a fixed term ending within three months, a goal short at the current pace. Also the goals the findings suggest. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description Given income, outgoings, savings (with what they earn) and debts (with rates and terms), returns findings with the figures behind each: money earning little against the best instant-access rate, no emergency fund (three months of outgoings), a debt costing more than savings earn, a fixed term ending within three months, a goal short at the current pace. Also the goals the findings suggest. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored.
          */
         post: {
             parameters: {
@@ -3173,7 +3655,7 @@ export interface paths {
         put?: never;
         /**
          * Savings month by month, net of DIRT, within caps and tiers
-         * @description Projects named products and amounts (`lines`, product ids from search) or, with no lines, the best available split of `lumpSum` and `monthly` across the market. Month by month, after DIRT, honouring monthly caps and balance tiers. A line stops at the end of a known period (a fixed term’s maturity, an introductory rate with no stated reversion) and says so; the totals run only as far as every line is known. With `targetAmount`, reports the month the goal is reached. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description Projects named products and amounts (`lines`, product ids from search) or, with no lines, the best available split of `lumpSum` and `monthly` across the market. Month by month, after DIRT, honouring monthly caps and balance tiers. A line stops at the end of a known period (a fixed term’s maturity, an introductory rate with no stated reversion) and says so; the totals run only as far as every line is known. With `targetAmount`, reports the month the goal is reached. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored.
          */
         post: {
             parameters: {
@@ -3243,7 +3725,7 @@ export interface paths {
         put?: never;
         /**
          * Mortgage affordability under the Central Bank limits, or a switch against the market
-         * @description `mode: affordability`: the Central Bank of Ireland limits (loan to income 4 times for first-time buyers, 3.5 for second and subsequent buyers; loan to value 90%), the most the income and deposit allow, the deposit a price needs, and the matching mortgages ranked by total cost. `mode: switch`: the current mortgage against switcher rates: monthly and lifetime saving, cashback, fees as stated, and break-even on any switching costs given. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description `mode: affordability`: the Central Bank of Ireland limits (loan to income 4 times for first-time buyers, 3.5 for second and subsequent buyers; loan to value 90%), the most the income and deposit allow, the deposit a price needs, and the matching mortgages ranked by total cost. `mode: switch`: the current mortgage against switcher rates: monthly and lifetime saving, cashback, fees as stated, and break-even on any switching costs given. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored.
          */
         post: {
             parameters: {
@@ -3313,7 +3795,7 @@ export interface paths {
         put?: never;
         /**
          * What debts cost, the payoff order, overpay versus save, refinance rates
-         * @description For each debt: months to clear and interest still to pay at the current repayment. The payoff order (highest rate first). With `extraMonthly` or `lumpSum`: interest saved by overpaying the top debt against interest earned saving the same money. The market’s loans and cards for the same balance, with the saving. Nothing is arranged. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description For each debt: months to clear and interest still to pay at the current repayment. The payoff order (highest rate first). With `extraMonthly` or `lumpSum`: interest saved by overpaying the top debt against interest earned saving the same money. The market’s loans and cards for the same balance, with the saving. Nothing is arranged. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored.
          */
         post: {
             parameters: {
@@ -3383,7 +3865,7 @@ export interface paths {
         put?: never;
         /**
          * The home calculator: what the limits allow, the deposit, and when it is saved
-         * @description For a customer who raises buying a home. Takes whatever they have said, however partial (deposit saved, monthly saving, gross income and a second income, the price in mind, existing repayments, the date they would like the keys, first-time buyer, new build or second-hand, the county, rent paid a month, their bank and whether to stay with it, fixed or variable, a green home, open to switching current account) and returns the figures that move with them: what the Central Bank limits allow, the deposit and cash needed at the keys, the month that is saved at this pace, and the inputs still missing as plain questions. On a new build with tax paid not given, the headline leaves Help to Buy out (`helpToBuyConditional`). `routes` lists every route to a home (second-hand, new build with Help to Buy, the First Home Scheme, the Local Authority Home Loan, affordable purchase, the vacant property grant), each potential, needing one detail, or not applicable, with its line, conditions and dated sources: show three right after the headline, then "More routes: N", never a pick. `rules` lets a calculator card recompute the figures as sliders move. No products: the options, every eligible one filtered and sorted as the customer chooses, come from build-plan with a house_deposit goal and `homePreferences`. Each run is recorded anonymously as bands (income, months to the keys, whether the date is met, county and rent band if given, kind of home, first-time buyer): no figures, no identifiers, the day only. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description Buying a home in Ireland. Takes whatever of the customer’s figures and circumstances have been given, however partial, and returns what the Central Bank limits allow, the deposit and cash needed at the keys, the month that is saved at this pace, and the inputs still missing as plain questions. On a new build with tax paid not given, the headline leaves Help to Buy out (`helpToBuyConditional`). `routes` lists every route to a home, each potential, needing one detail, or not applicable, with dated sources; none is marked best. `rules` lets a calculator card recompute the figures as sliders move. No products: the mortgage options come from build-plan with a house_deposit goal and `homePreferences`. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Stored: one anonymous row per run with the day (no time), income band, months-to-the-keys band, whether the date is met, county and rent band when given, kind of home and first-time buyer. No figures, no identifiers, no IP address, no free text. Nothing else sent is stored.
          */
         post: {
             parameters: {
@@ -3453,7 +3935,7 @@ export interface paths {
         put?: never;
         /**
          * A first home: Help to Buy, the Central Bank limits with it, green rates, the mortgages that fit
-         * @description For a first-time buyer: Help to Buy (Revenue: new builds and self-builds up to €500,000; the lesser of 10% of the price, €35,000 and Income Tax and DIRT paid over the last four tax years; a mortgage of at least 70%; bought by 31 December 2029), what is available, not available, or depends on something not given; the Central Bank limits (loan to income 4 times, loan to value 90%, the 15% allowances, the exemptions) with Help to Buy counted towards the deposit; for a price, the deposit needed, the shortfall and whether the loan is within the income limit; green rates from the market data (no rule sets them; lenders do); every route to a home (`routes`: the First Home Scheme, the Local Authority Home Loan, affordable purchase, the vacant property grant beside second-hand and new build), three shown after the limits, never a pick; rent set beside the repayments when given (`rentVsRepayment`); and the mortgages that fit, ranked by total cost. Every rule carries its source page and the day it was read. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description For a first-time buyer: Help to Buy (Revenue: new builds and self-builds up to €500,000; the lesser of 10% of the price, €35,000 and Income Tax and DIRT paid over the last four tax years; a mortgage of at least 70%; bought by 31 December 2029), what is available, not available, or depends on something not given; the Central Bank limits (loan to income 4 times, loan to value 90%, the 15% allowances, the exemptions) with Help to Buy counted towards the deposit; for a price, the deposit needed, the shortfall and whether the loan is within the income limit; green rates from the market data (no rule sets them; lenders do); every route to a home (`routes`: the First Home Scheme, the Local Authority Home Loan, affordable purchase, the vacant property grant beside second-hand and new build), three shown after the limits, never a pick; rent set beside the repayments when given (`rentVsRepayment`); and the mortgages that fit, ranked by total cost. Every rule carries its source page and the day it was read. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored.
          */
         post: {
             parameters: {
@@ -3523,7 +4005,7 @@ export interface paths {
         put?: never;
         /**
          * Compare the options for the customer’s goals: a worked combination under the rule they chose, with runners-up, and for a home every eligible option, filtered and sorted
-         * @description Given a situation and chosen goals: an emergency buffer (`emergencyBufferEur`, `emergencyBufferMonths` of outgoings, or an emergency_fund goal) in the best instant access, kept apart; each debt as `debts[].plan` says: `compare` (default) works it out cleared and kept, with both figures, the combination worked out with the larger; `keep` keeps it, still owed; `clear` clears it from savings (a cleared debt’s repayment is saved). To model keeping a debt, send it with `plan: "keep"`: never drop it from the call. Money in a current account (`access: "current_account"`) counts as earning what CCPC states current accounts pay (0%); the rest split across the market (regular savers to their monthly caps, the lump sum to a fixed term or notice account that ends by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access; `keepAccessible` or `goalDateCertain: false` keep everything in instant access; at most €100,000 per provider); projected to the date the main goal is reached; what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached at this pace); for a house deposit, what it supports under the Central Bank limits and every eligible mortgage option (each lender’s cheapest per rate type and fixed period), filtered by `homePreferences` (stay with my bank, fixed or variable, green) and sorted by the metric the customer picks; the filters applied are stated. `runnersUp` are the next splits under the same rule. No single option is picked for the customer. `position` is everything held at the end (towards the goal and the buffer, named) less what is still owed; the questions that would sharpen the plan come with it, as in saoi_money_check. For a follow-up once saoi_money_check has run; one call per reply, never alongside saoi_money_check. To compare options (a debt kept or cleared, another monthly amount or date), pass up to three `alternatives` in the same call: each comes back with its own net figure. Call again only when the customer changes their situation in a later message, never to adjust figures. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes: send it unchanged to save it behind a one-time link), the reasoning, every figure, and `next` for the host to relay. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * @description Takes a situation and chosen goals. Holds any emergency buffer apart in instant access, works out each debt as `debts[].plan` says, and splits the rest across the market: regular savers to their monthly caps, a lump sum to a fixed term or notice account ending by the goal’s date only where it beats instant access by `minLockGainEur` and `minLockGainPctPerYear`, otherwise instant access, at most €100,000 per provider. Money in a current account counts as earning what CCPC states current accounts pay. Projects to the date the main goal is reached, with what-ifs (an extra €100 a month, each debt cleared or kept, the month a target is reached). For a house deposit: what it supports under the Central Bank limits and every eligible mortgage option, filtered by `homePreferences` and sorted by its `sortBy`, with the filters stated. `runnersUp` are the next splits under the same rule; no single option is picked for the customer. `position` is everything held at the end less what is still owed. Up to three `alternatives` are worked out in the same call. For the same input it returns the same plan and questions as saoi_money_check. Returns `plan` (a `MarketPlan`, the body `POST /api/plans` takes), the reasoning, every figure, `next`, and a single-use link to the plan in the Saoi app. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Stored: the plan, behind its single-use link, for 24 hours; deleted then if the link has not been opened, and once opened kept with the Saoi app conversation it opened into. Nothing else sent is stored.
          */
         post: {
             parameters: {
@@ -3592,8 +4074,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Start here: a money check on whatever the customer has said so far
-         * @description Call this as soon as the customer talks about their own money in Ireland: money sitting in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Takes whatever has been said so far, however partial, and returns in one result: what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, the two or three questions that would sharpen it, the presentation to lead with, and a link that holds the plan for 24 hours so it can be opened in the Saoi app (the only thing stored). One call per reply: call it first, not alongside saoi_build_plan, and pass up to three `alternatives` to compare options in the same call. Call it again only when the customer says more about their situation in a later message. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Nothing sent is stored, except that a plan is held for 24 hours behind a single-use link so it can be opened in the Saoi app, then deleted unless opened, and the home calculator keeps one anonymous, banded record per run (no figures, no identifiers).
+         * A money check on an Irish customer’s own situation: findings, a plan or the questions for one, and a link to the plan
+         * @description Takes the customer’s situation as far as it has been given, however partial: money in a current account or savings, a goal such as a house deposit, loans and card balances, a mortgage, Help to Buy. Returns in one result what Saoi finds (money found a year, with its sources), a plan across the Irish market when there is money to place, up to three questions that would sharpen it, the presentation lines, and a single-use link to the plan in the Saoi app. Up to three `alternatives` are worked out in the same call. For the same input it returns the same plan and questions as saoi_build_plan. Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated. Stored: the plan, behind its single-use link, for 24 hours; deleted then if the link has not been opened, and once opened kept with the Saoi app conversation it opened into. Nothing else sent is stored.
          */
         post: {
             parameters: {
@@ -7193,6 +7675,321 @@ export interface components {
             message?: string;
             note?: string;
         };
+        /** @description What the case is being told about: alerts and the dates behind reminders. */
+        CaseAlerts: {
+            /** @description Every alert on the case, newest first. Reading them marks them seen. */
+            alerts: {
+                /**
+                 * Format: uuid
+                 * @description The alert.
+                 */
+                id: string;
+                /**
+                 * @description `rate_change`: a product in the claimed plan changed rate. `product_withdrawn`: it is no longer listed. `reminder`: a date the customer gave is coming up.
+                 * @enum {string}
+                 */
+                kind: "rate_change" | "product_withdrawn" | "reminder";
+                /** @description The market product id the alert is about (`savings.supersaver`). Null for a reminder. */
+                productId: string | null;
+                /**
+                 * Format: uuid
+                 * @description The reminder it came from. Null for a product alert.
+                 */
+                reminderId: string | null;
+                /** @description For a reminder: the stage it was sent at, in days before the date (0 is the day). */
+                stage: number | null;
+                /** @description One line, a fact: "A rate in your plan changed". */
+                title: string;
+                /** @description The fact with its date and source, and what the plan counted. No advice. */
+                body: string;
+                /** @description The figures behind the body (rates, dates, source), for a card to lay out. */
+                data: {
+                    [key: string]: unknown;
+                };
+                /**
+                 * Format: date-time
+                 * @description When the alert was raised.
+                 */
+                createdAt: string;
+                /**
+                 * Format: date-time
+                 * @description When a push for it was delivered. Null: none was.
+                 */
+                sentAt: string | null;
+                /**
+                 * Format: date-time
+                 * @description When the customer first saw it, in the app or from Saoirse. Null: not yet.
+                 */
+                seenAt: string | null;
+            }[];
+            /** @description The open reminders (not deleted), soonest date first. */
+            reminders: {
+                /**
+                 * Format: uuid
+                 * @description The reminder.
+                 */
+                id: string;
+                /**
+                 * @description What the date is: a fixed rate ending, a deposit maturing, or something else.
+                 * @enum {string}
+                 */
+                kind: "fixed_rate_ends" | "deposit_matures" | "other";
+                /** @description In the customer’s words: "AIB fixed rate". */
+                label: string;
+                /** @description The date, YYYY-MM-DD. */
+                dueOn: string;
+                /** @description A market product id the date belongs to, when one was named. */
+                productId: string | null;
+                /**
+                 * Format: date-time
+                 * @description When it was set.
+                 */
+                createdAt: string;
+            }[];
+        };
+        /** @description A date the customer gave. Alerts go out 90, 60, 30 and 7 days before it and on the day. */
+        Reminder: {
+            /**
+             * Format: uuid
+             * @description The reminder.
+             */
+            id: string;
+            /**
+             * @description What the date is: a fixed rate ending, a deposit maturing, or something else.
+             * @enum {string}
+             */
+            kind: "fixed_rate_ends" | "deposit_matures" | "other";
+            /** @description In the customer’s words: "AIB fixed rate". */
+            label: string;
+            /** @description The date, YYYY-MM-DD. */
+            dueOn: string;
+            /** @description A market product id the date belongs to, when one was named. */
+            productId: string | null;
+            /**
+             * Format: date-time
+             * @description When it was set.
+             */
+            createdAt: string;
+        };
+        /** @description A date to be reminded of. */
+        CreateReminder: {
+            /**
+             * @description What the date is.
+             * @enum {string}
+             */
+            kind: "fixed_rate_ends" | "deposit_matures" | "other";
+            /** @description In the customer’s words, up to 120 characters. */
+            label: string;
+            /** @description The date, YYYY-MM-DD: today or later (Europe/Dublin). */
+            dueOn: string;
+            /** @description A market product id the date belongs to, when one was named. */
+            productId?: string;
+        };
+        /** @description What the customer holds and where that leaves the plan. */
+        CaseHoldings: {
+            /** @description The holdings on the case that are not deleted, oldest first. */
+            holdings: {
+                /**
+                 * Format: uuid
+                 * @description The holding.
+                 */
+                id: string;
+                /**
+                 * @description What it is. Accounts: `current`, `savings`, `deposit` (a fixed-term deposit). Debts: `credit_card`, `personal_loan`, `car_finance`, `overdraft`, `mortgage`, `other_debt`.
+                 * @enum {string}
+                 */
+                kind: "current" | "savings" | "deposit" | "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other_debt";
+                /** @description In the customer’s words. */
+                label: string;
+                /** @description Who it is with, when given. */
+                provider: string | null;
+                /** @description A market product id, when it is one Saoi lists. */
+                productId: string | null;
+                /** @description What is held in an account, or what is owed on a debt, in euro: always a positive amount. */
+                balance: number;
+                /** @description AER for an account; APR or the mortgage rate for a debt. */
+                ratePct: number | null;
+                /** @description Each month: saved in, for an account; the repayment, for a debt. */
+                monthlyAmountEur: number | null;
+                /** @description When a fixed rate ends or a deposit matures, YYYY-MM-DD; null when none. */
+                fixedUntil: string | null;
+                /** @description The day the balance was true, YYYY-MM-DD. */
+                notedOn: string;
+                /**
+                 * @description Where it came from: `plan` (seeded from the claimed plan), `customer` (entered in the app), `saoirse` (said in the conversation).
+                 * @enum {string}
+                 */
+                source: "plan" | "customer" | "saoirse";
+                /**
+                 * Format: uuid
+                 * @description The reminder kept for `fixedUntil`, when there is one.
+                 */
+                reminderId: string | null;
+                /**
+                 * Format: date-time
+                 * @description When it was added.
+                 */
+                createdAt: string;
+                /**
+                 * Format: date-time
+                 * @description When it was last changed.
+                 */
+                updatedAt: string;
+            }[];
+            /** @description Progress against the claimed plan; null when no plan is claimed or it has no house-deposit or debt goal. */
+            progress: {
+                /**
+                 * @description A house-deposit goal.
+                 * @enum {string}
+                 */
+                goal: "house_deposit";
+                /** @description The goal, in the plan’s words. */
+                goalLabel: string;
+                /** @description Held now: the sum of `current`, `savings` and `deposit` holdings, or the plan’s own savings when there are none. */
+                savedNowEur: number;
+                /**
+                 * @description Whether `savedNowEur` is from the holdings or, with none, from the plan.
+                 * @enum {string}
+                 */
+                savedFrom: "holdings" | "plan";
+                /** @description The cash the plan needs at the keys (deposit, stamp duty and fees), else the goal’s target; null when the plan has neither. */
+                neededEur: number | null;
+                /** @description Saved each month: the sum of the accounts’ monthly amounts, else the plan’s monthly saving; null when neither is known. */
+                monthlyEur: number | null;
+                /** @description YYYY-MM the needed amount is held at this pace, before interest (the plan’s own arithmetic); null when it is not reached or nothing is needed. */
+                monthAtThisPace: string | null;
+                /** @description What the plan’s own path had by this month: its savings plus its monthly saving for each month since it was made, before interest. */
+                planExpectedNowEur: number;
+                /** @description Held now less the plan’s path: positive is ahead, negative behind. Null when no account is held as a holding. */
+                differenceEur: number | null;
+                /** @description The progress in one sentence, a fact: "€33,000 of €47,000 saved; at €1,000 a month that is February 2028, €2,000 ahead of the plan’s path." */
+                line: string;
+            } | {
+                /**
+                 * @description A goal to pay off debt.
+                 * @enum {string}
+                 */
+                goal: "pay_off_debt";
+                /** @description The goal, in the plan’s words. */
+                goalLabel: string;
+                /** @description Owed now: the sum of the debt holdings, or the plan’s own debts when there are none. */
+                owedNowEur: number;
+                /**
+                 * @description Whether `owedNowEur` is from the holdings or, with none, from the plan.
+                 * @enum {string}
+                 */
+                owedFrom: "holdings" | "plan";
+                /** @description What the plan said was owed when it was made. */
+                planOwedEur: number;
+                /** @description Owed now less what the plan said: negative is less owed, positive more. */
+                changeEur: number;
+                /** @description Repaid each month: the sum of the debts’ repayments, else the plan’s; null when none is known. */
+                monthlyEur: number | null;
+                /** @description Months to clear what is owed at that repayment, before interest; null without one. */
+                monthsLeft: number | null;
+                /** @description YYYY-MM it is cleared at that repayment, before interest; null without one. */
+                clearedIn: string | null;
+                /** @description The progress in one sentence, a fact: "€6,500 owed, €9,000 when the plan was made; at €400 a month that is 17 months, to April 2028, before interest." */
+                line: string;
+            } | unknown;
+        };
+        /** @description One account or debt the customer holds, as they entered it. */
+        Holding: {
+            /**
+             * Format: uuid
+             * @description The holding.
+             */
+            id: string;
+            /**
+             * @description What it is. Accounts: `current`, `savings`, `deposit` (a fixed-term deposit). Debts: `credit_card`, `personal_loan`, `car_finance`, `overdraft`, `mortgage`, `other_debt`.
+             * @enum {string}
+             */
+            kind: "current" | "savings" | "deposit" | "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other_debt";
+            /** @description In the customer’s words. */
+            label: string;
+            /** @description Who it is with, when given. */
+            provider: string | null;
+            /** @description A market product id, when it is one Saoi lists. */
+            productId: string | null;
+            /** @description What is held in an account, or what is owed on a debt, in euro: always a positive amount. */
+            balance: number;
+            /** @description AER for an account; APR or the mortgage rate for a debt. */
+            ratePct: number | null;
+            /** @description Each month: saved in, for an account; the repayment, for a debt. */
+            monthlyAmountEur: number | null;
+            /** @description When a fixed rate ends or a deposit matures, YYYY-MM-DD; null when none. */
+            fixedUntil: string | null;
+            /** @description The day the balance was true, YYYY-MM-DD. */
+            notedOn: string;
+            /**
+             * @description Where it came from: `plan` (seeded from the claimed plan), `customer` (entered in the app), `saoirse` (said in the conversation).
+             * @enum {string}
+             */
+            source: "plan" | "customer" | "saoirse";
+            /**
+             * Format: uuid
+             * @description The reminder kept for `fixedUntil`, when there is one.
+             */
+            reminderId: string | null;
+            /**
+             * Format: date-time
+             * @description When it was added.
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description When it was last changed.
+             */
+            updatedAt: string;
+        };
+        /** @description An account or a debt to add. */
+        CreateHolding: {
+            /**
+             * @description What it is. Accounts: `current`, `savings`, `deposit` (a fixed-term deposit). Debts: `credit_card`, `personal_loan`, `car_finance`, `overdraft`, `mortgage`, `other_debt`.
+             * @enum {string}
+             */
+            kind: "current" | "savings" | "deposit" | "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other_debt";
+            /** @description In the customer’s words, up to 80 characters: "BoI savings", "AIB mortgage". */
+            label: string;
+            /** @description What is held in an account, or what is owed on a debt, in euro: always a positive amount. */
+            balance: number;
+            /** @description AER for an account; APR, or the mortgage rate, for a debt. */
+            ratePct?: number;
+            /** @description Each month: what goes in, for an account; the repayment, for a debt. In euro. */
+            monthlyAmountEur?: number;
+            /** @description When a fixed rate ends or a deposit matures, YYYY-MM-DD. A reminder is kept for it. */
+            fixedUntil?: string;
+            /** @description Who it is with: "Bank of Ireland", "AIB". */
+            provider?: string;
+            /** @description A market product id (`savings.supersaver`), when it is a product Saoi lists. */
+            productId?: string;
+            /** @description The day the balance was true, YYYY-MM-DD. Default: today (Europe/Dublin). */
+            notedOn?: string;
+        };
+        /** @description What changed on a holding; fields left out stay as they are. */
+        UpdateHolding: {
+            /**
+             * @description What it is. Accounts: `current`, `savings`, `deposit` (a fixed-term deposit). Debts: `credit_card`, `personal_loan`, `car_finance`, `overdraft`, `mortgage`, `other_debt`.
+             * @enum {string}
+             */
+            kind?: "current" | "savings" | "deposit" | "credit_card" | "personal_loan" | "car_finance" | "overdraft" | "mortgage" | "other_debt";
+            /** @description In the customer’s words, up to 80 characters: "BoI savings", "AIB mortgage". */
+            label?: string;
+            /** @description What is held in an account, or what is owed on a debt, in euro: always a positive amount. */
+            balance?: number;
+            /** @description The rate; null clears it. */
+            ratePct?: number | null;
+            /** @description The monthly amount; null clears it. */
+            monthlyAmountEur?: number | null;
+            /** @description The fixed-until date; null clears it and deletes its reminder. */
+            fixedUntil?: string | null;
+            /** @description Who it is with; null clears it. */
+            provider?: string | null;
+            /** @description The product id; null clears it. */
+            productId?: string | null;
+            /** @description The day the balance was true. Default when the balance changes: today (Europe/Dublin). */
+            notedOn?: string;
+        };
         CaseActionResult: {
             applications: {
                 /** Format: uuid */
@@ -7880,6 +8677,8 @@ export interface components {
                     kind: "home";
                     headline: string;
                     priceEur: number;
+                    neededAtKeysEur?: number;
+                    keysOn?: string | null;
                     /** @enum {string} */
                     sortBy: "five_year_cost" | "keys_date" | "monthly_repayment";
                     sortedBy: string;
@@ -8666,7 +9465,7 @@ export interface components {
             next: string;
         };
         ReviewSituation: {
-            /** @description The customer’s circumstances, sent with each call. Only a plan is ever held, as a 24-hour draft behind a single-use link. Every figure is what they said. */
+            /** @description The customer’s circumstances, sent with each call. Every figure is what they said. */
             situation: {
                 /** @description Two or three sentences of what the customer said. */
                 summary?: string;
@@ -10848,7 +11647,7 @@ export interface components {
             }[];
             /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
             presentation: string[];
-            /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again once the customer answers, in a later message. */
+            /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. */
             questions: string[];
             /** @description What the plan holds at its end, everything included and each part named: towards the goal, the buffer, less what is still owed. */
             position: {
@@ -10869,7 +11668,7 @@ export interface components {
                 /** @description The position in one sentence, with its parts named. */
                 line: string;
             };
-            /** @description The plan held as a draft for 24 hours behind a single-use link, then deleted unless opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
+            /** @description The plan held for 24 hours behind a single-use link: deleted then if not opened, kept with the Saoi app conversation it opens into once opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
             saveLink: {
                 /** @description Opens the plan in the Saoi app, once. */
                 url: string;
@@ -11036,6 +11835,8 @@ export interface components {
                     kind: "home";
                     headline: string;
                     priceEur: number;
+                    neededAtKeysEur?: number;
+                    keysOn?: string | null;
                     /** @enum {string} */
                     sortBy: "five_year_cost" | "keys_date" | "monthly_repayment";
                     sortedBy: string;
@@ -11175,14 +11976,14 @@ export interface components {
                 } | null;
                 /** @description YYYY-MM the main goal’s target is reached at this plan’s pace, looking up to ten years ahead in instant access where the horizon is not enough. Null without a target, or when it is not reached within the figures. */
                 goalReachedAtCurrentPace: string | null;
-                /** @description The what-ifs in words, with their figures, for the host to relay. To compare one properly, pass it as an `alternative` in the same call; do not adjust the figures by hand. */
+                /** @description The what-ifs in words, with their figures, for the host to relay. Each can be worked out in full as an `alternative`. */
                 lines: string[];
             };
             /** @description For the host to relay: what can be done next with this plan, including saving it into the Saoi app. */
             next: string;
         };
         BuildPlan: {
-            /** @description The customer’s circumstances, sent with each call. Only a plan is ever held, as a 24-hour draft behind a single-use link. Every figure is what they said. */
+            /** @description The customer’s circumstances, sent with each call. Every figure is what they said. */
             situation: {
                 /** @description Two or three sentences of what the customer said. */
                 summary?: string;
@@ -11293,7 +12094,7 @@ export interface components {
             county?: "carlow" | "cavan" | "clare" | "cork" | "donegal" | "dublin" | "galway" | "kerry" | "kildare" | "kilkenny" | "laois" | "leitrim" | "limerick" | "longford" | "louth" | "mayo" | "meath" | "monaghan" | "offaly" | "roscommon" | "sligo" | "tipperary" | "waterford" | "westmeath" | "wexford" | "wicklow" | "dublin_city" | "dun_laoghaire_rathdown" | "fingal" | "south_dublin";
             /** @description For a house deposit: rent paid a month today. Changes no figure; kept with the plan as what they pay now. `situation.outgoings.rentMonthly` wins when both are sent. */
             monthlyRentEur?: number;
-            /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
+            /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its own net figure. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
                 name: string;
@@ -11320,7 +12121,7 @@ export interface components {
         MoneyCheckResult: {
             /** @description Present to the customer: the headline sentences in order, ending with the questions to ask and, when there is a plan, the link to save it. */
             presentation: string[];
-            /** @description The two or three questions that would unlock or sharpen the plan, for the host to ask in its own words. Call this tool again once the customer answers, in a later message. */
+            /** @description The two or three questions that would unlock or sharpen the plan, for the host to ask in its own words. */
             questions: string[];
             review: {
                 /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
@@ -11635,7 +12436,7 @@ export interface components {
                 }[];
                 /** @description Present to the customer: the headline sentences, in order, as options with their figures. Lead with these; the fields below are the detail behind them. */
                 presentation: string[];
-                /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. Call again once the customer answers, in a later message. */
+                /** @description The two or three questions that would sharpen the plan (the same as saoi_money_check asks), for the host to ask in its own words. */
                 questions: string[];
                 /** @description What the plan holds at its end, everything included and each part named: towards the goal, the buffer, less what is still owed. */
                 position: {
@@ -11656,7 +12457,7 @@ export interface components {
                     /** @description The position in one sentence, with its parts named. */
                     line: string;
                 };
-                /** @description The plan held as a draft for 24 hours behind a single-use link, then deleted unless opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
+                /** @description The plan held for 24 hours behind a single-use link: deleted then if not opened, kept with the Saoi app conversation it opens into once opened. Null when the draft could not be held (the daily or per-address limit); saoi_save_plan can then save it. */
                 saveLink: {
                     /** @description Opens the plan in the Saoi app, once. */
                     url: string;
@@ -11823,6 +12624,8 @@ export interface components {
                         kind: "home";
                         headline: string;
                         priceEur: number;
+                        neededAtKeysEur?: number;
+                        keysOn?: string | null;
                         /** @enum {string} */
                         sortBy: "five_year_cost" | "keys_date" | "monthly_repayment";
                         sortedBy: string;
@@ -11962,7 +12765,7 @@ export interface components {
                     } | null;
                     /** @description YYYY-MM the main goal’s target is reached at this plan’s pace, looking up to ten years ahead in instant access where the horizon is not enough. Null without a target, or when it is not reached within the figures. */
                     goalReachedAtCurrentPace: string | null;
-                    /** @description The what-ifs in words, with their figures, for the host to relay. To compare one properly, pass it as an `alternative` in the same call; do not adjust the figures by hand. */
+                    /** @description The what-ifs in words, with their figures, for the host to relay. Each can be worked out in full as an `alternative`. */
                     lines: string[];
                 };
                 /** @description For the host to relay: what can be done next with this plan, including saving it into the Saoi app. */
@@ -12025,7 +12828,7 @@ export interface components {
             county?: "carlow" | "cavan" | "clare" | "cork" | "donegal" | "dublin" | "galway" | "kerry" | "kildare" | "kilkenny" | "laois" | "leitrim" | "limerick" | "longford" | "louth" | "mayo" | "meath" | "monaghan" | "offaly" | "roscommon" | "sligo" | "tipperary" | "waterford" | "westmeath" | "wexford" | "wicklow" | "dublin_city" | "dun_laoghaire_rathdown" | "fingal" | "south_dublin";
             /** @description For a house deposit: rent paid a month today. Changes no figure; kept with the plan as what they pay now. `situation.outgoings.rentMonthly` wins when both are sent. */
             monthlyRentEur?: number;
-            /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its net figure. Use this to compare options rather than calling again. */
+            /** @description Up to three named variations to compare with the main plan in this same call (a debt kept or cleared, another monthly amount or date, or a buffer the customer raised). Each comes back with its own net figure. */
             alternatives?: {
                 /** @description A short name the customer would recognise: "Keep the car loan", "€6,000 aside". */
                 name: string;

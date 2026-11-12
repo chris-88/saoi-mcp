@@ -97,6 +97,16 @@ const footToggle = (card: Card): HTMLButtonElement =>
 const footDetail = (card: Card): HTMLElement =>
   card.doc.querySelector('#foot-detail') as unknown as HTMLElement
 const count = (card: Card, name: string): number => card.calls.filter((call) => call.name === name).length
+/** One tile, by index: a button when it opens, a div when it does not. */
+const tileButton = (card: Card, index: number): HTMLElement =>
+  card.doc.querySelectorAll('.tiles > .tile')[index] as unknown as HTMLElement
+/** A tile's rows in order: label, qualifier, value, the secondary lines, then the foot's quiet lines. */
+const tileText = (card: Card, index: number): string[] =>
+  Array.from(
+    tileButton(card, index).querySelectorAll(
+      ':scope > .tile-label, :scope > .tile-qualifier, :scope > .tile-value, :scope > .tile-sub, .tile-foot .tile-quiet',
+    ),
+  ).map((child) => child.textContent)
 
 describe('home calculator card v8: folded when the host gave the figures', () => {
   it('heads the plan with Saoirse’s mark, the title and Edit, and one chip, for rent', () => {
@@ -214,26 +224,137 @@ describe('home calculator card v8: the month, what is needed, the progress and t
   it('fills the three tiles from saoi-api’s market block and affordability figures, naming no provider', () => {
     const result = recorded.homeCalculatorSecondHand
     const card = open(result)
-    const tile = (n: number): string[] => card.text(`.tile:nth-child(${String(n)}) p`)
-    expect(card.doc.querySelectorAll('.tile')).toHaveLength(3)
-    // From the live result: top savings rate 3.11%, €735.86 interest by 2028-06, 28 accounts; 49
-    // mortgages from 3.2% and €1,556.88 a month over 30 years; up to €444,000 within the limits.
-    expect(tile(1)).toEqual(['Savings', 'up to 3.11%', '€736 interest by Jun 2028', '28 accounts'])
-    expect(tile(2)).toEqual(['Mortgage', '€360,000', 'from 3.20%, €1,557/mo', '49 options, 30 years'])
-    expect(tile(3)).toEqual(['Could afford', 'up to €444,000', '4× income, 90% loan', '30 years'])
-    const icons = Array.from(card.doc.querySelectorAll('.tile svg')).map((svg) => svg.getAttribute('class'))
+    expect(card.doc.querySelectorAll('.tiles > .tile')).toHaveLength(3)
+    // From the live result: top savings rate 3.11%, 28 accounts (its €735.86 interest runs to
+    // 2028-06, not to April 2028, so it is in the detail); 49 mortgages from 3.2% and €1,556.88 a
+    // month for €360,000; up to €444,000 within the limits. "up to" and "from" sit on their own row.
+    expect(tileText(card, 0)).toEqual(['Savings', 'up to', '3.11%', '28 accounts'])
+    expect(tileText(card, 1)).toEqual([
+      'Mortgage',
+      'from',
+      '€1,557/mo',
+      '€360,000 loan',
+      'from 3.20%',
+      '49 options',
+    ])
+    expect(tileText(card, 2)).toEqual(['Could afford', 'up to', '€444,000', '4× income', '90% loan'])
+    // Darker secondary lines; the quiet style only for the counts.
+    expect(card.text('.tile-sub')).toEqual(['€360,000 loan', 'from 3.20%', '4× income', '90% loan'])
+    expect(card.text('.tile-quiet')).toEqual(['28 accounts', '49 options'])
+    // Each icon beside its label.
+    const icons = Array.from(card.doc.querySelectorAll('.tile-label svg')).map((svg) =>
+      svg.getAttribute('class'),
+    )
     expect(icons).toEqual(['icon icon-piggy-bank', 'icon icon-landmark', 'icon icon-house'])
     const provider = result.market?.savings?.topRateProvider ?? 'missing'
+    for (const index of [0, 1, 2]) tileButton(card, index).click()
     expect(card.doc.querySelector('#card')?.textContent).not.toContain(provider)
+    expect(card.doc.querySelector('.tiles')?.textContent).not.toMatch(PICK)
   })
 
-  it('says See in Saoi on the tiles when saoi-api sent no market block', () => {
+  it('starts the three values at the same height: the same rows, in the same order, on every tile', () => {
+    for (const result of [
+      recorded.homeCalculatorSecondHand,
+      { ...recorded.homeCalculatorSecondHand, market: null },
+    ]) {
+      const card = open(result)
+      for (const index of [0, 1, 2]) {
+        const rows = Array.from(tileButton(card, index).children).map((child) => child.className)
+        expect(rows.slice(0, 3)).toEqual(['tile-label', 'tile-qualifier', 'tile-value num'])
+        expect(rows.at(-1)).toBe('tile-foot')
+      }
+      // A tile without a qualifier keeps the row, empty.
+      if (result.market === null) expect(card.text('.tile-qualifier')).toEqual(['', '', 'up to'])
+      expect(card.text('.tile-value + .tile-qualifier')).toEqual([])
+    }
+  })
+
+  it('opens one tile’s detail at a time, with aria-expanded, and keeps it open across a redraw', async () => {
+    const result = recorded.homeCalculatorSecondHand
+    const card = open(result)
+    const panel = (index: number): HTMLElement =>
+      card.doc.querySelector(`#tile-detail-${String(index)}`) as unknown as HTMLElement
+    for (const index of [0, 1, 2]) {
+      const tile = tileButton(card, index)
+      expect(tile.tagName).toBe('BUTTON')
+      expect(tile.getAttribute('aria-expanded')).toBe('false')
+      expect(tile.getAttribute('aria-controls')).toBe(`tile-detail-${String(index)}`)
+      // The chevron sits in the foot, on the right of the quiet count, not beside the label.
+      expect(tile.querySelector('.tile-foot > svg.tile-chevron.icon-chevron-down')).not.toBeNull()
+      expect(tile.querySelector('.tile-foot')?.lastElementChild?.getAttribute('class')).toMatch(
+        /tile-chevron/,
+      )
+      expect(tile.querySelector('.tile-label .tile-chevron')).toBeNull()
+      expect(panel(index).hidden).toBe(true)
+    }
+    tileButton(card, 0).click()
+    expect(tileButton(card, 0).getAttribute('aria-expanded')).toBe('true')
+    expect(card.text('#tile-detail-0 p')).toEqual([
+      '€736 interest by June 2028: worked out to that month, not to April 2028, the month shown as ready to buy.',
+      result.market?.savings?.basis,
+    ])
+    tileButton(card, 1).click()
+    expect(tileButton(card, 0).getAttribute('aria-expanded')).toBe('false')
+    expect(panel(0).hidden).toBe(true)
+    expect(panel(1).hidden).toBe(false)
+    expect(card.text('#tile-detail-1 p')).toEqual([
+      '€1,557 to €2,147 a month over 30 years, at each option’s initial rate.',
+      result.market?.mortgage?.basis,
+      'Lenders decide what they lend and at what rate.',
+    ])
+    tileButton(card, 2).click()
+    expect(card.text('#tile-detail-2 p')).toEqual([
+      'The Central Bank limits for a first-time buyer: 4 × income, and a loan of up to 90% of the price.',
+      'That price needs a €44,400 deposit.',
+    ])
+    // A redraw (the rent chip answered) keeps the open tile open.
+    card.byText('Rent a month?')?.click()
+    ;(card.doc.querySelector('#ask-monthlyRentEur') as unknown as HTMLInputElement).value = '2500'
+    card.byText('Done')?.click()
+    await card.settle()
+    expect(tileButton(card, 2).getAttribute('aria-expanded')).toBe('true')
+    expect(panel(2).hidden).toBe(false)
+    tileButton(card, 2).click()
+    expect(card.doc.querySelectorAll('.tile[aria-expanded="true"]')).toHaveLength(0)
+    expect(card.doc.querySelectorAll('.tile-detail:not([hidden])')).toHaveLength(0)
+  })
+
+  it('puts the savings interest on the face only when it runs to the month shown as ready to buy', () => {
+    const result = recorded.homeCalculatorSecondHand
+    const market = result.market
+    const savings = market?.savings ?? null
+    if (market === null || savings === null) throw new Error('recording has no savings market')
+    // As saoi-api will send it once it works the interest out to the keys month (saoi feat/tile-structure).
+    const card = open({ ...result, market: { ...market, savings: { ...savings, by: '2028-04' } } })
+    expect(card.text('.hero-month')).toEqual(['April 2028'])
+    expect(tileText(card, 0)).toEqual([
+      'Savings',
+      'up to',
+      '3.11%',
+      '€736 interest',
+      'by Apr 2028',
+      '28 accounts',
+    ])
+    expect(card.doc.querySelectorAll('.tile-sub *')).toHaveLength(0)
+    tileButton(card, 0).click()
+    expect(card.text('#tile-detail-0 p')[0]).toBe(
+      'The interest runs to April 2028, the month shown as ready to buy.',
+    )
+  })
+
+  it('says See in Saoi on the tiles when saoi-api sent no market block, and those tiles do not open', () => {
     const result = { ...recorded.homeCalculatorSecondHand, market: null }
     const card = open(result)
-    const tile = (n: number): string[] => card.text(`.tile:nth-child(${String(n)}) p`)
-    expect(tile(1)).toEqual(['Savings', 'In Saoi', 'See in Saoi'])
-    expect(tile(2)).toEqual(['Mortgage', '€360,000', 'See in Saoi'])
-    expect(tile(3)).toEqual(['Could afford', 'up to €444,000', '4× income, 90% loan', '30 years'])
+    expect(tileText(card, 0)).toEqual(['Savings', '', 'In Saoi', 'See in Saoi'])
+    expect(tileText(card, 1)).toEqual(['Mortgage', '', '€360,000', 'loan', 'See in Saoi'])
+    expect(tileText(card, 2)).toEqual(['Could afford', 'up to', '€444,000', '4× income', '90% loan'])
+    for (const index of [0, 1]) {
+      const tile = tileButton(card, index)
+      expect(tile.tagName).toBe('DIV')
+      expect(tile.hasAttribute('aria-expanded')).toBe(false)
+      expect(tile.querySelector('.tile-chevron')).toBeNull()
+    }
+    expect(card.doc.querySelectorAll('.tile-detail')).toHaveLength(1)
   })
 
   it('takes the new market facts when a chip answer brings a new result', async () => {
@@ -248,7 +369,7 @@ describe('home calculator card v8: the month, what is needed, the progress and t
     ;(card.doc.querySelector('#ask-monthlyRentEur') as unknown as HTMLInputElement).value = '2500'
     card.byText('Done')?.click()
     await card.settle()
-    expect(card.text('.tile:nth-child(2) p')[3]).toBe('12 options, 30 years')
+    expect(tileText(card, 1).at(-1)).toBe('12 options')
   })
 
   it('puts the rent given as one line under the progress', () => {
@@ -275,11 +396,13 @@ describe('home calculator card v8: the month, what is needed, the progress and t
     expect(card.text('.hero-month')).toEqual(['April 2028'])
     expect(card.doc.querySelector('.hero')?.textContent).not.toMatch(/Nov(ember)? 2026/)
     // The new build's own market: 51 mortgages from 3.10%.
-    expect(card.text('.tile:nth-child(2) p')).toEqual([
+    expect(tileText(card, 1)).toEqual([
       'Mortgage',
-      '€360,000',
-      'from 3.10%, €1,537/mo',
-      '51 options, 30 years',
+      'from',
+      '€1,537/mo',
+      '€360,000 loan',
+      'from 3.10%',
+      '51 options',
     ])
     // Tax paid not given: Help to Buy is not counted, so it is not taken off the line.
     expect(card.text('.hero p').at(-1)).toBe('€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey')

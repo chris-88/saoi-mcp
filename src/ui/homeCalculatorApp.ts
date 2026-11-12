@@ -5,6 +5,7 @@ import type { Icon, IconName } from './icons.js'
 import type {
   HomeCalculatorModel,
   HomeControl,
+  HomeFigures,
   HomeInputs,
   HomeMarketFacts,
   HomeRoute,
@@ -55,6 +56,8 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   /** The request keys the customer has given (the host's arguments, then their answers). */
   let given: string[] = []
   let openRoute: string | null = null
+  /** The tile whose detail is open (0 savings, 1 mortgage, 2 could afford), kept across redraws. */
+  let openTile: number | null = null
   /** The one control a chip opened: under the fact chips ('facts') or inside a route (its id). */
   let openControl: { where: string; control: HomeControl } | null = null
   let routesNote = ''
@@ -784,31 +787,86 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
     if (rent !== null) meter.append(el('p', 'small muted num rent', rent))
     block.append(meter)
 
-    const tiles = el('div', 'tiles')
-    /** Every tile the same shape: icon, label, value, then up to two small lines. */
-    const tile = (name: IconName, label: string, value: string, lines: readonly string[] = []): void => {
-      const node = el('div', 'tile')
-      node.append(el('span', 'tile-icon'), el('p', 'small muted', label), el('p', 'tile-value num', value))
-      node.firstElementChild?.append(icon(name, 16))
-      for (const line of lines.slice(0, 2)) {
-        // Each phrase kept whole, so a narrow tile wraps between "from 3.20%," and "€1,557/mo".
-        const small = el('p', 'small muted num')
-        line.split(/(?<=,) | (?=by )/).forEach((phrase, index) => {
-          if (index > 0) small.append(' ')
-          small.append(el('span', 'nowrap', phrase))
-        })
-        node.append(small)
-      }
-      tiles.append(node)
-    }
-    // The tiles' figures are saoi-api's own (market block, maxPriceEur); the card only words them.
-    const limits = inputs.firstTimeBuyer ? rules.firstTimeBuyer : rules.otherBuyer
-    const ICONS: IconName[] = ['piggy-bank', 'landmark', 'house']
-    model.tiles(figures.loanEur, facts, limits).forEach((spec, index) => {
-      tile(ICONS[index] ?? 'house', spec.label, spec.value, spec.lines)
-    })
-    block.append(tiles)
+    block.append(tilesView(figures))
     return block
+  }
+
+  /**
+   * The three tiles (direction 2026-11-12). Every tile the same shape, so the values line up: the
+   * icon beside the label, then the qualifier row (empty when there is none), the value, the
+   * secondary lines (one line each), and the foot: the quiet lines, with a chevron on the right
+   * when the tile opens. A tile with detail is a button that opens it in a panel under the row,
+   * one at a time; one without is not tappable.
+   */
+  const tilesView = (figures: HomeFigures): HTMLElement => {
+    const wrap = el('div', 'tiles')
+    if (rules === null) return wrap
+    // The tiles' figures are saoi-api's own (market block, maxPriceEur); the card only words them,
+    // and works out the deposit at that price on the same rules as its own headline.
+    const limits = inputs.firstTimeBuyer ? rules.firstTimeBuyer : rules.otherBuyer
+    const specs = model.tiles(facts, {
+      loanEur: figures.loanEur,
+      readyOn: compared() ? model.readyOn(figures, comparison?.home?.keysOn ?? null) : model.readyOn(figures),
+      limits,
+      firstTimeBuyer: inputs.firstTimeBuyer,
+      depositForMaxPriceEur:
+        facts.maxPriceEur === null
+          ? null
+          : model.figures({ ...inputs, targetPriceEur: facts.maxPriceEur }, rules, asOf).depositNeededEur,
+    })
+    const ICONS: IconName[] = ['piggy-bank', 'landmark', 'house']
+    const heads: HTMLElement[] = []
+    const panels: HTMLElement[] = []
+    /** Opens one tile's detail (or closes it), in place: no redraw, so nothing else moves. */
+    const show = (index: number | null): void => {
+      openTile = index
+      heads.forEach((head, at) => {
+        if (head.hasAttribute('aria-expanded')) head.setAttribute('aria-expanded', String(at === index))
+      })
+      panels.forEach((panel) => {
+        panel.hidden = panel.id !== `tile-detail-${String(index)}`
+      })
+    }
+    specs.forEach((spec, index) => {
+      const opens = spec.detail.length > 0
+      const node = opens ? el('button', 'tile') : el('div', 'tile')
+      const label = el('span', 'tile-label')
+      label.append(icon(ICONS[index] ?? 'house', 14), el('span', '', spec.label))
+      node.append(
+        label,
+        el('span', 'tile-qualifier', spec.qualifier ?? ''),
+        el('span', 'tile-value num', spec.value),
+      )
+      // Each secondary string is one line (saoi-api keeps them short); a break falls only between them.
+      for (const line of spec.sub) node.append(el('span', 'tile-sub num', line))
+      // The foot: the quiet lines on the left, the chevron on the right; at the tile's bottom.
+      const foot = el('span', 'tile-foot')
+      const quiet = el('span', 'tile-quiets')
+      for (const line of spec.quiet) quiet.append(el('span', 'tile-quiet num', line))
+      foot.append(quiet)
+      node.append(foot)
+      if (opens) {
+        const head = node as HTMLButtonElement
+        head.type = 'button'
+        node.setAttribute('aria-expanded', String(openTile === index))
+        node.setAttribute('aria-controls', `tile-detail-${String(index)}`)
+        const chevron = icon('chevron-down', 14)
+        chevron.classList.add('tile-chevron')
+        foot.append(chevron)
+        node.onclick = () => {
+          show(openTile === index ? null : index)
+        }
+        const panel = el('div', 'tile-detail')
+        panel.id = `tile-detail-${String(index)}`
+        panel.hidden = openTile !== index
+        for (const line of spec.detail) panel.append(el('p', 'num', line))
+        panels.push(panel)
+      }
+      heads.push(node)
+      wrap.append(node)
+    })
+    wrap.append(...panels)
+    return wrap
   }
 
   // ---- options ---------------------------------------------------------------------------------

@@ -3185,7 +3185,7 @@ export interface paths {
         put?: never;
         /**
          * What a saved comparison shows, before it is opened
-         * @description Reads a saved comparison by its link’s token without spending it, so the app can welcome the customer with it and show what Saoi keeps before anything is stored against them: the title, their figures in one line, and for a home the first three options in the order they chose. No sign-in. Same errors as the claim.
+         * @description Reads a saved comparison by its link’s token without spending it, so the app can welcome the customer with it and show what Saoi keeps before anything is stored against them: the title, their figures in one line, and for a home the first three options in the order they chose, the host card’s figures (`arrival`) and Saoirse’s first line (`opening`, which the claim writes as the first message). No sign-in. Same errors as the claim.
          */
         post: {
             parameters: {
@@ -3273,7 +3273,7 @@ export interface paths {
         put?: never;
         /**
          * Open a saved plan in this browser’s conversation
-         * @description Spends the link’s token and puts the plan in a conversation: the browser’s current one when it is still empty, otherwise a new one. Records the situation’s facts that map cleanly onto the fact catalogue (`customer_stated`) and writes `plan_saved` and `plan_claimed`, which the next turn narrates with the plan card. Opening it again in the same browser returns the same conversation (`reopened`).
+         * @description Spends the link’s token and puts the plan in a conversation: the browser’s current one when it is still empty, otherwise a new one. Records the situation’s facts that map cleanly onto the fact catalogue (`customer_stated`), writes `plan_saved` and `plan_claimed`, and writes Saoirse’s first message: the plan card with the preview’s `opening` as its text. The claim is not news for a return turn; the customer’s answer is an ordinary message turn. Opening it again in the same browser returns the same conversation (`reopened`).
          */
         post: {
             parameters: {
@@ -7440,6 +7440,28 @@ export interface components {
                         checkedOn: string;
                     }[];
                 }[];
+                arrival?: {
+                    keysOn: string | null;
+                    readyLine: string;
+                    readyNote: string | null;
+                    factParts: string[];
+                    progress: {
+                        savedEur: number;
+                        neededEur: number;
+                        monthlySavingEur: number;
+                    } | null;
+                    tiles: {
+                        label: string;
+                        value: string;
+                        lines: string[];
+                    }[];
+                    assumptions: string[];
+                    hookQuestion: {
+                        key: string;
+                        question: string;
+                        why: string;
+                    } | null;
+                };
                 createdAt: string;
                 dataCheckedAt: string;
             } | {
@@ -8485,6 +8507,28 @@ export interface components {
                             checkedOn: string;
                         }[];
                     }[];
+                    arrival?: {
+                        keysOn: string | null;
+                        readyLine: string;
+                        readyNote: string | null;
+                        factParts: string[];
+                        progress: {
+                            savedEur: number;
+                            neededEur: number;
+                            monthlySavingEur: number;
+                        } | null;
+                        tiles: {
+                            label: string;
+                            value: string;
+                            lines: string[];
+                        }[];
+                        assumptions: string[];
+                        hookQuestion: {
+                            key: string;
+                            question: string;
+                            why: string;
+                        } | null;
+                    };
                     createdAt: string;
                     dataCheckedAt: string;
                 } | {
@@ -8720,6 +8764,28 @@ export interface components {
                         }[];
                     }[];
                 };
+                arrival?: {
+                    keysOn: string | null;
+                    readyLine: string;
+                    readyNote: string | null;
+                    factParts: string[];
+                    progress: {
+                        savedEur: number;
+                        neededEur: number;
+                        monthlySavingEur: number;
+                    } | null;
+                    tiles: {
+                        label: string;
+                        value: string;
+                        lines: string[];
+                    }[];
+                    assumptions: string[];
+                    hookQuestion: {
+                        key: string;
+                        question: string;
+                        why: string;
+                    } | null;
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -8772,6 +8838,29 @@ export interface components {
                     checkedOn: string;
                 }[];
             }[];
+            arrival: {
+                keysOn: string | null;
+                readyLine: string;
+                readyNote: string | null;
+                factParts: string[];
+                progress: {
+                    savedEur: number;
+                    neededEur: number;
+                    monthlySavingEur: number;
+                } | null;
+                tiles: {
+                    label: string;
+                    value: string;
+                    lines: string[];
+                }[];
+                assumptions: string[];
+                hookQuestion: {
+                    key: string;
+                    question: string;
+                    why: string;
+                } | null;
+            } | null;
+            opening: string;
             expiresAt: string;
         };
         PreviewPlan: {
@@ -11425,7 +11514,7 @@ export interface components {
             /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
             nextQuestion: {
                 /** @enum {string} */
-                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
                 /** @description For the host to ask, in its own words. */
                 question: string;
                 /** @description What the answer changes, with the figures from the runs. */
@@ -11446,7 +11535,7 @@ export interface components {
             /** @description The rest, in order, for later replies. */
             laterQuestions: {
                 /** @enum {string} */
-                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
                 /** @description For the host to ask, in its own words. */
                 question: string;
                 /** @description What the answer changes, with the figures from the runs. */
@@ -11898,6 +11987,28 @@ export interface components {
                         }[];
                     }[];
                 };
+                arrival?: {
+                    keysOn: string | null;
+                    readyLine: string;
+                    readyNote: string | null;
+                    factParts: string[];
+                    progress: {
+                        savedEur: number;
+                        neededEur: number;
+                        monthlySavingEur: number;
+                    } | null;
+                    tiles: {
+                        label: string;
+                        value: string;
+                        lines: string[];
+                    }[];
+                    assumptions: string[];
+                    hookQuestion: {
+                        key: string;
+                        question: string;
+                        why: string;
+                    } | null;
+                };
                 /** Format: date-time */
                 createdAt: string;
                 /** Format: date-time */
@@ -12086,6 +12197,8 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
+            /** @description For a house deposit: true when two people are buying (the gross income is then joint). Changes no figure; questions are worded for both. */
+            buyingTogether?: boolean;
             /** @description For a home: the customer’s own filters and sort order. Each is a choice the customer made; the result states every filter applied. */
             homePreferences?: {
                 /** @description Who the customer banks with now, as they said it: "Bank of Ireland", "AIB". */
@@ -12214,7 +12327,7 @@ export interface components {
                 /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
                 nextQuestion: {
                     /** @enum {string} */
-                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
                     /** @description For the host to ask, in its own words. */
                     question: string;
                     /** @description What the answer changes, with the figures from the runs. */
@@ -12235,7 +12348,7 @@ export interface components {
                 /** @description The rest, in order, for later replies. */
                 laterQuestions: {
                     /** @enum {string} */
-                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal";
+                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
                     /** @description For the host to ask, in its own words. */
                     question: string;
                     /** @description What the answer changes, with the figures from the runs. */
@@ -12687,6 +12800,28 @@ export interface components {
                             }[];
                         }[];
                     };
+                    arrival?: {
+                        keysOn: string | null;
+                        readyLine: string;
+                        readyNote: string | null;
+                        factParts: string[];
+                        progress: {
+                            savedEur: number;
+                            neededEur: number;
+                            monthlySavingEur: number;
+                        } | null;
+                        tiles: {
+                            label: string;
+                            value: string;
+                            lines: string[];
+                        }[];
+                        assumptions: string[];
+                        hookQuestion: {
+                            key: string;
+                            question: string;
+                            why: string;
+                        } | null;
+                    };
                     /** Format: date-time */
                     createdAt: string;
                     /** Format: date-time */
@@ -12820,6 +12955,8 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
             taxPaidLastFourYearsEur?: number;
+            /** @description For a house deposit: true when two people are buying (the gross income is then joint). Changes no figure; questions are worded for both. */
+            buyingTogether?: boolean;
             /** @description For a home: the customer’s own filters and sort order. Each is a choice the customer made; the result states every filter applied. */
             homePreferences?: {
                 /** @description Who the customer banks with now, as they said it: "Bank of Ireland", "AIB". */

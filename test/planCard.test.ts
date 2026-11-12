@@ -64,7 +64,6 @@ describe('plan card over the protocol', () => {
       ui: {
         prefersBorder: false,
         csp: { connectDomains: [], resourceDomains: ['https://assets.claude.ai'] },
-        domain: '9235ca3f8bcb93b4fb0ef0094165a0d9.claudemcpcontent.com',
       },
     })
     expect(content?.text).toMatch(/^<!DOCTYPE html>/)
@@ -84,17 +83,16 @@ describe('plan card over the protocol', () => {
     expect(claudeUiDomain('https://mcp.saoi.ie/mcp/')).not.toBe(claudeUiDomain('https://mcp.saoi.ie/mcp'))
   })
 
-  it('sets the same ui.domain on both cards, in the listing and the read', async () => {
-    const domain = '9235ca3f8bcb93b4fb0ef0094165a0d9.claudemcpcontent.com'
+  it('sets no ui.domain on either card, so ChatGPT serves them (2026-11-12)', async () => {
     const list = (await result(await modernPost(srv.url, 'resources/list')))['resources'] as {
       uri: string
       _meta?: { ui?: { domain?: string } }
     }[]
     for (const uri of [PLAN_CARD_URI, HOME_CALCULATOR_URI]) {
-      expect(list.find((r) => r.uri === uri)?._meta?.ui?.domain, uri).toBe(domain)
+      expect(list.find((r) => r.uri === uri)?._meta?.ui?.domain, uri).toBeUndefined()
       const read = await result(await modernPost(srv.url, 'resources/read', { uri }, uri))
       const [content] = read['contents'] as { _meta?: { ui?: { domain?: string } } }[]
-      expect(content?._meta?.ui?.domain, uri).toBe(domain)
+      expect(content?._meta?.ui?.domain, uri).toBeUndefined()
     }
   })
 

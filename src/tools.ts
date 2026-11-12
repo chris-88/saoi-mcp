@@ -100,8 +100,9 @@ export const SERVER_INSTRUCTIONS = [
   '',
   'Saving the comparison:',
   '- Each plan result carries one single-use link ("Save this comparison to the Saoi app: …"), held for 24',
-  '  hours, then deleted unless opened. Nothing else is stored. Offer the customer that one link; saving is their',
-  '  choice.',
+  '  hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens',
+  '  into. Besides that link, the home calculator records one anonymous, banded row per run (no figures, no',
+  '  identifiers); nothing else is stored. Offer the customer that one link; saving is their choice.',
   '- In the app the comparison opens as a card that Saoirse (Saoi’s assistant) knows and can talk through, and signing',
   '  in with an email keeps it across devices. After sign-in the app also offers rate-change alerts and goal-date',
   '  reminders.',
@@ -122,29 +123,19 @@ const READ_ONLY: ToolAnnotations = {
 type Name = keyof typeof OPERATIONS
 
 /**
- * Phrases that tell a model to call a tool unprompted or steer it away from other tools. The
- * hand-written `when` says when a tool applies; saoi-api's text is written for its own docs.
+ * saoi-api ends most operation descriptions with the same not-advice paragraph. The server
+ * instructions carry it in full, so each tool keeps one short sentence instead (a test fails if
+ * saoi-api rewords the paragraph and it comes back).
  */
-const STEERING = [/start here/i, /without waiting/i, /as soon as/i, /searching the web/i, /is the source/i]
+export const SHARED_NOT_ADVICE =
+  'Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated.'
+const SHORT_NOT_ADVICE = 'Information, not advice; never picks a product.'
 
-/** saoi-api's summary or description without the sentences that steer (see STEERING). */
-export function neutral(text: string): string {
-  const unprefixed = text.replace(/^start here:\s*/i, '')
-  const capitalised = unprefixed.charAt(0).toUpperCase() + unprefixed.slice(1)
-  return capitalised
-    .split(/(?<=\.)\s+/)
-    .filter((sentence) => !STEERING.some((pattern) => pattern.test(sentence)))
-    .join(' ')
-}
-
+/** The hand-written `when` (when to use it, and what it is not for), then saoi-api's own text. */
 const describe = (name: Name, when: string): string => {
   const operation = OPERATIONS[name]
-  return `${when} ${neutral(operation.summary)}. ${neutral(operation.description)}`
+  return `${when} ${operation.summary}. ${operation.description.replace(SHARED_NOT_ADVICE, SHORT_NOT_ADVICE)}`
 }
-
-/** The side effect of the three tools that write, in the same words each time. */
-const DRAFT_HELD =
-  'a draft of the comparison is held for 24 hours behind a single-use link, then deleted unless opened; nothing else is stored.'
 
 const ok = (text: string, structuredContent: object): CallToolResult => ({
   content: [{ type: 'text', text }],
@@ -227,7 +218,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Money check',
       description: describe(
         'saoi_money_check',
-        `Use this when the customer asks about, or gives figures for, their own money in Ireland: money in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. Pass whatever they have said so far, however partial. It is the first plan call in a conversation. Do not use it for a later reply once a plan exists (saoi_build_plan), alongside saoi_build_plan, or once per option: pass up to three \`alternatives\` in this one call. Side effect: when a plan comes back, ${DRAFT_HELD}`,
+        'Use this when the customer asks about, or gives figures for, their own money in Ireland: money in a current account, saving for a house or anything else, a loan or credit card balance, a mortgage or switching, Help to Buy, where to put savings, whether they are paying too much. It is the first plan call in a conversation. Do not use it for a later reply once a plan exists (saoi_build_plan), alongside saoi_build_plan, or once per option (use `alternatives`).',
       ),
       inputSchema: input('saoi_money_check'),
       annotations: {
@@ -251,7 +242,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Review a money situation',
       description: describe(
         'saoi_review_situation',
-        'Use this when only the findings are wanted again after a figure changed, once saoi_money_check has run. Do not use it for the first look at the customer’s money (saoi_money_check) or for a plan (saoi_build_plan). Reads only; nothing is stored.',
+        'Use this when only the findings are wanted again after a figure changed, once saoi_money_check has run. Do not use it for the first look at the customer’s money (saoi_money_check) or for a plan (saoi_build_plan).',
       ),
       inputSchema: input('saoi_review_situation'),
       annotations: READ_ONLY,
@@ -269,7 +260,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Search and rank products',
       description: describe(
         'saoi_search_products',
-        'Use this when the customer asks to rank one category (savings, deposits, mortgages, loans, cards, current accounts) for given amounts, e.g. "the highest-paying 2-year fixed deposits for €10,000". Do not use it for a plan across the customer’s whole situation (saoi_money_check, saoi_build_plan). Reads only; nothing is stored.',
+        'Use this when the customer asks to rank one category of products for given amounts, e.g. "the highest-paying 2-year fixed deposits for €10,000". Do not use it for a plan across the customer’s whole situation (saoi_money_check, saoi_build_plan).',
       ),
       inputSchema: input('saoi_search_products'),
       annotations: READ_ONLY,
@@ -287,7 +278,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'One product in full',
       description: describe(
         'saoi_product',
-        'Use this when the customer asks about one product from a result in full: its terms, rate history, unknowns, source and the provider’s own words. Do not use it to rank products (saoi_search_products). Reads only; nothing is stored.',
+        'Use this when the customer asks about one product from a result in full. Do not use it to rank products (saoi_search_products). Reads only; nothing is stored.',
       ),
       inputSchema: fromJsonSchema<{ id: string }>({
         ...OPERATIONS.saoi_product.inputSchema,
@@ -313,7 +304,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Project savings month by month',
       description: describe(
         'saoi_savings_projection',
-        'Use this when the customer asks how named products grow month by month, or when a target is reached in them. Do not use it for a plan that weighs goals, debts and a buffer (saoi_build_plan). Reads only; nothing is stored.',
+        'Use this when the customer asks how named products grow month by month, or when a target is reached in them. Do not use it for a plan that weighs goals, debts and a buffer (saoi_build_plan).',
       ),
       inputSchema: input('saoi_savings_projection'),
       annotations: READ_ONLY,
@@ -331,7 +322,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Mortgage affordability or switch',
       description: describe(
         'saoi_mortgage',
-        'Use this when the customer asks about an existing mortgage ("is it worth switching", mode switch) or what an income and deposit allow for a home that is not their first (mode affordability). Do not use it for a first home (saoi_first_home). Send the fields of the chosen mode only. Reads only; nothing is stored.',
+        'Use this when the customer asks about an existing mortgage ("is it worth switching", mode switch) or what an income and deposit allow for a home that is not their first (mode affordability). Do not use it for a first home (saoi_first_home). Send the fields of the chosen mode only.',
       ),
       inputSchema: input('saoi_mortgage'),
       annotations: READ_ONLY,
@@ -349,7 +340,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'What debts cost',
       description: describe(
         'saoi_debt',
-        'Use this when the customer asks about their debts alone: what each costs, the payoff order, overpaying against saving, and cheaper refinancing. Do not use it for a plan that sets debts against savings goals (saoi_build_plan). Reads only; nothing is stored or arranged.',
+        'Use this when the customer asks about their debts alone. Do not use it for a plan that sets debts against savings goals (saoi_build_plan).',
       ),
       inputSchema: input('saoi_debt'),
       annotations: READ_ONLY,
@@ -367,7 +358,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'A first home: Help to Buy and the lending limits',
       description: describe(
         'saoi_first_home',
-        'Use this when the customer asks about buying a first home in Ireland or saving a deposit for one: Help to Buy, the Central Bank lending limits, what a deposit and income allow, a price, green mortgage rates; every rule comes with its source page and the date it was read. Do not use it for an existing mortgage or a home that is not their first (saoi_mortgage), or to open the interactive calculator (saoi_home_calculator). Give the kind of property, the price and tax paid when known; what is not given is shown as depending on it, never assumed. Reads only; nothing is stored.',
+        'Use this when the customer asks about buying a first home in Ireland or saving a deposit for one. Do not use it for an existing mortgage or a home that is not their first (saoi_mortgage), or to open the interactive calculator (saoi_home_calculator). Give the kind of property, the price and tax paid when known; what is not given is shown as depending on it, never assumed.',
       ),
       inputSchema: input('saoi_first_home'),
       annotations: READ_ONLY,
@@ -385,7 +376,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Home calculator: buying a home',
       description: describe(
         'saoi_home_calculator',
-        'Use this when the customer asks about buying a home. On every call, pass everything they have said so far in the conversation (all optional; `buyingTogether` when they buy with someone), so the call after they answer a question passes the gate. The card waits for four core figures: funds saved, monthly saving, income (both incomes when buying together), and a price or a date. Until they are in, it returns only the one or two questions for the next reply, each with what it moves, and no card: ask those in plain words and nothing else, with no figures. Once they are in, hosts that show cards show the calculator prefilled with it: the month the money for the keys is ready, three tiles, the other supports, and one button, "Compare all product options and supports", which opens Saoi. The card is the end of the conversation in this chat: a follow-up about it ("tell me more", "what about the other supports", "which mortgage") is answered by pointing at that button, not by another tool call or a narrative; call again only when the customer changes a figure. In a host without cards the same figures come as text, and saoi_build_plan with a house_deposit goal and `homePreferences` returns the link into Saoi. Do not use it for a single question on Help to Buy or the lending limits (saoi_first_home), for an existing mortgage (saoi_mortgage), or to answer a follow-up once the card is shown. It never picks a product. Nothing the customer sends is stored; each run is counted anonymously in bands, with no figures and no identifiers.',
+        'Use this when the customer asks about buying a home. On every call, pass everything they have said so far in the conversation (`buyingTogether` when they buy with someone), so the call after they answer a question passes the gate. While `gate.ready` is false it returns only the one or two questions for the next reply and no card: ask those in plain words and nothing else. Once it is ready, hosts that show cards show the card, whose one button, "Compare all product options and supports", opens Saoi. The card is the end of the conversation in this chat: a follow-up about it ("tell me more", "what about the other supports", "which mortgage") is answered by pointing at that button, not by another tool call or a narrative; call again only when the customer changes a figure. In a host without cards, saoi_build_plan with a house_deposit goal and `homePreferences` returns the link into Saoi. Do not use it for a single question on Help to Buy or the lending limits (saoi_first_home), for an existing mortgage (saoi_mortgage), or to answer a follow-up once the card is shown.',
       ),
       inputSchema: input('saoi_home_calculator'),
       annotations: READ_ONLY,
@@ -407,8 +398,7 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Compare the options for the customer’s goals',
       description: describe(
         'saoi_build_plan',
-        'Use this when a plan already exists in the conversation and, in a later message, the customer changes their situation or asks something new. Do not use it for the first look at the customer’s money (saoi_money_check), alongside saoi_money_check, more than once per reply, or once per option. To compare options (keeping the money accessible, the monthly amount, the date, keeping or clearing a debt), pass up to three `alternatives` in this one call; call again only when the customer changes their situation in a later message. To model keeping a debt, keep it in situation.debts with plan "keep"; never leave it out. For a home, pass `homePreferences` with the customer’s own filters (their bank and whether to stay with it, fixed or variable, green) and the sort they pick (cost over 5 years, keys date, monthly repayment): every eligible option comes back in that order, never one pick. Returns a worked combination under the stated rule with its runners-up, a link that holds the comparison for 24 hours so the customer can save it to the Saoi app (the only thing stored), the reasoning, the liquidity figures, what-ifs and Help to Buy for a home. Relay its "Present to the customer" block first. Side effect: ' +
-          DRAFT_HELD,
+        'Use this when a plan already exists in the conversation and, in a later message, the customer changes their situation or asks something new. Do not use it for the first look at the customer’s money (saoi_money_check), alongside saoi_money_check, more than once per reply, or once per option: compare options (keeping the money accessible, the monthly amount, the date, keeping or clearing a debt) through up to three `alternatives` in one call. To model keeping a debt, keep it in situation.debts with plan "keep"; never leave it out. For a home, pass `homePreferences` with the customer’s own filters and the sort they pick. Relay its "Present to the customer" block first.',
       ),
       inputSchema: input('saoi_build_plan'),
       annotations: {
@@ -433,9 +423,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       title: 'Save the plan into the Saoi app',
       description:
         'Use this when saoi_build_plan returned no save link (saveLink null). Do not use it for a plan that already ' +
-        'came back with a link. Pass `plan` exactly as it returned it; it returns the link into app.saoi.ie to give ' +
-        `the customer. Side effect: ${DRAFT_HELD} ` +
-        neutral(OPERATIONS.saoi_save_plan.description),
+        'came back with a link. Pass `plan` exactly as it returned it, and give the customer the link it returns. ' +
+        OPERATIONS.saoi_save_plan.description,
       inputSchema: input('saoi_save_plan'),
       annotations: {
         readOnlyHint: false,
@@ -510,7 +499,7 @@ export function moneyCheckUp(focus: string | undefined): string {
     '   call saoi_build_plan again only when I change something in a later message. One plan call per reply.',
     '5. The link. Give me the link that opens the plan in the Saoi app, and say what it does: the plan is held for 24',
     '   hours so I can open it in the app (a card Saoirse knows and can talk through; signing in keeps it across my devices),',
-    '   then deleted unless I open it. Nothing else is stored.',
+    '   and deleted then if I do not open it; once opened it is kept with the app conversation it opens into.',
     '',
     'Throughout: quote the tools’ figures and never work them out yourself; compare options through `alternatives`. Present',
     'results as options with their figures ("clearing the loan leaves €X more by…"), never as instructions, advice or "you should":',

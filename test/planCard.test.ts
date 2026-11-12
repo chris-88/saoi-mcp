@@ -38,6 +38,15 @@ describe('plan card over the protocol', () => {
     })
   })
 
+  it('tells the model how long a saved link is held, as saoi keeps it', () => {
+    const html = planCardHtml()
+    expect(PLAN_CARD_URI).toBe('ui://saoi/plan-card-v11.html')
+    expect(html).not.toMatch(/seven days/)
+    expect(html).toMatch(
+      /held for 24 hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens into/,
+    )
+  })
+
   it('lists and serves the card as an MCP App resource with no external origins but Claude’s fonts', async () => {
     const list = (await result(await modernPost(srv.url, 'resources/list')))['resources'] as {
       uri: string

@@ -1,0 +1,250 @@
+{
+  "description": "Golden prompts for tool selection: direct (name Saoi), indirect (an Irish customer's own money, Saoi never named) and negative (Saoi should not be called). For manual or eval runs against a host; vitest checks only the shape. expectedTools lists the first call a host should make; an empty list means no Saoi tool.",
+  "prompts": [
+    {
+      "id": "direct-01",
+      "kind": "direct",
+      "prompt": "Use Saoi to check my money. I've €14,000 sitting in my AIB current account and I put away €400 a month.",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Idle money in a current account: the first plan call."
+    },
+    {
+      "id": "direct-02",
+      "kind": "direct",
+      "prompt": "Can Saoi rank the best 1-year fixed term deposits for €20,000?",
+      "expectedTools": ["saoi_search_products"],
+      "note": "One category ranked for an amount."
+    },
+    {
+      "id": "direct-03",
+      "kind": "direct",
+      "prompt": "Ask Saoi what Help to Buy I'd get on a €380,000 new build. I've paid about €42,000 in income tax over the last four years.",
+      "expectedTools": ["saoi_first_home"],
+      "note": "A single Help to Buy question for a first home."
+    },
+    {
+      "id": "direct-04",
+      "kind": "direct",
+      "prompt": "Open the Saoi home calculator. Myself and my partner earn €58,000 and €46,000, we've €32,000 saved and we're looking at houses around €420,000.",
+      "expectedTools": ["saoi_home_calculator"],
+      "note": "Buying a home, with figures given."
+    },
+    {
+      "id": "direct-05",
+      "kind": "direct",
+      "prompt": "With Saoi, is it worth switching my mortgage? €240,000 left with Bank of Ireland at 4.15% variable, 24 years to go.",
+      "expectedTools": ["saoi_mortgage"],
+      "note": "Existing mortgage, mode switch."
+    },
+    {
+      "id": "direct-06",
+      "kind": "direct",
+      "prompt": "Saoi, what's my car loan costing me? €11,500 left at 8.9%, €310 a month, and a credit card with €2,300 on it at 22.5%.",
+      "expectedTools": ["saoi_debt"],
+      "note": "Debts alone, no savings goal."
+    },
+    {
+      "id": "direct-07",
+      "kind": "direct",
+      "prompt": "Get Saoi to project €300 a month into the Bank of Ireland Supersaver for two years.",
+      "expectedTools": ["saoi_savings_projection"],
+      "note": "A named product month by month."
+    },
+    {
+      "id": "direct-08",
+      "kind": "direct",
+      "prompt": "Show me everything Saoi has on the PTSB 3 year fixed term account: rate history, the small print.",
+      "expectedTools": ["saoi_search_products", "saoi_product"],
+      "note": "Needs the product id first (search), then the product in full; saoi_product alone if an id is already in the conversation."
+    },
+    {
+      "id": "direct-09",
+      "kind": "direct",
+      "prompt": "Run a money check-up with Saoi. I take home €3,100 a month, rent is €1,450, I've €9,000 in a demand account at 0.5% and a credit union loan of €6,000.",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Whole situation, first call in the conversation."
+    },
+    {
+      "id": "direct-10",
+      "kind": "direct",
+      "prompt": "Saoi, I'm saving for a house deposit of €40,000 by June 2028. I've €18,000 now and can save €700 a month. Where would it grow most?",
+      "expectedTools": ["saoi_money_check"],
+      "note": "A goal with a date: money check first; saoi_build_plan only once a plan exists."
+    },
+    {
+      "id": "direct-11",
+      "kind": "direct",
+      "prompt": "What are the Central Bank lending limits for a first-time buyer? Check with Saoi please.",
+      "expectedTools": ["saoi_first_home"],
+      "note": "Lending limits for a first home, with sources and dates."
+    },
+    {
+      "id": "direct-12",
+      "kind": "direct",
+      "prompt": "Can Saoi compare current accounts for me? I keep about €2,500 in mine and hate paying fees.",
+      "expectedTools": ["saoi_search_products"],
+      "note": "Current accounts ranked."
+    },
+    {
+      "id": "indirect-01",
+      "kind": "indirect",
+      "prompt": "I've about €25,000 doing nothing in my Revolut and AIB accounts. Where would I get the best interest on it in Ireland?",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Own money, where to put savings."
+    },
+    {
+      "id": "indirect-02",
+      "kind": "indirect",
+      "prompt": "Myself and my girlfriend are trying to buy our first place in Cork. We've €27,000 saved between us and earn about €95,000 together. How much could we borrow?",
+      "expectedTools": ["saoi_home_calculator"],
+      "note": "Buying a home; the calculator first."
+    },
+    {
+      "id": "indirect-03",
+      "kind": "indirect",
+      "prompt": "My fixed rate with AIB ends in March. I owe €195,000 with 21 years left. Should I be looking at switching to another bank?",
+      "expectedTools": ["saoi_mortgage"],
+      "note": "Existing mortgage switch; the answer is a comparison, not a recommendation."
+    },
+    {
+      "id": "indirect-04",
+      "kind": "indirect",
+      "prompt": "Am I mad keeping €12,000 in savings while I've a €7,000 car loan at 9.5%?",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Savings against debt across the whole situation; alternatives keep and clear the loan in one call."
+    },
+    {
+      "id": "indirect-05",
+      "kind": "indirect",
+      "prompt": "Who's paying the best rate on a regular saver at the moment? I could put in €500 a month.",
+      "expectedTools": ["saoi_search_products"],
+      "note": "One category ranked for a monthly amount."
+    },
+    {
+      "id": "indirect-06",
+      "kind": "indirect",
+      "prompt": "Would I qualify for Help to Buy on a second-hand house for €310,000?",
+      "expectedTools": ["saoi_first_home"],
+      "note": "Help to Buy is new builds only; the tool says so with its source."
+    },
+    {
+      "id": "indirect-07",
+      "kind": "indirect",
+      "prompt": "I've three debts: a credit card at €3,800 on 22%, a personal loan of €9,200 at 10.4% and €1,500 on a Buy Now Pay Later. Which should I pay off first?",
+      "expectedTools": ["saoi_debt"],
+      "note": "Payoff order for debts alone."
+    },
+    {
+      "id": "indirect-08",
+      "kind": "indirect",
+      "prompt": "If I put €15,000 in a 2 year fixed with Bank of Ireland, what would I have at the end after DIRT?",
+      "expectedTools": ["saoi_savings_projection"],
+      "note": "A named product projected, net of DIRT; may need saoi_search_products first for the product id."
+    },
+    {
+      "id": "indirect-09",
+      "kind": "indirect",
+      "prompt": "We're renting in Dublin for €2,100 a month and want to buy in the next two years. We've €40,000 saved and put by €1,200 a month. Is a €450,000 house realistic?",
+      "expectedTools": ["saoi_home_calculator"],
+      "note": "Buying a home with a price, savings and a date."
+    },
+    {
+      "id": "indirect-10",
+      "kind": "indirect",
+      "prompt": "Are my savings safe if the bank goes bust? I've €110,000 spread over PTSB and Bank of Ireland.",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Deposit guarantees on the customer's own savings; the result shows each guarantee and the €100,000 per provider limit."
+    },
+    {
+      "id": "indirect-11",
+      "kind": "indirect",
+      "prompt": "I'm 29, earn €52,000, saving €600 a month in a credit union account. What's the max mortgage I could get on my own?",
+      "expectedTools": ["saoi_home_calculator"],
+      "note": "Buying a home on one income; saoi_first_home also fits if the host has no cards."
+    },
+    {
+      "id": "indirect-12",
+      "kind": "indirect",
+      "prompt": "What's the cheapest personal loan out there for €15,000 over five years?",
+      "expectedTools": ["saoi_search_products"],
+      "note": "Loans ranked by total cost for an amount and term."
+    },
+    {
+      "id": "indirect-13",
+      "kind": "indirect",
+      "prompt": "Is the 3.5 times income limit still a thing for first-time buyers here or has it changed?",
+      "expectedTools": ["saoi_first_home"],
+      "note": "Central Bank limits for a first home, with the date they were read."
+    },
+    {
+      "id": "indirect-14",
+      "kind": "indirect",
+      "prompt": "I've €8,000 in An Post savings and I'm paying off a €4,000 credit card at 19%. Want to have €10,000 for a wedding by next September.",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Savings, a card balance and a goal with a date."
+    },
+    {
+      "id": "indirect-15",
+      "kind": "indirect",
+      "prompt": "Is it worth moving my €40,000 from a demand account at 1% into a notice account? I won't need it for a year.",
+      "expectedTools": ["saoi_money_check"],
+      "note": "Own money, access against rate; search_products alone also acceptable for a single category."
+    },
+    {
+      "id": "negative-01",
+      "kind": "negative",
+      "prompt": "What's a good 30-year fixed mortgage rate in Texas right now?",
+      "expectedTools": [],
+      "note": "US mortgage; Saoi covers Irish products only."
+    },
+    {
+      "id": "negative-02",
+      "kind": "negative",
+      "prompt": "Should I max out my Stocks and Shares ISA before April?",
+      "expectedTools": [],
+      "note": "UK ISA."
+    },
+    {
+      "id": "negative-03",
+      "kind": "negative",
+      "prompt": "Which three tech stocks should I buy this year?",
+      "expectedTools": [],
+      "note": "Stock picks; Saoi compares deposit, savings, mortgage, loan, card and current account products."
+    },
+    {
+      "id": "negative-04",
+      "kind": "negative",
+      "prompt": "Is now a good time to buy Bitcoin or should I wait for the dip?",
+      "expectedTools": [],
+      "note": "Crypto."
+    },
+    {
+      "id": "negative-05",
+      "kind": "negative",
+      "prompt": "How do I file my Form 11 on ROS for last year?",
+      "expectedTools": [],
+      "note": "Tax return filing."
+    },
+    {
+      "id": "negative-06",
+      "kind": "negative",
+      "prompt": "Who has the cheapest car insurance for a 24-year-old in Galway?",
+      "expectedTools": [],
+      "note": "Insurance is not a Saoi product category."
+    },
+    {
+      "id": "negative-07",
+      "kind": "negative",
+      "prompt": "Give me some tips for sticking to a budget, I keep overspending on takeaways.",
+      "expectedTools": [],
+      "note": "General budgeting chat with no Irish product angle."
+    },
+    {
+      "id": "negative-08",
+      "kind": "negative",
+      "prompt": "Send €200 to my brother's Revolut and move €1,000 from my current account into savings.",
+      "expectedTools": [],
+      "note": "Moving money or making a payment; Saoi arranges nothing."
+    }
+  ]
+}

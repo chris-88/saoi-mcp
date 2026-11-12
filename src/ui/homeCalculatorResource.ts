@@ -18,7 +18,7 @@ import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.j
  *
  * Bump the version in the URI when the card changes in a way a cached copy would get wrong.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v9.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v10.html'
 
 export const HOME_CALCULATOR_TOOL_META = {
   ui: { resourceUri: HOME_CALCULATOR_URI },

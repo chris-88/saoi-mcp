@@ -727,6 +727,18 @@ describe('home calculator card: the way back in (2026-11-14)', () => {
     expect(card.calls).toHaveLength(0)
   })
 
+  it('Edit in the header opens the folded plan in its editing state', async () => {
+    const first = open(recorded.homeCalculatorSecondHand, responses)
+    openButton(first).click()
+    await first.settle()
+    const card = rerender(first)
+    card.byText('Edit')?.click()
+    const fold = card.doc.querySelector('#plan-fold') as unknown as HTMLElement
+    expect(fold.hidden).toBe(false)
+    expect(fold.querySelector('#in-depositSavedEur')).not.toBeNull()
+    expect(card.byText('Show the plan')?.getAttribute('aria-expanded')).toBe('true')
+  })
+
   it('a card for other figures does not take another card’s link', async () => {
     const first = open(recorded.homeCalculatorSecondHand, responses)
     openButton(first).click()

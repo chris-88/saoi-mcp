@@ -1078,6 +1078,8 @@ export function homeCalculatorApp(
       const edit = button('btn-outline with-icon', 'Edit', () => {
         editing = true
         openControl = null
+        // Under Continue in Saoi the plan is folded: editing it opens it.
+        planShown = true
         draw()
       })
       edit.prepend(icon('pencil', 14))

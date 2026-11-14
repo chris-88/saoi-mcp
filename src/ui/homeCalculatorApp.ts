@@ -1139,11 +1139,16 @@ export function homeCalculatorApp(
       go,
       el('p', 'small muted', 'Back to Saoirse with everything as you left it.'),
     )
-    const toggle = button('plan-toggle', 'Show the plan', () => {
+    const label = el('span', '', planShown ? 'Hide the plan' : 'Show the plan')
+    const chevron = icon('chevron-down', 16)
+    chevron.classList.add('plan-chevron')
+    const toggle = button('plan-toggle', '', () => {
       planShown = !planShown
       body.hidden = !planShown
+      label.textContent = planShown ? 'Hide the plan' : 'Show the plan'
       toggle.setAttribute('aria-expanded', String(planShown))
     })
+    toggle.append(label, chevron)
     toggle.setAttribute('aria-expanded', String(planShown))
     toggle.setAttribute('aria-controls', body.id)
     root.append(back, toggle, body)

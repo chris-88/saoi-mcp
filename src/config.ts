@@ -1,4 +1,7 @@
-/** Runtime configuration, read once from the environment. No secrets: saoi-api's routes are public. */
+/**
+ * Runtime configuration, read once from the environment. One secret: saoi-api's internal key, for
+ * the AI usage record (`TELEMETRY_KEY`); the comparison routes are public.
+ */
 export interface Config {
   readonly port: number
   readonly saoiApiUrl: string
@@ -10,6 +13,13 @@ export interface Config {
   readonly publicUrl: string
   /** OpenAI's domain verification token, served at `/.well-known/openai-apps-challenge` when set. */
   readonly openaiAppsChallenge: string | undefined
+  /**
+   * saoi-api's `INTERNAL_JOB_KEY`, sent with each AI usage event to `POST /api/telemetry/mcp`.
+   * Unset: nothing is recorded.
+   */
+  readonly telemetryKey: string | undefined
+  /** Salt for the session key's hash. Falls back to the telemetry key. */
+  readonly telemetrySalt: string | undefined
 }
 
 export const DEFAULT_PUBLIC_URL = 'https://mcp.saoi.ie/mcp'
@@ -59,5 +69,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     keepAliveMs: Number(env['KEEPALIVE_MS'] ?? 25_000),
     publicUrl: url(optional(env['PUBLIC_URL']) ?? DEFAULT_PUBLIC_URL),
     openaiAppsChallenge: optional(env['OPENAI_APPS_CHALLENGE']),
+    telemetryKey: optional(env['TELEMETRY_KEY']),
+    telemetrySalt: optional(env['TELEMETRY_SALT']),
   }
 }

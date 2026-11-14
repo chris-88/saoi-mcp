@@ -25,14 +25,16 @@ describe('SaoiClient', () => {
     expect(init?.headers).not.toHaveProperty('X-Forwarded-For')
   })
 
-  it('marks a saved plan as from the MCP', async () => {
+  it('marks a saved plan with the assistant that saved it, other when unknown', async () => {
     const fetchMock = respond(201, { claimUrl: 'x', expiresAt: 'y' })
     const client = new SaoiClient({ apiUrl: 'http://api', timeoutMs: 1000, fetch: fetchMock })
+    await client.savePlan({ plan: { version: 1 } }, undefined, 'claude')
     await client.savePlan({ plan: { version: 1 } })
-    expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toEqual({
-      plan: { version: 1 },
-      client: 'mcp',
-    })
+    const bodies = fetchMock.mock.calls.map((args) => JSON.parse(args[1]?.body as string) as unknown)
+    expect(bodies).toEqual([
+      { plan: { version: 1 }, client: 'claude' },
+      { plan: { version: 1 }, client: 'other' },
+    ])
   })
 
   it('turns a refusal into a SaoiError carrying its message, details and Retry-After', async () => {

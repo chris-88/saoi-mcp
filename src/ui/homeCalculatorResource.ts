@@ -4,6 +4,7 @@ import { homeCalculatorApp } from './homeCalculatorApp.js'
 import { homeCalculatorModel } from './homeCalculatorModel.js'
 import { cardIcons } from './icons.js'
 import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.js'
+import { NO_TELEMETRY, type CallTelemetry } from '../telemetry.js'
 
 /**
  * The home calculator card (decision 2026-11-10: Saoi compares; the customer sets the filters):
@@ -199,11 +200,12 @@ export function homeCalculatorHtml(): string {
 
 let html: string | undefined
 
-export function registerHomeCalculatorCard(server: McpServer): void {
+export function registerHomeCalculatorCard(server: McpServer, telemetry: CallTelemetry = NO_TELEMETRY): void {
   html ??= homeCalculatorHtml()
   const text = html
   const meta = cardResourceMeta()
-  const serve = (uri: { href: string }) => {
+  const serve = (uri: { href: string }, ctx?: unknown) => {
+    telemetry.record({ kind: 'resource', name: uri.href, outcome: 'ok', ms: 0, ctx })
     // Which card a host fetches, and when: no customer data (2026-11-12, the ChatGPT blank frame).
     console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
     return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }

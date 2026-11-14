@@ -53,7 +53,8 @@ export interface SaoiApi {
   firstHome(body: Body, ip?: string): Promise<FirstHomeResult>
   moneyCheck(body: Body, ip?: string): Promise<MoneyCheckResult>
   homeCalculator(body: Body, ip?: string): Promise<HomeCalculatorResult>
-  savePlan(body: Body, ip?: string): Promise<SavePlanResult>
+  /** `client` names the assistant (`claude`, `chatgpt`, …), kept on the saved plan. */
+  savePlan(body: Body, ip?: string, client?: string): Promise<SavePlanResult>
 }
 
 export interface SaoiClientOptions {
@@ -107,8 +108,8 @@ export class SaoiClient implements SaoiApi {
   homeCalculator(body: Body, ip?: string) {
     return this.call<HomeCalculatorResult>('POST', '/api/calc/home', body, ip)
   }
-  savePlan(body: Body, ip?: string) {
-    return this.call<SavePlanResult>('POST', '/api/plans', { ...body, client: 'mcp' }, ip)
+  savePlan(body: Body, ip?: string, client = 'other') {
+    return this.call<SavePlanResult>('POST', '/api/plans', { ...body, client }, ip)
   }
 
   private async call<T>(

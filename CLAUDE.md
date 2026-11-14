@@ -26,13 +26,13 @@ Keep the surface lean (no speculative features or dependencies); keep the floor 
 ## Rules
 
 - TypeScript `strict`, `noUncheckedIndexedAccess`, no `any`, no `@ts-ignore` without a reason.
-- Stateless: no sessions, no in-memory state. Nothing about a customer is stored until `saoi_save_plan`.
+- Stateless: no sessions, no in-memory state. Nothing about a customer is stored until `saoi_save_plan`, except the AI usage record (`src/telemetry.ts`): one event per call to saoi-api, figures only as bands, the address only inside a salted hash.
 - A host keeps a connector's tool list until the customer refreshes it, and this stateless server cannot push a change: tool names never change, input schemas only gain optional fields, resources keep their URIs (decision 2026-11-12-saoi-updates-reach-installed-clients).
 - A card's address (`ui://saoi/...-vN.html`) is never retired. Bump N when a cached copy would be wrong, add the old address to the card's previous-addresses list, and keep serving it: ChatGPT holds a connector's tool list until the customer refreshes it, and a retired address shows as an empty frame (2026-11-12).
 - Forward the end user's address (`CF-Connecting-IP`) to saoi-api as `X-Forwarded-For`: its rate limits are per address.
 - Serve both protocol eras (2026-07-28 and legacy `initialize`) via `createMcpHandler`; do not hand-roll JSON-RPC.
 - Keep Origin and Host validation on every request. `X-Accel-Buffering: no` on `/mcp`.
-- No secrets: the routes are public. If one is ever needed, it comes from env rendered by infra, never from files in this repo.
+- One secret, `TELEMETRY_KEY` (saoi-api's `INTERNAL_JOB_KEY`, for the AI usage record, 2026-11-14), from env rendered by infra (`~/code/infra/stacks/mcp/render-env.sh`), never from files in this repo. The comparison routes are public.
 - Auth is deliberately absent for now (public tools). Adding OAuth means protected resource metadata at `/.well-known/oauth-protected-resource` and bearer validation; discuss first.
 
 ## Deploy

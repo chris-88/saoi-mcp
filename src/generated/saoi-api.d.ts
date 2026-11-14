@@ -1439,6 +1439,299 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/cases/{caseId}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The claimed plan, as the profile shows it
+         * @description The newest plan claimed into the case: the figures the profile can change in place, where it stands (the keys month, the cash needed, saved now and the progress line over the holdings), and its first three options in the customer’s order. Facts, never a pick. Primary customer only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The plan. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CasePlan"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, or it has no claimed plan. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change a figure in the plan
+         * @description Changes one or more of the editable figures (a month not in the past; a price and a monthly saving above 0) and rebuilds the plan on them: the comparison re-runs on the new figures and the arrival, hook question included, is worked out again, on the filters and sort the plan was built with. Date reminders that came from the plan’s dates move with them. Writes `plan_edited`; the next return turn opens with `reading`, what changed and which options now fit. A body that changes nothing returns the plan as it is.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CasePlanEdit"];
+                };
+            };
+            responses: {
+                /** @description The rebuilt plan, and what the change does. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CasePlanEdited"];
+                    };
+                };
+                /** @description The body is not valid: a month passed, a figure not above 0, no figure. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, or it has no claimed plan. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/cases/{caseId}/plan/choices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Choose a product for a part of the plan
+         * @description The customer chose a product on a card for one part of the claimed plan: the sum held (`lump_sum`), the monthly saving (`monthly_saving`) or the mortgage (`mortgage`). Only the row id is sent; its key facts are rebuilt from the market (a products row, a comparison column, or for the mortgage one of the plan’s comparison options). Replaces any earlier choice for that part. A rate or term with an end keeps a reminder dated to it. Writes `product_chosen`; the next return turn says it and asks the next open part’s question. Choosing the row already chosen changes nothing.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CasePlanChoice"];
+                };
+            };
+            responses: {
+                /** @description The plan, with its choices. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CasePlan"];
+                    };
+                };
+                /** @description The body is not valid (an unknown part, a malformed row id), or the product is not the kind that part takes: a mortgage for a savings part, a fixed term for the monthly saving. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, it has no claimed plan, or the row is on no card it can show. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{caseId}/plan/choices/{slot}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Take a choice off the plan
+         * @description Opens that part of the plan again and removes the reminder kept for the choice. Writes `product_choice_removed`. A part that is already open changes nothing.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    caseId: string;
+                    /** @description `lump_sum`: the sum held. `monthly_saving`: the monthly saving. `mortgage`: the mortgage. */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The plan, with its choices. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CasePlan"];
+                    };
+                };
+                /** @description Not one of the parts of a plan. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description No such case for this caller, or it has no claimed plan. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cases/{caseId}/products/select": {
         parameters: {
             query?: never;
@@ -4436,6 +4729,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/ai-usage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * AI usage over a period
+         * @description Calls to the Saoi MCP server by assistant (claude, chatgpt, gemini, cursor, other) over the period, with the window before it: the link funnel from a call to a product chosen in the app, calls a day, the tools, what the home calculator’s gate held back, the unrecognised user agents and the recent calls, fifty a page (`cursor` from `nextCursor` for the next).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description The window to count over. */
+                    period?: "7d" | "30d" | "90d" | "all";
+                    /** @description The `nextCursor` of the page before, for the recent calls. */
+                    cursor?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The AI usage. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminAiUsage"];
+                    };
+                };
+                /** @description The query is not valid, or the cursor is not one this route gave out. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Not an administrator. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/admin/cases/reset": {
         parameters: {
             query?: never;
@@ -7079,6 +7452,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/admin/market/views": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * One entry per market product, as the comparison engine folds the rows
+         * @description The engine’s normalised views over every current row, both sources and every provider (Raisin’s platform banks included): a bank-direct row and its CCPC twin are one view, CCPC’s one-row-per-term deposits one ladder. Each view carries its readable provider name, category label, headline, term, rate lines, conditions, unknowns, freshness and the rows it was built from. Withdrawn products are not listed.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The market views. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminMarketViews"];
+                    };
+                };
+                /** @description Missing or invalid token. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Not an administrator. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+                /** @description Too many requests. See `Retry-After`. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -7415,6 +7854,9 @@ export interface components {
                         keys: string | null;
                         confirmed: boolean;
                         lead?: string;
+                        rowId?: string;
+                        /** @enum {string} */
+                        chosen?: "lump_sum" | "monthly_saving" | "mortgage";
                     }[];
                 };
                 /** @default [] */
@@ -7452,7 +7894,12 @@ export interface components {
                     } | null;
                     tiles: {
                         label: string;
+                        qualifier: string | null;
                         value: string;
+                        sub: string[];
+                        quiet: string[];
+                        detail: string[];
+                        /** @default [] */
                         lines: string[];
                     }[];
                     assumptions: string[];
@@ -7462,8 +7909,128 @@ export interface components {
                         why: string;
                     } | null;
                 };
+                choices?: {
+                    lump_sum: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                    } | null;
+                    monthly_saving: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                    } | null;
+                    mortgage: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                    } | null;
+                };
                 createdAt: string;
                 dataCheckedAt: string;
+            } | {
+                /** @enum {string} */
+                type: "market_products";
+                question: string;
+                arrangement: {
+                    /** @enum {string} */
+                    kind: "held_vs_market" | "by_access" | "fits_date" | "mortgage_by_sort";
+                    title: string;
+                    line: string;
+                    groups?: {
+                        label: string;
+                        rowIds: string[];
+                    }[];
+                };
+                rows: {
+                    id: string;
+                    lead: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    note: string | null;
+                    held: boolean;
+                    confirmed: boolean;
+                    providerId?: string;
+                    brand?: {
+                        bg: string;
+                        /** @enum {string} */
+                        fg: "#fff" | "#000";
+                    } | null;
+                    detail?: string[];
+                    mustKnow?: string[];
+                    /** @enum {string} */
+                    chosen?: "lump_sum" | "monthly_saving" | "mortgage";
+                }[];
+                more: number;
+                basis: {
+                    figures: string[];
+                    objective: string;
+                    assumptions: string[];
+                    coverage: string;
+                    warnings: string[];
+                };
+                statement: string;
+            } | {
+                /** @enum {string} */
+                type: "product_comparison";
+                title: string;
+                columns: {
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    brand?: {
+                        bg: string;
+                        /** @enum {string} */
+                        fg: "#fff" | "#000";
+                    } | null;
+                    kind: string;
+                    /** @enum {string} */
+                    chosen?: "lump_sum" | "monthly_saving" | "mortgage";
+                }[];
+                rows: {
+                    label: string;
+                    values: string[];
+                    differs: boolean;
+                }[];
+                differences: string[];
+                decides: string;
+                mustKnow: {
+                    rowId: string;
+                    facts: string[];
+                    detail?: string[];
+                }[];
+                basis: {
+                    figures: string[];
+                    assumptions: string[];
+                    coverage: string;
+                    warnings: string[];
+                };
+                statement: string;
             } | {
                 /** @enum {string} */
                 type: "connect_accounts";
@@ -7696,6 +8263,10 @@ export interface components {
             trigger: "message" | "opening" | "return" | "action";
             message?: string;
             note?: string;
+            selection?: {
+                rowId: string;
+                lead: string;
+            }[];
         };
         /** @description What the case is being told about: alerts and the dates behind reminders. */
         CaseAlerts: {
@@ -8011,6 +8582,219 @@ export interface components {
             productId?: string | null;
             /** @description The day the balance was true. Default when the balance changes: today (Europe/Dublin). */
             notedOn?: string;
+        };
+        /** @description The claimed plan, as the profile shows it. */
+        CasePlan: {
+            /** @description The claimed plan. */
+            planId: string;
+            title: string;
+            /** @description The figures the profile can change in place. */
+            editable: {
+                /** @description The month the leading goal is for (the keys, for a home), YYYY-MM. Null: none. */
+                targetDate: string | null;
+                /** @description The price the home comparison uses: the one given, else the one it worked out. Held when another figure changes. Null: not a home plan. */
+                homePrice: number | null;
+                /** @description What they put aside each month. */
+                monthlySaving: number | null;
+                /**
+                 * @description The kind of home, as they said it. Null: not given (second-hand is assumed).
+                 * @enum {string|null}
+                 */
+                propertyKind: "new_build" | "self_build" | "second_hand" | null;
+                /** @description As they said it. Null: not given (a first-time buyer is assumed). */
+                firstTimeBuyer: boolean | null;
+                /** @description Two people buying. Null: not given. Changes no figure; questions are worded for both. */
+                buyingTogether: boolean | null;
+            };
+            /** @description Where the plan stands. */
+            summary: {
+                /** @description The month the card names for the keys, YYYY-MM. Null: not reached, or not a home plan. */
+                keysOn: string | null;
+                /** @description The cash needed at the keys: deposit, stamp duty, fees, less Help to Buy counted. */
+                neededAtKeysEur: number | null;
+                /** @description Saved now: the holdings’ accounts, else the plan’s own savings. */
+                savedEur: number | null;
+                /** @description Where the holdings leave the plan, one factual line (`planProgress`). */
+                progressLine: string | null;
+            };
+            /** @description The plan’s first three options in the customer’s order. Never a pick. */
+            watched: {
+                /** @description For a mortgage option: its row id, to choose it with `POST …/plan/choices` (slot `mortgage`). */
+                rowId?: string;
+                /** @description The lender, or the provider for a savings plan. */
+                lead: string;
+                /** @description "3-year fixed", "variable", or the product’s part in the plan. */
+                kind: string;
+                /** @description The rate: "3.45%". */
+                value: string;
+                /** @description The figure the options are sorted by ("€1,751/mo"), or the amounts placed. */
+                figure: string;
+            }[];
+            /** @description The products chosen for each part of the plan. */
+            choices: {
+                /** @description The account for the sum held. Null: open. */
+                lump_sum: {
+                    /** @enum {string} */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    /** Format: date-time */
+                    chosenAt: string;
+                    endsOn?: string;
+                } | null;
+                /** @description The account for the monthly saving. Null: open. */
+                monthly_saving: {
+                    /** @enum {string} */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    /** Format: date-time */
+                    chosenAt: string;
+                    endsOn?: string;
+                } | null;
+                /** @description The mortgage option. Null: open. */
+                mortgage: {
+                    /** @enum {string} */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    /** Format: date-time */
+                    chosenAt: string;
+                    endsOn?: string;
+                } | null;
+            };
+            /** @description When the plan last changed: its last edit or choice, else when it was made. */
+            updatedAt: string;
+        };
+        /** @description The rebuilt plan, and what the change does. */
+        CasePlanEdited: {
+            /** @description The claimed plan. */
+            planId: string;
+            title: string;
+            /** @description The figures the profile can change in place. */
+            editable: {
+                /** @description The month the leading goal is for (the keys, for a home), YYYY-MM. Null: none. */
+                targetDate: string | null;
+                /** @description The price the home comparison uses: the one given, else the one it worked out. Held when another figure changes. Null: not a home plan. */
+                homePrice: number | null;
+                /** @description What they put aside each month. */
+                monthlySaving: number | null;
+                /**
+                 * @description The kind of home, as they said it. Null: not given (second-hand is assumed).
+                 * @enum {string|null}
+                 */
+                propertyKind: "new_build" | "self_build" | "second_hand" | null;
+                /** @description As they said it. Null: not given (a first-time buyer is assumed). */
+                firstTimeBuyer: boolean | null;
+                /** @description Two people buying. Null: not given. Changes no figure; questions are worded for both. */
+                buyingTogether: boolean | null;
+            };
+            /** @description Where the plan stands. */
+            summary: {
+                /** @description The month the card names for the keys, YYYY-MM. Null: not reached, or not a home plan. */
+                keysOn: string | null;
+                /** @description The cash needed at the keys: deposit, stamp duty, fees, less Help to Buy counted. */
+                neededAtKeysEur: number | null;
+                /** @description Saved now: the holdings’ accounts, else the plan’s own savings. */
+                savedEur: number | null;
+                /** @description Where the holdings leave the plan, one factual line (`planProgress`). */
+                progressLine: string | null;
+            };
+            /** @description The plan’s first three options in the customer’s order. Never a pick. */
+            watched: {
+                /** @description For a mortgage option: its row id, to choose it with `POST …/plan/choices` (slot `mortgage`). */
+                rowId?: string;
+                /** @description The lender, or the provider for a savings plan. */
+                lead: string;
+                /** @description "3-year fixed", "variable", or the product’s part in the plan. */
+                kind: string;
+                /** @description The rate: "3.45%". */
+                value: string;
+                /** @description The figure the options are sorted by ("€1,751/mo"), or the amounts placed. */
+                figure: string;
+            }[];
+            /** @description The products chosen for each part of the plan. */
+            choices: {
+                /** @description The account for the sum held. Null: open. */
+                lump_sum: {
+                    /** @enum {string} */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    /** Format: date-time */
+                    chosenAt: string;
+                    endsOn?: string;
+                } | null;
+                /** @description The account for the monthly saving. Null: open. */
+                monthly_saving: {
+                    /** @enum {string} */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    /** Format: date-time */
+                    chosenAt: string;
+                    endsOn?: string;
+                } | null;
+                /** @description The mortgage option. Null: open. */
+                mortgage: {
+                    /** @enum {string} */
+                    slot: "lump_sum" | "monthly_saving" | "mortgage";
+                    rowId: string;
+                    lead: string;
+                    providerId?: string;
+                    kind: string;
+                    value: string;
+                    figure: string;
+                    /** Format: date-time */
+                    chosenAt: string;
+                    endsOn?: string;
+                } | null;
+            };
+            /** @description When the plan last changed: its last edit or choice, else when it was made. */
+            updatedAt: string;
+            /** @description What changed and which options now fit, in their figures: one or two sentences of fact, never "better" and never a pick. The conversation opens with it. */
+            reading: string;
+        };
+        /** @description The figures to change; the rest stay as they are. */
+        CasePlanEdit: {
+            /** @description YYYY-MM, this month or later. */
+            targetDate?: string;
+            homePrice?: number;
+            monthlySaving?: number;
+            /** @enum {string} */
+            propertyKind?: "new_build" | "self_build" | "second_hand";
+            firstTimeBuyer?: boolean;
+            buyingTogether?: boolean;
+        };
+        /** @description A product the customer chose on a card for one part of the plan. Only the row id is sent: its figures are rebuilt from the market. */
+        CasePlanChoice: {
+            /**
+             * @description `lump_sum`: the sum held. `monthly_saving`: the monthly saving. `mortgage`: the mortgage.
+             * @enum {string}
+             */
+            slot: "lump_sum" | "monthly_saving" | "mortgage";
+            /** @description The row id the card carried: a products row’s `id` (`bunq:savings.bunq_savings`, a ladder rung’s, `held:<n>`), a comparison column’s `rowId`, or a mortgage option’s `rowId`. */
+            rowId: string;
         };
         CaseActionResult: {
             applications: {
@@ -8482,6 +9266,9 @@ export interface components {
                             keys: string | null;
                             confirmed: boolean;
                             lead?: string;
+                            rowId?: string;
+                            /** @enum {string} */
+                            chosen?: "lump_sum" | "monthly_saving" | "mortgage";
                         }[];
                     };
                     /** @default [] */
@@ -8519,7 +9306,12 @@ export interface components {
                         } | null;
                         tiles: {
                             label: string;
+                            qualifier: string | null;
                             value: string;
+                            sub: string[];
+                            quiet: string[];
+                            detail: string[];
+                            /** @default [] */
                             lines: string[];
                         }[];
                         assumptions: string[];
@@ -8529,8 +9321,128 @@ export interface components {
                             why: string;
                         } | null;
                     };
+                    choices?: {
+                        lump_sum: {
+                            /** @enum {string} */
+                            slot: "lump_sum" | "monthly_saving" | "mortgage";
+                            rowId: string;
+                            lead: string;
+                            providerId?: string;
+                            kind: string;
+                            value: string;
+                            figure: string;
+                            /** Format: date-time */
+                            chosenAt: string;
+                            endsOn?: string;
+                        } | null;
+                        monthly_saving: {
+                            /** @enum {string} */
+                            slot: "lump_sum" | "monthly_saving" | "mortgage";
+                            rowId: string;
+                            lead: string;
+                            providerId?: string;
+                            kind: string;
+                            value: string;
+                            figure: string;
+                            /** Format: date-time */
+                            chosenAt: string;
+                            endsOn?: string;
+                        } | null;
+                        mortgage: {
+                            /** @enum {string} */
+                            slot: "lump_sum" | "monthly_saving" | "mortgage";
+                            rowId: string;
+                            lead: string;
+                            providerId?: string;
+                            kind: string;
+                            value: string;
+                            figure: string;
+                            /** Format: date-time */
+                            chosenAt: string;
+                            endsOn?: string;
+                        } | null;
+                    };
                     createdAt: string;
                     dataCheckedAt: string;
+                } | {
+                    /** @enum {string} */
+                    type: "market_products";
+                    question: string;
+                    arrangement: {
+                        /** @enum {string} */
+                        kind: "held_vs_market" | "by_access" | "fits_date" | "mortgage_by_sort";
+                        title: string;
+                        line: string;
+                        groups?: {
+                            label: string;
+                            rowIds: string[];
+                        }[];
+                    };
+                    rows: {
+                        id: string;
+                        lead: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        note: string | null;
+                        held: boolean;
+                        confirmed: boolean;
+                        providerId?: string;
+                        brand?: {
+                            bg: string;
+                            /** @enum {string} */
+                            fg: "#fff" | "#000";
+                        } | null;
+                        detail?: string[];
+                        mustKnow?: string[];
+                        /** @enum {string} */
+                        chosen?: "lump_sum" | "monthly_saving" | "mortgage";
+                    }[];
+                    more: number;
+                    basis: {
+                        figures: string[];
+                        objective: string;
+                        assumptions: string[];
+                        coverage: string;
+                        warnings: string[];
+                    };
+                    statement: string;
+                } | {
+                    /** @enum {string} */
+                    type: "product_comparison";
+                    title: string;
+                    columns: {
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        brand?: {
+                            bg: string;
+                            /** @enum {string} */
+                            fg: "#fff" | "#000";
+                        } | null;
+                        kind: string;
+                        /** @enum {string} */
+                        chosen?: "lump_sum" | "monthly_saving" | "mortgage";
+                    }[];
+                    rows: {
+                        label: string;
+                        values: string[];
+                        differs: boolean;
+                    }[];
+                    differences: string[];
+                    decides: string;
+                    mustKnow: {
+                        rowId: string;
+                        facts: string[];
+                        detail?: string[];
+                    }[];
+                    basis: {
+                        figures: string[];
+                        assumptions: string[];
+                        coverage: string;
+                        warnings: string[];
+                    };
+                    statement: string;
                 } | {
                     /** @enum {string} */
                     type: "connect_accounts";
@@ -8596,6 +9508,7 @@ export interface components {
             claimUrl: string;
             /** Format: date-time */
             expiresAt: string;
+            planId?: string;
         };
         SavePlan: {
             plan: {
@@ -8729,6 +9642,7 @@ export interface components {
                     /** @default [] */
                     filters: string[];
                     options: {
+                        rowId?: string;
                         lender: string;
                         kind: string;
                         productName: string;
@@ -8776,7 +9690,12 @@ export interface components {
                     } | null;
                     tiles: {
                         label: string;
+                        qualifier: string | null;
                         value: string;
+                        sub: string[];
+                        quiet: string[];
+                        detail: string[];
+                        /** @default [] */
                         lines: string[];
                     }[];
                     assumptions: string[];
@@ -8785,6 +9704,120 @@ export interface components {
                         question: string;
                         why: string;
                     } | null;
+                };
+                inputs?: {
+                    homePrice?: number;
+                    /** @enum {string} */
+                    propertyKind?: "new_build" | "self_build" | "second_hand";
+                    firstTimeBuyer?: boolean;
+                    buyingTogether?: boolean;
+                    taxPaidLastFourYearsEur?: number;
+                    county?: string;
+                    monthlyRentEur?: number;
+                    homePreferences?: {
+                        currentBank?: string;
+                        stayWithBank?: boolean;
+                        /** @enum {string} */
+                        rateType?: "fixed" | "variable" | "either";
+                        green?: boolean;
+                        openToCurrentAccountSwitch?: boolean;
+                        /** @enum {string} */
+                        sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+                    };
+                    emergencyBufferEur?: number;
+                    emergencyBufferMonths?: number;
+                    keepAccessible?: boolean;
+                    goalDateCertain?: boolean;
+                    minLockGainEur?: number;
+                    minLockGainPctPerYear?: number;
+                    maxAccounts?: number;
+                    savings?: {
+                        /** @enum {string} */
+                        access?: "instant" | "notice" | "fixed_term" | "current_account";
+                        fixedTermEndsOn?: string;
+                    }[];
+                    debtPlans?: {
+                        debtId: string;
+                        /** @enum {string} */
+                        plan: "clear" | "keep" | "compare";
+                    }[];
+                };
+                edits?: {
+                    /** Format: date-time */
+                    at: string;
+                    /** @enum {string} */
+                    field: "targetDate" | "homePrice" | "monthlySaving" | "propertyKind" | "firstTimeBuyer" | "buyingTogether";
+                    from: string | number | boolean | unknown;
+                    to: string | number | boolean | unknown;
+                }[];
+                openedWith?: string;
+                choices?: {
+                    lump_sum?: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                        /** Format: uuid */
+                        reminderId?: string;
+                        watches?: {
+                            provider: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            ratePct?: number;
+                        }[];
+                    };
+                    monthly_saving?: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                        /** Format: uuid */
+                        reminderId?: string;
+                        watches?: {
+                            provider: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            ratePct?: number;
+                        }[];
+                    };
+                    mortgage?: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                        /** Format: uuid */
+                        reminderId?: string;
+                        watches?: {
+                            provider: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            ratePct?: number;
+                        }[];
+                    };
                 };
                 /** Format: date-time */
                 createdAt: string;
@@ -8850,7 +9883,12 @@ export interface components {
                 } | null;
                 tiles: {
                     label: string;
+                    qualifier: string | null;
                     value: string;
+                    sub: string[];
+                    quiet: string[];
+                    detail: string[];
+                    /** @default [] */
                     lines: string[];
                 }[];
                 assumptions: string[];
@@ -10937,10 +11975,17 @@ export interface components {
                     accounts: number;
                     /** @description Interest after DIRT (none taken on a DIRT-free product) on the deposit saved plus the monthly saving until `by`, in the account paying `topRatePct`, from the engine’s month-by-month projection. Money that account cannot take, and months after its rate stops being known, are not counted (`basis` says so). */
                     interestToTargetEur: number;
-                    /** @description YYYY-MM the interest runs to: the date given, else the month the money at the keys is saved, else 12 months on. */
+                    /** @description YYYY-MM the interest runs to: the keys month (the month the money at the keys is saved) when it is at least a month away, else the date given, else 12 months on (2026-11-12). */
                     by: string;
+                    /**
+                     * @description Which month `by` is: the keys month, the date given, or 12 months on as no date is known.
+                     * @enum {string}
+                     */
+                    runsTo: "keys_month" | "date_given" | "no_date";
                     /** @description How the top rate and the interest are worked out, in one sentence. */
                     basis: string;
+                    /** @description Where `topRatePct` is a bonus or introductory rate that ends before `by`, one line naming the end and what the interest counts after it ("3.11% is a bonus rate to 1 January; the interest figure counts the rate after it."), naming no provider. Null or absent: the rate holds to `by` (2026-11-12). */
+                    topRatePeriod?: string | null;
                 } | null;
                 /** @description Mortgages that fit the figures. Null: no price is known yet, or none fits. */
                 mortgage: {
@@ -11024,7 +12069,7 @@ export interface components {
                     askNow: boolean;
                 }[];
             };
-            /** @description How to see the options: the card’s "Show my options" button, or saoi_build_plan with these inputs. */
+            /** @description How to see the options: the card’s "Compare all product options and supports" button, or saoi_build_plan with these inputs. */
             next: string;
             /** @description Present to the customer. When `gate.ready`, in this order: the headline figures, then three route lines and "More routes: N", then what is assumed and still to know. When not, only the `askNow` questions, each with what it moves, and the statement: no figures. No route is picked. */
             presentation: string[];
@@ -11514,7 +12559,7 @@ export interface components {
             /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
             nextQuestion: {
                 /** @enum {string} */
-                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
+                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid" | "first_time_buyer";
                 /** @description For the host to ask, in its own words. */
                 question: string;
                 /** @description What the answer changes, with the figures from the runs. */
@@ -11535,7 +12580,7 @@ export interface components {
             /** @description The rest, in order, for later replies. */
             laterQuestions: {
                 /** @enum {string} */
-                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
+                key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid" | "first_time_buyer";
                 /** @description For the host to ask, in its own words. */
                 question: string;
                 /** @description What the answer changes, with the figures from the runs. */
@@ -11782,6 +12827,8 @@ export interface components {
                 /** @description Opens the plan in the Saoi app, once. */
                 url: string;
                 expiresAt: string;
+                /** @description The held plan’s id, which the Saoi MCP server records with the call. */
+                planId?: string;
             } | null;
             /** @description For a house deposit goal and a first-time buyer: Help to Buy, as far as the inputs allow. Null otherwise. */
             helpToBuy: {
@@ -11952,6 +12999,7 @@ export interface components {
                     /** @default [] */
                     filters: string[];
                     options: {
+                        rowId?: string;
                         lender: string;
                         kind: string;
                         productName: string;
@@ -11999,7 +13047,12 @@ export interface components {
                     } | null;
                     tiles: {
                         label: string;
+                        qualifier: string | null;
                         value: string;
+                        sub: string[];
+                        quiet: string[];
+                        detail: string[];
+                        /** @default [] */
                         lines: string[];
                     }[];
                     assumptions: string[];
@@ -12008,6 +13061,120 @@ export interface components {
                         question: string;
                         why: string;
                     } | null;
+                };
+                inputs?: {
+                    homePrice?: number;
+                    /** @enum {string} */
+                    propertyKind?: "new_build" | "self_build" | "second_hand";
+                    firstTimeBuyer?: boolean;
+                    buyingTogether?: boolean;
+                    taxPaidLastFourYearsEur?: number;
+                    county?: string;
+                    monthlyRentEur?: number;
+                    homePreferences?: {
+                        currentBank?: string;
+                        stayWithBank?: boolean;
+                        /** @enum {string} */
+                        rateType?: "fixed" | "variable" | "either";
+                        green?: boolean;
+                        openToCurrentAccountSwitch?: boolean;
+                        /** @enum {string} */
+                        sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+                    };
+                    emergencyBufferEur?: number;
+                    emergencyBufferMonths?: number;
+                    keepAccessible?: boolean;
+                    goalDateCertain?: boolean;
+                    minLockGainEur?: number;
+                    minLockGainPctPerYear?: number;
+                    maxAccounts?: number;
+                    savings?: {
+                        /** @enum {string} */
+                        access?: "instant" | "notice" | "fixed_term" | "current_account";
+                        fixedTermEndsOn?: string;
+                    }[];
+                    debtPlans?: {
+                        debtId: string;
+                        /** @enum {string} */
+                        plan: "clear" | "keep" | "compare";
+                    }[];
+                };
+                edits?: {
+                    /** Format: date-time */
+                    at: string;
+                    /** @enum {string} */
+                    field: "targetDate" | "homePrice" | "monthlySaving" | "propertyKind" | "firstTimeBuyer" | "buyingTogether";
+                    from: string | number | boolean | unknown;
+                    to: string | number | boolean | unknown;
+                }[];
+                openedWith?: string;
+                choices?: {
+                    lump_sum?: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                        /** Format: uuid */
+                        reminderId?: string;
+                        watches?: {
+                            provider: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            ratePct?: number;
+                        }[];
+                    };
+                    monthly_saving?: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                        /** Format: uuid */
+                        reminderId?: string;
+                        watches?: {
+                            provider: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            ratePct?: number;
+                        }[];
+                    };
+                    mortgage?: {
+                        /** @enum {string} */
+                        slot: "lump_sum" | "monthly_saving" | "mortgage";
+                        rowId: string;
+                        lead: string;
+                        providerId?: string;
+                        kind: string;
+                        value: string;
+                        figure: string;
+                        /** Format: date-time */
+                        chosenAt: string;
+                        endsOn?: string;
+                        /** Format: uuid */
+                        reminderId?: string;
+                        watches?: {
+                            provider: string;
+                            /** @enum {string} */
+                            source: "bank" | "ccpc";
+                            productId: string;
+                            ratePct?: number;
+                        }[];
+                    };
                 };
                 /** Format: date-time */
                 createdAt: string;
@@ -12327,7 +13494,7 @@ export interface components {
                 /** @description The one question whose answer would change the plan most. Ask this one, and only this one, in the reply. */
                 nextQuestion: {
                     /** @enum {string} */
-                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
+                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid" | "first_time_buyer";
                     /** @description For the host to ask, in its own words. */
                     question: string;
                     /** @description What the answer changes, with the figures from the runs. */
@@ -12348,7 +13515,7 @@ export interface components {
                 /** @description The rest, in order, for later replies. */
                 laterQuestions: {
                     /** @enum {string} */
-                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid";
+                    key: "income" | "property_kind" | "home_price" | "debt_repayment" | "current_account_bank" | "goal" | "tax_paid" | "first_time_buyer";
                     /** @description For the host to ask, in its own words. */
                     question: string;
                     /** @description What the answer changes, with the figures from the runs. */
@@ -12595,6 +13762,8 @@ export interface components {
                     /** @description Opens the plan in the Saoi app, once. */
                     url: string;
                     expiresAt: string;
+                    /** @description The held plan’s id, which the Saoi MCP server records with the call. */
+                    planId?: string;
                 } | null;
                 /** @description For a house deposit goal and a first-time buyer: Help to Buy, as far as the inputs allow. Null otherwise. */
                 helpToBuy: {
@@ -12765,6 +13934,7 @@ export interface components {
                         /** @default [] */
                         filters: string[];
                         options: {
+                            rowId?: string;
                             lender: string;
                             kind: string;
                             productName: string;
@@ -12812,7 +13982,12 @@ export interface components {
                         } | null;
                         tiles: {
                             label: string;
+                            qualifier: string | null;
                             value: string;
+                            sub: string[];
+                            quiet: string[];
+                            detail: string[];
+                            /** @default [] */
                             lines: string[];
                         }[];
                         assumptions: string[];
@@ -12821,6 +13996,120 @@ export interface components {
                             question: string;
                             why: string;
                         } | null;
+                    };
+                    inputs?: {
+                        homePrice?: number;
+                        /** @enum {string} */
+                        propertyKind?: "new_build" | "self_build" | "second_hand";
+                        firstTimeBuyer?: boolean;
+                        buyingTogether?: boolean;
+                        taxPaidLastFourYearsEur?: number;
+                        county?: string;
+                        monthlyRentEur?: number;
+                        homePreferences?: {
+                            currentBank?: string;
+                            stayWithBank?: boolean;
+                            /** @enum {string} */
+                            rateType?: "fixed" | "variable" | "either";
+                            green?: boolean;
+                            openToCurrentAccountSwitch?: boolean;
+                            /** @enum {string} */
+                            sortBy?: "five_year_cost" | "keys_date" | "monthly_repayment";
+                        };
+                        emergencyBufferEur?: number;
+                        emergencyBufferMonths?: number;
+                        keepAccessible?: boolean;
+                        goalDateCertain?: boolean;
+                        minLockGainEur?: number;
+                        minLockGainPctPerYear?: number;
+                        maxAccounts?: number;
+                        savings?: {
+                            /** @enum {string} */
+                            access?: "instant" | "notice" | "fixed_term" | "current_account";
+                            fixedTermEndsOn?: string;
+                        }[];
+                        debtPlans?: {
+                            debtId: string;
+                            /** @enum {string} */
+                            plan: "clear" | "keep" | "compare";
+                        }[];
+                    };
+                    edits?: {
+                        /** Format: date-time */
+                        at: string;
+                        /** @enum {string} */
+                        field: "targetDate" | "homePrice" | "monthlySaving" | "propertyKind" | "firstTimeBuyer" | "buyingTogether";
+                        from: string | number | boolean | unknown;
+                        to: string | number | boolean | unknown;
+                    }[];
+                    openedWith?: string;
+                    choices?: {
+                        lump_sum?: {
+                            /** @enum {string} */
+                            slot: "lump_sum" | "monthly_saving" | "mortgage";
+                            rowId: string;
+                            lead: string;
+                            providerId?: string;
+                            kind: string;
+                            value: string;
+                            figure: string;
+                            /** Format: date-time */
+                            chosenAt: string;
+                            endsOn?: string;
+                            /** Format: uuid */
+                            reminderId?: string;
+                            watches?: {
+                                provider: string;
+                                /** @enum {string} */
+                                source: "bank" | "ccpc";
+                                productId: string;
+                                ratePct?: number;
+                            }[];
+                        };
+                        monthly_saving?: {
+                            /** @enum {string} */
+                            slot: "lump_sum" | "monthly_saving" | "mortgage";
+                            rowId: string;
+                            lead: string;
+                            providerId?: string;
+                            kind: string;
+                            value: string;
+                            figure: string;
+                            /** Format: date-time */
+                            chosenAt: string;
+                            endsOn?: string;
+                            /** Format: uuid */
+                            reminderId?: string;
+                            watches?: {
+                                provider: string;
+                                /** @enum {string} */
+                                source: "bank" | "ccpc";
+                                productId: string;
+                                ratePct?: number;
+                            }[];
+                        };
+                        mortgage?: {
+                            /** @enum {string} */
+                            slot: "lump_sum" | "monthly_saving" | "mortgage";
+                            rowId: string;
+                            lead: string;
+                            providerId?: string;
+                            kind: string;
+                            value: string;
+                            figure: string;
+                            /** Format: date-time */
+                            chosenAt: string;
+                            endsOn?: string;
+                            /** Format: uuid */
+                            reminderId?: string;
+                            watches?: {
+                                provider: string;
+                                /** @enum {string} */
+                                source: "bank" | "ccpc";
+                                productId: string;
+                                ratePct?: number;
+                            }[];
+                        };
                     };
                     /** Format: date-time */
                     createdAt: string;
@@ -13264,6 +14553,81 @@ export interface components {
                 source: string | null;
                 createdAt: string;
             }[];
+        };
+        AdminAiUsage: {
+            /** @enum {string} */
+            period: "7d" | "30d" | "90d" | "all";
+            from: string;
+            to: string;
+            totals: {
+                calls: number;
+                sessions: number;
+                cardsShown: number;
+                plansSaved: number;
+                linksOpened: number;
+                claimed: number;
+                signedIn: number;
+                chosen: number;
+            };
+            previous: {
+                calls: number;
+                sessions: number;
+                cardsShown: number;
+                plansSaved: number;
+                linksOpened: number;
+                claimed: number;
+                signedIn: number;
+                chosen: number;
+            } | null;
+            funnel: {
+                /** @enum {string} */
+                host: "claude" | "chatgpt" | "gemini" | "cursor" | "other";
+                steps: {
+                    /** @enum {string} */
+                    step: "calls" | "cardsShown" | "plansSaved" | "linksOpened" | "claimed" | "signedIn" | "chosen";
+                    label: string;
+                    count: number;
+                }[];
+            }[];
+            series: {
+                day: string;
+                /** @enum {string} */
+                host: "claude" | "chatgpt" | "gemini" | "cursor" | "other";
+                calls: number;
+            }[];
+            tools: {
+                name: string;
+                calls: number;
+                errors: number;
+                gated: number;
+                medianMs: number | null;
+            }[];
+            gateMissing: {
+                figure: string;
+                count: number;
+            }[];
+            userAgents: {
+                userAgent: string;
+                count: number;
+            }[];
+            recent: {
+                id: string;
+                calledAt: string;
+                /** @enum {string} */
+                host: "claude" | "chatgpt" | "gemini" | "cursor" | "other";
+                name: string;
+                /** @enum {string} */
+                kind: "tool" | "prompt" | "resource";
+                /** @enum {string} */
+                outcome: "ok" | "error" | "gated";
+                ms: number;
+                card: boolean;
+                asked: {
+                    [key: string]: string | number | boolean | unknown | string[];
+                };
+                gateMissing: string[];
+            }[];
+            nextCursor: string | null;
         };
         ResetCaseResult: {
             /** Format: uuid */
@@ -14001,6 +15365,76 @@ export interface components {
                 supersededAt: string | null;
             }[];
             skipped: number;
+        };
+        AdminMarketViews: {
+            /** @description When the views were built (ISO). */
+            asOf: string;
+            views: {
+                /** @description The engine’s view id: `<provider>:<productId>`, or `…ladder_…` for a ladder. */
+                id: string;
+                /** @description The provider id: `boi`, `aib`. */
+                provider: string;
+                /** @description The readable name (`Bank of Ireland`); the id when none is recorded. */
+                providerName: string;
+                /**
+                 * @description The platform the product is sold through (`Raisin`), as the engine marks the view; null when it is opened with the provider directly. The console shows `Raisin · <providerName>` and groups these under Raisin.
+                 * @enum {string|null}
+                 */
+                platform: "Raisin" | null;
+                /** @description The provider’s own public website domain (`bankofireland.com`), for its logo; never the platform’s. Null where none is recorded. */
+                providerDomain: string | null;
+                /** @enum {string} */
+                category: "savings" | "deposits" | "mortgages" | "loans" | "credit_cards" | "current_accounts";
+                /** @description "Savings", "Deposits", "Mortgages", "Loans", "Credit cards", "Current accounts". */
+                categoryLabel: string;
+                /** @description The product’s name; a ladder’s without the term. */
+                name: string;
+                /** @description The one figure for a list. A ladder shows its shortest term’s. */
+                headline: {
+                    ratePct: number | null;
+                    /** @description "2.48% AER", "3.20% initial", "APR 9.90%"; empty when none. */
+                    label: string;
+                };
+                /** @description A deposit’s term (a ladder’s shortest), a mortgage’s fixed period, a loan’s longest term. Null for variable or none. */
+                termMonths: number | null;
+                /** @description "18 months", "6 to 18 months", "4-year fixed", "variable", "up to 7 years". */
+                termLabel: string | null;
+                /** @description A deposit’s terms and rates, shortest first. Empty for anything else. */
+                ladder: {
+                    months: number;
+                    ratePct: number;
+                }[];
+                /**
+                 * @description A short chip label from a fixed set, for savings and deposits; null for anything else. `Instant access`: withdraw any time. `Notice`: withdrawals need notice (the days are in `conditions`/`lines`). `Regular saver`: a monthly saver. `Fixed term`: money placed for a term.
+                 * @enum {string|null}
+                 */
+                access: "Instant access" | "Notice" | "Regular saver" | "Fixed term" | null;
+                /** @description The rates as the comparison engine words them. */
+                lines: string[];
+                /** @description Limits, fees, bonus, guarantee, who can open it, the checks the data cannot make, attribution. */
+                conditions: {
+                    label: string;
+                    value: string;
+                }[];
+                /** @description What the source does not state, in words. */
+                unknown: string[];
+                /** @description The oldest check of the rows the figures rest on. */
+                checkedAt: string;
+                lastChangedAt: string | null;
+                /** @description Checked more than 8 whole days before `asOf`. */
+                stale: boolean;
+                /** @description Always false today: the engine builds views from current rows only, so a withdrawn product is not listed. */
+                retired: boolean;
+                /** @description Every current row folded into the view: the figures’ rows, then any set aside. */
+                sources: {
+                    /** @enum {string} */
+                    source: "bank" | "ccpc";
+                    /** @description `<provider>:<productId>` of the row. */
+                    rowId: string;
+                    url: string | null;
+                    checkedAt: string;
+                }[];
+            }[];
         };
     };
     responses: never;

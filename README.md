@@ -57,7 +57,9 @@ Every result's text opens with **Present to the customer**: the headline sentenc
 
 Built on the official TypeScript SDK v2 (`@modelcontextprotocol/server` 2.4.0, `@modelcontextprotocol/node` 2.1.2) using `createMcpHandler`. Stateless Streamable HTTP, `POST /mcp` only. It serves both the 2026-07-28 per-request path (`server/discover`, `_meta` envelope, `Mcp-Method`/`Mcp-Name` headers) and the legacy `initialize` path; `GET /mcp` is 405. `Origin` (when present) and `Host` are validated, `X-Accel-Buffering: no` is set, and SSE keep-alive comments go out every 25 seconds. `GET /health` returns `{ ok, version }`. The server identifies itself as `saoi`, titled `Saoi`, with `websiteUrl` `https://saoi.ie` and two `icons`: Saoi's mark as saoi.ie and app.saoi.ie serve it (`src/icon.ts`), at `GET /icon.svg` and `GET /icon.png` (192 by 192) on `PUBLIC_URL`'s origin.
 
-No authentication and no secrets: the routes it calls are public. saoi-api rate-limits per address, so the end user's address (`CF-Connecting-IP`, set by the Cloudflare Tunnel) is forwarded as `X-Forwarded-For`; otherwise every user of this server would share one bucket.
+No authentication: the routes it calls are public, and the one secret (`TELEMETRY_KEY`) is only for the AI usage record. saoi-api rate-limits per address, so the end user's address (`CF-Connecting-IP`, set by the Cloudflare Tunnel) is forwarded as `X-Forwarded-For`; otherwise every user of this server would share one bucket.
+
+**AI usage record** (0.18.0, 2026-11-14): after every tool call, prompt get and resource read the server posts one event to saoi-api's `POST /api/telemetry/mcp` with `X-Internal-Key` (`src/telemetry.ts`), fire and forget with a 2-second timeout; a failure is logged once and never reaches the host's call. The event carries the host (`claude`, `chatgpt`, `gemini`, `cursor`, `other`, from the `User-Agent` and the 2026-07-28 envelope's clientInfo, which the stateless legacy path does not have), the raw user agent cut to 200 characters, the tool, the outcome (`ok`, `error`, `gated` when the home calculator's gate held the card back, with the figures it is waiting for), the time taken, whether a card went back, what was asked (search filters and a product id verbatim; income, price and rent as bands; the goals' kinds, the kind of home, buying together) and the saved plan behind a result's link. `sessionKey` is the SHA-256 of `TELEMETRY_SALT`, the address, the user agent and the UTC day: the address itself is never sent. `saoi_save_plan` saves with the host as `client`. Without `TELEMETRY_KEY` nothing is recorded.
 
 ## Environment
 
@@ -71,6 +73,8 @@ No authentication and no secrets: the routes it calls are public. saoi-api rate-
 | `KEEPALIVE_MS`          | no       | SSE keep-alive interval, default `25000`                                                                                                      |
 | `OPENAI_APPS_CHALLENGE` | no       | OpenAI's domain verification token, served as `text/plain` at `GET /.well-known/openai-apps-challenge`; 404 when unset                        |
 | `PUBLIC_URL`            | no       | The exact URL connectors use, default `https://mcp.saoi.ie/mcp`: the cards' `ui.domain` is its hash, and the icons are served from its origin |
+| `TELEMETRY_KEY`         | no       | saoi-api's `INTERNAL_JOB_KEY`, sent as `X-Internal-Key` with each AI usage event; unset, nothing is recorded                                  |
+| `TELEMETRY_SALT`        | no       | Salt for the session key's hash; defaults to `TELEMETRY_KEY`                                                                                  |
 
 ## Run
 

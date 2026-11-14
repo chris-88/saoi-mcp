@@ -24,7 +24,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.17.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.18.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -153,7 +153,7 @@ describe('protocol eras', () => {
       /held for 24\s+hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens\s+into\./,
     )
     expect(instructions).toMatch(
-      /the home calculator records one anonymous, banded row per run \(no figures, no\s+identifiers\); nothing else is stored\./,
+      /the home calculator records one anonymous, banded row per run \(no figures, no\s+identifiers\), and when an AI calls Saoi, Saoi records which assistant, which tool, the figures in bands and\s+any search words, and the time; no name, address or account; nothing else is stored\./,
     )
     expect(instructions).not.toMatch(/Nothing else is stored\./)
   })
@@ -574,7 +574,7 @@ describe('tools/call', () => {
 
   it('saoi_save_plan returns a 24-hour link', async () => {
     const body = await call('saoi_save_plan', { plan: recorded.plan.plan })
-    expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined)
+    expect(saoi.savePlan).toHaveBeenCalledWith({ plan: recorded.plan.plan }, undefined, 'other')
     expect(text(body)).toMatch(/app\.saoi\.ie\/#\/plan\//)
     expect(text(body)).toMatch(
       /held for 24 hours and deleted then if unopened; once opened, it is kept with the Saoi app conversation it opens into/,

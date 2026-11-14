@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import type { McpServer } from '@modelcontextprotocol/server'
 import { planCardApp } from './planCardApp.js'
 import { planCardModel } from './planCardModel.js'
+import { NO_TELEMETRY, type CallTelemetry } from '../telemetry.js'
 
 /**
  * The plan card: an MCP Apps UI resource (extension `io.modelcontextprotocol/ui`, spec
@@ -210,11 +211,12 @@ export function planCardHtml(): string {
 
 let html: string | undefined
 
-export function registerPlanCard(server: McpServer): void {
+export function registerPlanCard(server: McpServer, telemetry: CallTelemetry = NO_TELEMETRY): void {
   html ??= planCardHtml()
   const text = html
   const meta = cardResourceMeta()
-  const serve = (uri: { href: string }) => {
+  const serve = (uri: { href: string }, ctx?: unknown) => {
+    telemetry.record({ kind: 'resource', name: uri.href, outcome: 'ok', ms: 0, ctx })
     console.log(JSON.stringify({ event: 'resource_read', uri: uri.href }))
     return { contents: [{ uri: uri.href, mimeType: MCP_APP_MIME_TYPE, text, _meta: meta }] }
   }

@@ -17,7 +17,7 @@ import type {
   SavePlanResult,
   SearchResult,
 } from '../src/saoiClient.js'
-import { createHttpServer } from '../src/server.js'
+import { createHttpServer, type TelemetryOptions } from '../src/server.js'
 
 const recording = (name: string): unknown =>
   JSON.parse(readFileSync(new URL(`./recordings/${name}.json`, import.meta.url), 'utf8'))
@@ -78,7 +78,11 @@ export interface Running {
   close(): Promise<void>
 }
 
-export async function run(saoi: SaoiApi, openaiAppsChallenge?: string): Promise<Running> {
+export async function run(
+  saoi: SaoiApi,
+  openaiAppsChallenge?: string,
+  telemetry?: TelemetryOptions,
+): Promise<Running> {
   const server = createHttpServer(
     {
       allowedHosts: ['mcp.saoi.ie', 'localhost', '127.0.0.1'],
@@ -88,6 +92,7 @@ export async function run(saoi: SaoiApi, openaiAppsChallenge?: string): Promise<
       openaiAppsChallenge,
     },
     saoi,
+    telemetry,
   )
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve))
   const { port } = server.address() as AddressInfo

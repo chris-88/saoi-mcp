@@ -20,6 +20,7 @@ import {
   renderSearch,
 } from './render.js'
 import { SaoiError, type Body, type SaoiApi } from './saoiClient.js'
+import { askedOf, NO_TELEMETRY, savedPlanIdOf, type CallTelemetry } from './telemetry.js'
 import { HOME_CALCULATOR_TOOL_META, registerHomeCalculatorCard } from './ui/homeCalculatorResource.js'
 import { PLAN_CARD_TOOL_META, registerPlanCard } from './ui/planCardResource.js'
 
@@ -102,7 +103,9 @@ export const SERVER_INSTRUCTIONS = [
   '- Each plan result carries one single-use link ("Save this comparison to the Saoi app: …"), held for 24',
   '  hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens',
   '  into. Besides that link, the home calculator records one anonymous, banded row per run (no figures, no',
-  '  identifiers); nothing else is stored. Offer the customer that one link; saving is their choice.',
+  '  identifiers), and when an AI calls Saoi, Saoi records which assistant, which tool, the figures in bands and',
+  '  any search words, and the time; no name, address or account; nothing else is stored. Offer the customer that',
+  '  one link; saving is their choice.',
   '- In the app the comparison opens as a card that Saoirse (Saoi’s assistant) knows and can talk through, and signing',
   '  in with an email keeps it across devices. After sign-in the app also offers rate-change alerts and goal-date',
   '  reminders.',
@@ -131,10 +134,22 @@ export const SHARED_NOT_ADVICE =
   'Information, not advice: results are ranked by a stated objective, for the inputs given, and never pick a product for the customer. Saoi is not regulated by the Central Bank of Ireland. Unauthenticated.'
 const SHORT_NOT_ADVICE = 'Information, not advice; never picks a product.'
 
+/**
+ * saoi-api states what each route keeps; through this server the call itself is recorded too
+ * (`telemetry.ts`), so "nothing (else) sent is stored" gains that one exception.
+ */
+export const CALL_RECORDED =
+  'Saoi also records the call: which assistant, which tool, the figures in bands, the time.'
+const withCallRecord = (description: string): string =>
+  description.replace(
+    /Nothing (else )?sent is stored\./,
+    (sentence) => `${sentence.slice(0, -1)} beyond that. ${CALL_RECORDED}`,
+  )
+
 /** The hand-written `when` (when to use it, and what it is not for), then saoi-api's own text. */
 const describe = (name: Name, when: string): string => {
   const operation = OPERATIONS[name]
-  return `${when} ${operation.summary}. ${operation.description.replace(SHARED_NOT_ADVICE, SHORT_NOT_ADVICE)}`
+  return `${when} ${operation.summary}. ${withCallRecord(operation.description.replace(SHARED_NOT_ADVICE, SHORT_NOT_ADVICE))}`
 }
 
 const ok = (text: string, structuredContent: object): CallToolResult => ({
@@ -187,31 +202,62 @@ export function toolCallLine(entry: {
   return JSON.stringify({ event: 'tool_call', ...entry })
 }
 
-/** True when the home calculator's gate held the card back: the result carries `gate.ready` false. */
-function gateClosed(result: CallToolResult): boolean {
-  const gate = (result.structuredContent as { gate?: { ready?: unknown } } | undefined)?.gate
-  return gate?.ready === false
+/** The home calculator's gate as a result carries it, when it held the card back. */
+const closedGateSchema = z.object({
+  gate: z.object({ ready: z.literal(false), missing: z.array(z.object({ key: z.string() })) }),
+})
+
+/** The figures the gate is waiting for, or null when the result carries no closed gate. */
+export function gateMissingOf(result: CallToolResult): string[] | null {
+  const parsed = closedGateSchema.safeParse(result.structuredContent)
+  return parsed.success ? parsed.data.gate.missing.map((item) => item.key) : null
 }
 
-async function guarded(tool: string, work: () => Promise<CallToolResult>): Promise<CallToolResult> {
+/** What `guarded` records the call with: its input, the handler's context and the recorder. */
+interface CallFacts {
+  readonly args: unknown
+  readonly ctx: unknown
+  readonly telemetry: CallTelemetry
+}
+
+async function guarded(
+  tool: string,
+  facts: CallFacts,
+  work: () => Promise<CallToolResult>,
+): Promise<CallToolResult> {
   const started = performance.now()
   const result = await attempt(work)
+  const ms = Math.round(performance.now() - started)
   const outcome = result.isError === true ? 'error' : 'ok'
-  console.log(
-    toolCallLine({
-      tool,
-      ms: Math.round(performance.now() - started),
-      outcome,
-      ui: outcome === 'ok' && CARD_TOOLS.has(tool) && !gateClosed(result),
-    }),
-  )
+  const gateMissing = outcome === 'ok' ? gateMissingOf(result) : null
+  const card = outcome === 'ok' && CARD_TOOLS.has(tool) && gateMissing === null
+  console.log(toolCallLine({ tool, ms, outcome, ui: card }))
+  facts.telemetry.record({
+    kind: 'tool',
+    name: tool,
+    outcome: gateMissing === null ? outcome : 'gated',
+    ms,
+    card,
+    gateMissing: gateMissing ?? [],
+    asked: askedOf(tool, facts.args),
+    savedPlanId: outcome === 'ok' ? savedPlanIdOf(result.structuredContent) : null,
+    ctx: facts.ctx,
+  })
   return result
 }
 
 const input = (name: Name) => fromJsonSchema<Body>(OPERATIONS[name].inputSchema)
 
-/** `ip` is the end user's address from the request this server instance serves, if known. */
-export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): void {
+/**
+ * `ip` is the end user's address from the request this server instance serves, if known;
+ * `record` takes one AI usage event per call (`telemetry.ts`).
+ */
+export function registerTools(
+  server: McpServer,
+  saoi: SaoiApi,
+  ip?: string,
+  telemetry: CallTelemetry = NO_TELEMETRY,
+): void {
   server.registerTool(
     'saoi_money_check',
     {
@@ -229,8 +275,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       },
       _meta: PLAN_CARD_TOOL_META,
     },
-    (args) =>
-      guarded('saoi_money_check', async () => {
+    (args, ctx) =>
+      guarded('saoi_money_check', { args, ctx, telemetry }, async () => {
         const result = await saoi.moneyCheck(args, ip)
         return ok(renderMoneyCheck(result), result)
       }),
@@ -247,8 +293,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       inputSchema: input('saoi_review_situation'),
       annotations: READ_ONLY,
     },
-    (args) =>
-      guarded('saoi_review_situation', async () => {
+    (args, ctx) =>
+      guarded('saoi_review_situation', { args, ctx, telemetry }, async () => {
         const result = await saoi.review(args, ip)
         return ok(renderReview(result), result)
       }),
@@ -265,8 +311,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       inputSchema: input('saoi_search_products'),
       annotations: READ_ONLY,
     },
-    (args) =>
-      guarded('saoi_search_products', async () => {
+    (args, ctx) =>
+      guarded('saoi_search_products', { args, ctx, telemetry }, async () => {
         const result = await saoi.search(args, ip)
         return ok(renderSearch(result), result)
       }),
@@ -291,8 +337,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       }),
       annotations: READ_ONLY,
     },
-    ({ id }) =>
-      guarded('saoi_product', async () => {
+    ({ id }, ctx) =>
+      guarded('saoi_product', { args: { id }, ctx, telemetry }, async () => {
         const result = await saoi.product(id, ip)
         return ok(renderProduct(result), result)
       }),
@@ -309,8 +355,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       inputSchema: input('saoi_savings_projection'),
       annotations: READ_ONLY,
     },
-    (args) =>
-      guarded('saoi_savings_projection', async () => {
+    (args, ctx) =>
+      guarded('saoi_savings_projection', { args, ctx, telemetry }, async () => {
         const result = await saoi.projection(args, ip)
         return ok(renderProjection(result), result)
       }),
@@ -327,8 +373,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       inputSchema: input('saoi_mortgage'),
       annotations: READ_ONLY,
     },
-    (args) =>
-      guarded('saoi_mortgage', async () => {
+    (args, ctx) =>
+      guarded('saoi_mortgage', { args, ctx, telemetry }, async () => {
         const result = await saoi.mortgage(args, ip)
         return ok(renderMortgage(result), result)
       }),
@@ -345,8 +391,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       inputSchema: input('saoi_debt'),
       annotations: READ_ONLY,
     },
-    (args) =>
-      guarded('saoi_debt', async () => {
+    (args, ctx) =>
+      guarded('saoi_debt', { args, ctx, telemetry }, async () => {
         const result = await saoi.debt(args, ip)
         return ok(renderDebt(result), result)
       }),
@@ -363,8 +409,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       inputSchema: input('saoi_first_home'),
       annotations: READ_ONLY,
     },
-    (args) =>
-      guarded('saoi_first_home', async () => {
+    (args, ctx) =>
+      guarded('saoi_first_home', { args, ctx, telemetry }, async () => {
         const result = await saoi.firstHome(args, ip)
         return ok(renderFirstHome(result), result)
       }),
@@ -382,8 +428,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       annotations: READ_ONLY,
       _meta: HOME_CALCULATOR_TOOL_META,
     },
-    (args) =>
-      guarded('saoi_home_calculator', async () => {
+    (args, ctx) =>
+      guarded('saoi_home_calculator', { args, ctx, telemetry }, async () => {
         const result = await saoi.homeCalculator(args, ip)
         const gate = homeGate(result)
         // The gate closed: the questions only, and no figure for the text or the card to show.
@@ -410,8 +456,8 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
       // Hosts with MCP Apps show the plan card with the result; the text stays for the rest.
       _meta: PLAN_CARD_TOOL_META,
     },
-    (args) =>
-      guarded('saoi_build_plan', async () => {
+    (args, ctx) =>
+      guarded('saoi_build_plan', { args, ctx, telemetry }, async () => {
         const result = await saoi.buildPlan(args, ip)
         return ok(renderPlan(result), result)
       }),
@@ -433,9 +479,9 @@ export function registerTools(server: McpServer, saoi: SaoiApi, ip?: string): vo
         openWorldHint: false,
       },
     },
-    (args) =>
-      guarded('saoi_save_plan', async () => {
-        const result = await saoi.savePlan(args, ip)
+    (args, ctx) =>
+      guarded('saoi_save_plan', { args, ctx, telemetry }, async () => {
+        const result = await saoi.savePlan(args, ip, telemetry.hostOf(ctx))
         return ok(renderSaved(result), result)
       }),
   )
@@ -447,9 +493,15 @@ export const ABOUT_RESOURCES = {
 } as const
 
 /** `publicUrl` is the exact connector URL; Claude's card sandbox origin is derived from it. */
-export function registerResources(server: McpServer, saoi: SaoiApi, publicUrl: string, ip?: string): void {
-  registerPlanCard(server)
-  registerHomeCalculatorCard(server)
+export function registerResources(
+  server: McpServer,
+  saoi: SaoiApi,
+  publicUrl: string,
+  ip?: string,
+  telemetry: CallTelemetry = NO_TELEMETRY,
+): void {
+  registerPlanCard(server, telemetry)
+  registerHomeCalculatorCard(server, telemetry)
   for (const [topic, resource] of Object.entries(ABOUT_RESOURCES) as [
     keyof typeof ABOUT_RESOURCES,
     (typeof ABOUT_RESOURCES)[keyof typeof ABOUT_RESOURCES],
@@ -465,9 +517,26 @@ export function registerResources(server: McpServer, saoi: SaoiApi, publicUrl: s
             : 'How Saoi earns: it is free and earns nothing from any provider; how the order is decided; not advice and not regulated; the CCPC attribution.',
         mimeType: 'text/markdown',
       },
-      async (uri) => {
-        const about = await saoi.about(topic, ip)
-        return { contents: [{ uri: uri.href, mimeType: 'text/markdown', text: renderAbout(about) }] }
+      async (uri, ctx) => {
+        const started = performance.now()
+        const done = (outcome: 'ok' | 'error'): void => {
+          telemetry.record({
+            kind: 'resource',
+            name: uri.href,
+            outcome,
+            ms: performance.now() - started,
+            asked: { topic },
+            ctx,
+          })
+        }
+        try {
+          const about = await saoi.about(topic, ip)
+          done('ok')
+          return { contents: [{ uri: uri.href, mimeType: 'text/markdown', text: renderAbout(about) }] }
+        } catch (error) {
+          done('error')
+          throw error
+        }
       },
     )
   }
@@ -543,7 +612,8 @@ export function saoiPrompt(said: string | undefined): string {
   ].join('\n')
 }
 
-export function registerPrompts(server: McpServer): void {
+/** Prompts are text only: recorded with what the customer asked to start with, never `said`'s figures. */
+export function registerPrompts(server: McpServer, telemetry: CallTelemetry = NO_TELEMETRY): void {
   server.registerPrompt(
     'saoi',
     {
@@ -552,9 +622,19 @@ export function registerPrompts(server: McpServer): void {
         'Buying a home: Saoi asks for the few figures it needs, one or two questions at a time, then shows the card with what the limits allow, the money needed at the keys and the month it is saved.',
       argsSchema: saoiArgs,
     },
-    ({ said }) => ({
-      messages: [{ role: 'user' as const, content: { type: 'text' as const, text: saoiPrompt(said) } }],
-    }),
+    ({ said }, ctx) => {
+      telemetry.record({
+        kind: 'prompt',
+        name: 'saoi',
+        outcome: 'ok',
+        ms: 0,
+        asked: { saidGiven: said !== undefined && said !== '' },
+        ctx,
+      })
+      return {
+        messages: [{ role: 'user' as const, content: { type: 'text' as const, text: saoiPrompt(said) } }],
+      }
+    },
   )
   server.registerPrompt(
     'money-check-up',
@@ -564,8 +644,18 @@ export function registerPrompts(server: McpServer): void {
         'A guided check-up: the customer’s situation, a review with euro figures, their goals, a plan across the Irish market, then an offer to save it.',
       argsSchema: moneyCheckUpArgs,
     },
-    ({ focus }) => ({
-      messages: [{ role: 'user' as const, content: { type: 'text' as const, text: moneyCheckUp(focus) } }],
-    }),
+    ({ focus }, ctx) => {
+      telemetry.record({
+        kind: 'prompt',
+        name: 'money-check-up',
+        outcome: 'ok',
+        ms: 0,
+        asked: focus === undefined || focus === '' ? {} : { focus },
+        ctx,
+      })
+      return {
+        messages: [{ role: 'user' as const, content: { type: 'text' as const, text: moneyCheckUp(focus) } }],
+      }
+    },
   )
 }

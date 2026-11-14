@@ -5,8 +5,9 @@ import type { SaoiApi } from './saoiClient.js'
 import { DEFAULT_PUBLIC_URL, type Config } from './config.js'
 import { ICON_PNG, ICON_SVG } from './icon.js'
 import { registerPrompts, registerResources, registerTools, SERVER_INSTRUCTIONS } from './tools.js'
+import { NO_TELEMETRY, requestFacts, telemetryFor, type CallTelemetry, type Sender } from './telemetry.js'
 
-export const VERSION = '0.17.0'
+export const VERSION = '0.18.0'
 
 /** What a host shows for this server: its name, the website and the mark, served from `publicUrl`'s origin. */
 export function serverInfo(publicUrl: string) {
@@ -28,12 +29,19 @@ export function createSaoiServer(
   saoi: SaoiApi,
   ip?: string,
   publicUrl: string = DEFAULT_PUBLIC_URL,
+  telemetry: CallTelemetry = NO_TELEMETRY,
 ): McpServer {
   const server = new McpServer(serverInfo(publicUrl), { instructions: SERVER_INSTRUCTIONS })
-  registerTools(server, saoi, ip)
-  registerResources(server, saoi, publicUrl, ip)
-  registerPrompts(server)
+  registerTools(server, saoi, ip, telemetry)
+  registerResources(server, saoi, publicUrl, ip, telemetry)
+  registerPrompts(server, telemetry)
   return server
+}
+
+/** Where the AI usage record goes, and the salt for its session key. Absent: nothing is recorded. */
+export interface TelemetryOptions {
+  readonly send: Sender
+  readonly salt: string
 }
 
 /**
@@ -71,9 +79,19 @@ export function createHttpServer(
     'allowedHosts' | 'allowedOrigins' | 'keepAliveMs' | 'publicUrl' | 'openaiAppsChallenge'
   >,
   saoi: SaoiApi,
+  telemetry?: TelemetryOptions,
 ): Server {
   const handler = createMcpHandler(
-    (ctx) => createSaoiServer(saoi, callerAddress(ctx.requestInfo?.headers), config.publicUrl),
+    (ctx) => {
+      const headers = ctx.requestInfo?.headers
+      const ip = callerAddress(headers)
+      // Without a key nothing is sent, but the host is still known for a saved plan's `client`.
+      const calls = telemetryFor(
+        telemetry?.send ?? (() => undefined),
+        requestFacts(headers, ip, telemetry?.salt ?? ''),
+      )
+      return createSaoiServer(saoi, ip, config.publicUrl, calls)
+    },
     {
       legacy: 'stateless',
       responseMode: 'auto',

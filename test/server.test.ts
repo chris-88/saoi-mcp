@@ -24,7 +24,7 @@ describe('http surface', () => {
   it('GET /health returns ok and version', async () => {
     const res = await fetch(`${srv.url}/health`)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, version: '0.18.0' })
+    expect(await res.json()).toEqual({ ok: true, version: '0.19.0' })
   })
 
   it('rejects a disallowed Origin with 403', async () => {
@@ -145,12 +145,13 @@ describe('protocol eras', () => {
     expect(instructions).toMatch(
       /Irish product rates, deposit guarantees, Help to Buy and the Central Bank\s+lending limits, each with its source and the date it was checked\. Where a tool does not have a fact, say so\./,
     )
-    expect(instructions).toMatch(/one single-use link .* held for 24/)
+    expect(instructions).toMatch(/one link .* held for 24 hours/)
+    expect(instructions).not.toMatch(/single-use|works once/)
     expect(instructions).toMatch(/the app also offers rate-change alerts and goal-date\s+reminders/)
     expect(instructions).not.toMatch(/coming, not built/)
     expect(instructions).not.toMatch(/partner/)
     expect(instructions).toMatch(
-      /held for 24\s+hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens\s+into\./,
+      /held for 24\s+hours and\s+deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens into, and\s+the same link brings that browser back to it\./,
     )
     expect(instructions).toMatch(
       /the home calculator records one anonymous, banded row per run \(no figures, no\s+identifiers\), and when an AI calls Saoi, Saoi records which assistant, which tool, the figures in bands and\s+any search words, and the time; no name, address or account; nothing else is stored\./,
@@ -579,6 +580,8 @@ describe('tools/call', () => {
     expect(text(body)).toMatch(
       /held for 24 hours and deleted then if unopened; once opened, it is kept with the Saoi app conversation it opens into/,
     )
+    expect(text(body)).toMatch(/the same link brings that browser back to it/)
+    expect(text(body)).not.toMatch(/works once/)
   })
 
   it('turns a saoi-api refusal into an isError result with its details', async () => {

@@ -2,6 +2,7 @@
 import type { BuildPlanResult } from '../saoiClient.js'
 import type { Bridge } from './bridge.js'
 import type { Icon, IconName } from './icons.js'
+import type { CardMemory } from './remember.js'
 import type {
   HomeCalculatorModel,
   HomeControl,
@@ -31,8 +32,19 @@ import type {
  * the customer presses something. Without figures from the host, the inputs open expanded and
  * fold once the options run. No route or option is picked or highlighted for them. Every string
  * goes in with `textContent`; icons are decorative.
+ *
+ * The way back in (2026-11-14): once "Open in Saoi" has opened a link, the card remembers it
+ * (`memory`, host widget state or the sandbox's storage) and every drawing, including the host's
+ * re-render when the customer comes back, leads with "Continue in Saoi" to the same link; the plan
+ * folds under "Show the plan".
  */
-export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalculatorModel, icon: Icon): void {
+export function homeCalculatorApp(
+  win: Window,
+  bridge: Bridge,
+  model: HomeCalculatorModel,
+  icon: Icon,
+  memory: CardMemory,
+): void {
   const doc = win.document
   const root = doc.getElementById('card')
   if (root === null) return
@@ -76,6 +88,14 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
   let closed = false
   /** The host's arguments from tool-input, kept until the result says whether to draw. */
   let hostArgs: Record<string, unknown> | null = null
+  /**
+   * What names this card for its memory of the opened link: the host's arguments, which a
+   * re-render sends again. Empty when there were none, and the sandbox's storage is then not used
+   * (every argument-less card would share it); the host's widget state, scoped to the card, still is.
+   */
+  let memoryScope = ''
+  /** Whether "Show the plan" is open under Continue in Saoi, kept across redraws. */
+  let planShown = false
   const ROUTE_ICONS: Record<HomeRoute['id'], IconName> = {
     second_hand: 'house',
     new_build_help_to_buy: 'house-plus',
@@ -936,7 +956,7 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
 
   /**
    * Open in Saoi: saves the comparison (running it first when there is none for these inputs)
-   * through the single-use link and opens it in the Saoi app. The button and the routes link both
+   * through its link and opens it in the Saoi app. The button and the routes link both
    * run this; they are disabled while it runs, and it says how it went on the line under the button.
    */
   const openInSaoi = async (): Promise<void> => {
@@ -972,8 +992,10 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       return
     }
     const opened = await bridge.openLink(url)
-    if (opened) finish('Opens in the Saoi app; the link works once.')
-    else finish('The link into the Saoi app (it works once):', url)
+    if (opened) {
+      memory.rememberOpened(url, memoryScope)
+      finish('Opens in the Saoi app. Tap again any time to come back to your conversation.')
+    } else finish('The link into the Saoi app:', url)
   }
 
   /** A control that opens Saoi, registered so a run disables every one of them. */
@@ -1056,6 +1078,8 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       const edit = button('btn-outline with-icon', 'Edit', () => {
         editing = true
         openControl = null
+        // Under Continue in Saoi the plan is folded: editing it opens it.
+        planShown = true
         draw()
       })
       edit.prepend(icon('pencil', 14))
@@ -1089,11 +1113,48 @@ export function homeCalculatorApp(win: Window, bridge: Bridge, model: HomeCalcul
       if (routeBlock !== null) root.append(routeBlock)
     }
     root.append(actionsView(), footerView())
+    const returned = memory.recallOpened(memoryScope)
+    if (returned !== null) foldUnder(returned.url, header)
     refresh()
+  }
+
+  /**
+   * The return state: under the header, "Continue your conversation in Saoi" with one filled
+   * button to the link opened before, then everything else folded under "Show the plan".
+   */
+  const foldUnder = (url: string, header: HTMLElement): void => {
+    const body = el('div', 'plan-fold')
+    body.id = 'plan-fold'
+    for (const node of Array.from(root.children)) if (node !== header) body.append(node)
+    body.hidden = !planShown
+    const back = el('section', 'return')
+    const go = button('btn btn-open', '', () => {
+      void bridge.openLink(url).then((opened) => {
+        if (!opened) win.open(url, '_blank', 'noopener')
+      })
+    })
+    go.append(el('span', 'medium', 'Continue in Saoi'), icon('external-link', 18))
+    back.append(
+      el('p', 'return-title', 'Continue your conversation in Saoi'),
+      go,
+      el('p', 'small muted', 'Back to Saoirse with everything as you left it.'),
+    )
+    const toggle = button('plan-toggle', 'Show the plan', () => {
+      planShown = !planShown
+      body.hidden = !planShown
+      toggle.setAttribute('aria-expanded', String(planShown))
+    })
+    toggle.setAttribute('aria-expanded', String(planShown))
+    toggle.setAttribute('aria-controls', body.id)
+    root.append(back, toggle, body)
   }
 
   /** The host's figures (arguments or the result's echo): fold when the four figures came. */
   const take = (args: Record<string, unknown> | null): void => {
+    const named = Object.entries(args ?? {})
+      .filter(([, value]) => value !== undefined && value !== null)
+      .sort(([a], [b]) => a.localeCompare(b))
+    memoryScope = named.length === 0 ? '' : `home:${JSON.stringify(named)}`
     inputs = model.fromArguments(args, asOf)
     given = model.given(args)
     editing = !model.startsFolded(args)

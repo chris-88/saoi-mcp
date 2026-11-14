@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import type { BuildPlanResult } from '../saoiClient.js'
 import type { PlanCardView } from './planCardModel.js'
+import type { CardMemory } from './remember.js'
 
 /**
  * The plan card's browser side: the MCP Apps `ui/*` bridge over postMessage (spec 2026-01-26,
@@ -11,8 +12,16 @@ import type { PlanCardView } from './planCardModel.js'
  * one tools/call) so the card needs no external script and no CSP allowance for one.
  *
  * Every string goes in with `textContent`: product names and notes are data, never markup.
+ *
+ * The way back in (2026-11-14): once the card has opened its link, it remembers it (`memory`) and
+ * every drawing, the host's re-render included, leads with "Continue in Saoi"; the plan folds
+ * under "Show the plan".
  */
-export function planCardApp(win: Window, model: (result: BuildPlanResult) => PlanCardView): void {
+export function planCardApp(
+  win: Window,
+  model: (result: BuildPlanResult) => PlanCardView,
+  memory: CardMemory,
+): void {
   const doc = win.document
   const PROTOCOL_VERSION = '2026-01-26'
   const pending = new Map<number, { resolve: (value: unknown) => void; reject: (error: Error) => void }>()
@@ -76,6 +85,18 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     }
   }
 
+  /** Whether "Show the plan" is open under Continue in Saoi, kept across redraws. */
+  let planShown = false
+  /**
+   * What names this card for its memory: its held link, else the plan's creation time (a link
+   * saved through saoi_save_plan is not in the stored result a re-render draws from).
+   */
+  const scopeOf = (view: PlanCardView): string => {
+    if (view.draftUrl !== null) return view.draftUrl
+    const created = record(view.plan)?.['createdAt']
+    return typeof created === 'string' ? `plan:${created}` : ''
+  }
+
   const save = async (view: PlanCardView, button: HTMLButtonElement): Promise<void> => {
     button.disabled = true
     status.textContent = view.draftUrl === null ? 'Saving the comparison to Saoi…' : 'Opening the Saoi app…'
@@ -96,7 +117,7 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
             content: [
               {
                 type: 'text',
-                text: `The customer saved this comparison to the Saoi app from the card. Their single-use link: ${claim}. It is held for 24 hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens into. Do not call saoi_save_plan again for this plan.`,
+                text: `The customer saved this comparison to the Saoi app from the card. Their link: ${claim}. It is held for 24 hours and deleted then if unopened; once opened, the plan is kept with the Saoi app conversation it opens into, and the same link brings that browser back to it. Do not call saoi_save_plan again for this plan.`,
               },
             ],
           })
@@ -113,9 +134,14 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     const opened = await openLink(url)
     const lead = view.draftUrl === null ? 'Saved. ' : ''
     status.textContent = opened
-      ? `${lead}The comparison opens in the Saoi app; the link works once.`
-      : `${lead}Open the comparison in the Saoi app (the link works once):`
+      ? `${lead}Opens in the Saoi app. Tap again any time to come back to your conversation.`
+      : `${lead}The link into the Saoi app:`
     if (!opened) showLink(url)
+    if (opened) {
+      memory.rememberOpened(url, scopeOf(view))
+      render(view)
+      return
+    }
     button.textContent = 'Open in Saoi app again'
     button.disabled = false
     button.onclick = () => {
@@ -444,6 +470,43 @@ export function planCardApp(win: Window, model: (result: BuildPlanResult) => Pla
     )
     for (const line of view.attributions) foot.append(el('p', 'small muted', line))
     root.append(foot)
+
+    const returned = memory.recallOpened(scopeOf(view))
+    if (returned !== null) foldUnder(returned.url, header)
+  }
+
+  /**
+   * The return state: under the header, "Continue your conversation in Saoi" with one filled
+   * button to the link opened before, then everything else folded under "Show the plan".
+   */
+  const foldUnder = (url: string, header: HTMLElement): void => {
+    const body = el('div', 'plan-fold')
+    body.id = 'plan-fold'
+    for (const node of Array.from(root.children)) if (node !== header) body.append(node)
+    body.hidden = !planShown
+    const back = el('section', 'return')
+    const go = el('button', 'save', 'Continue in Saoi')
+    go.type = 'button'
+    go.onclick = () => {
+      void openLink(url).then((opened) => {
+        if (!opened) win.open(url, '_blank', 'noopener')
+      })
+    }
+    back.append(
+      el('p', 'return-title', 'Continue your conversation in Saoi'),
+      go,
+      el('p', 'small muted', 'Back to Saoirse with everything as you left it.'),
+    )
+    const toggle = el('button', 'plan-toggle', 'Show the plan')
+    toggle.type = 'button'
+    toggle.setAttribute('aria-expanded', String(planShown))
+    toggle.setAttribute('aria-controls', body.id)
+    toggle.onclick = () => {
+      planShown = !planShown
+      body.hidden = !planShown
+      toggle.setAttribute('aria-expanded', String(planShown))
+    }
+    root.append(back, toggle, body)
   }
 
   const showText = (text: string): void => {

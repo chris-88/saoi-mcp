@@ -637,6 +637,6 @@ export function renderSaved(result: SavePlanResult): string {
     ...present([
       `Saved: this comparison can be opened in the Saoi app: ${result.claimUrl} (held for 24 hours and deleted then if unopened; once opened, it is kept with the Saoi app conversation it opens into).`,
     ]),
-    `It works once and expires ${result.expiresAt}. Nothing else about the customer is stored.`,
+    `It opens into one Saoi app conversation, and the same link brings that browser back to it; unopened, it expires ${result.expiresAt}. Nothing else about the customer is stored.`,
   ].join('\n')
 }

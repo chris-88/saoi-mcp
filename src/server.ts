@@ -7,7 +7,7 @@ import { ICON_PNG, ICON_SVG } from './icon.js'
 import { registerPrompts, registerResources, registerTools, SERVER_INSTRUCTIONS } from './tools.js'
 import { NO_TELEMETRY, requestFacts, telemetryFor, type CallTelemetry, type Sender } from './telemetry.js'
 
-export const VERSION = '0.19.1'
+export const VERSION = '0.19.2'
 
 /** What a host shows for this server: its name, the website and the mark, served from `publicUrl`'s origin. */
 export function serverInfo(publicUrl: string) {

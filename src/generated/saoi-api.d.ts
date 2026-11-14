@@ -3407,7 +3407,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Save a plan made in the customer’s own AI, behind a one-time link
+         * Save a plan made in the customer’s own AI, behind a link into the Saoi app
          * @description Public: no sign-in. Called by the Saoi MCP server (`saoi_save_plan`) with the plan `saoi_build_plan` returned (`MarketPlan`, version 1). Holds it and returns a claim link into app.saoi.ie, held for 24 hours; unopened, it is then deleted, and once opened it is kept with the Saoi app conversation it opened into, and the same link brings the browser that opened it back to that conversation. `saoi_build_plan` already returns such a link with every plan. The body is capped at 64 KiB; saves are rate-limited per address and capped per day.
          */
         post: {
@@ -12867,7 +12867,7 @@ export interface components {
                 }[];
                 basis: string;
             };
-            /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a one-time link into the Saoi app. */
+            /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a link into the Saoi app. */
             plan: {
                 /** @enum {number} */
                 version: 1;
@@ -13802,7 +13802,7 @@ export interface components {
                     }[];
                     basis: string;
                 };
-                /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a one-time link into the Saoi app. */
+                /** @description The plan, in the shape `POST /api/plans` takes. Send it back unchanged to save it behind a link into the Saoi app. */
                 plan: {
                     /** @enum {number} */
                     version: 1;

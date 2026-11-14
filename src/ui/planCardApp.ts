@@ -497,13 +497,36 @@ export function planCardApp(
       go,
       el('p', 'small muted', 'Back to Saoirse with everything as you left it.'),
     )
-    const toggle = el('button', 'plan-toggle', 'Show the plan')
+    const label = el('span', '', planShown ? 'Hide the plan' : 'Show the plan')
+    // The chevron the home calculator's tiles use (lucide chevron-down), decorative.
+    const SVG = 'http://www.w3.org/2000/svg'
+    const chevron = doc.createElementNS(SVG, 'svg')
+    for (const [name, value] of [
+      ['class', 'icon plan-chevron'],
+      ['width', '16'],
+      ['height', '16'],
+      ['viewBox', '0 0 24 24'],
+      ['fill', 'none'],
+      ['stroke', 'currentColor'],
+      ['stroke-width', '2'],
+      ['stroke-linecap', 'round'],
+      ['stroke-linejoin', 'round'],
+      ['aria-hidden', 'true'],
+      ['focusable', 'false'],
+    ] as const)
+      chevron.setAttribute(name, value)
+    const path = doc.createElementNS(SVG, 'path')
+    path.setAttribute('d', 'm6 9 6 6 6-6')
+    chevron.append(path)
+    const toggle = el('button', 'plan-toggle')
     toggle.type = 'button'
+    toggle.append(label, chevron)
     toggle.setAttribute('aria-expanded', String(planShown))
     toggle.setAttribute('aria-controls', body.id)
     toggle.onclick = () => {
       planShown = !planShown
       body.hidden = !planShown
+      label.textContent = planShown ? 'Hide the plan' : 'Show the plan'
       toggle.setAttribute('aria-expanded', String(planShown))
     }
     root.append(back, toggle, body)

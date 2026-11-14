@@ -679,7 +679,8 @@ describe('home calculator card: the way back in (2026-11-14)', () => {
   }
   const continueButton = (card: Card): HTMLButtonElement | undefined =>
     card.buttons().find((node) => node.textContent === 'Continue in Saoi')
-  const planToggle = (card: Card): HTMLButtonElement | undefined => card.byText('Show the plan')
+  const planToggle = (card: Card): HTMLButtonElement | undefined =>
+    (card.doc.querySelector('.plan-toggle') as unknown as HTMLButtonElement | null) ?? undefined
 
   it('draws the plan as before when nothing was opened', () => {
     const card = open(recorded.homeCalculatorSecondHand, responses)
@@ -711,6 +712,8 @@ describe('home calculator card: the way back in (2026-11-14)', () => {
     // The plan folds under a plain toggle, closed by default, with nothing taken out of it.
     const toggle = planToggle(card)
     const fold = card.doc.querySelector('#plan-fold') as unknown as HTMLElement
+    expect(toggle?.textContent).toBe('Show the plan')
+    expect(toggle?.querySelector('svg.plan-chevron')).not.toBeNull()
     expect(toggle?.getAttribute('aria-expanded')).toBe('false')
     expect(toggle?.getAttribute('aria-controls')).toBe('plan-fold')
     expect(fold.hidden).toBe(true)
@@ -719,6 +722,11 @@ describe('home calculator card: the way back in (2026-11-14)', () => {
     toggle?.click()
     expect(fold.hidden).toBe(false)
     expect(toggle?.getAttribute('aria-expanded')).toBe('true')
+    expect(toggle?.textContent).toBe('Hide the plan')
+    toggle?.click()
+    expect(fold.hidden).toBe(true)
+    expect(toggle?.textContent).toBe('Show the plan')
+    toggle?.click()
 
     // Continue opens the same link, and calls no tool.
     continueButton(card)?.click()
@@ -736,7 +744,7 @@ describe('home calculator card: the way back in (2026-11-14)', () => {
     const fold = card.doc.querySelector('#plan-fold') as unknown as HTMLElement
     expect(fold.hidden).toBe(false)
     expect(fold.querySelector('#in-depositSavedEur')).not.toBeNull()
-    expect(card.byText('Show the plan')?.getAttribute('aria-expanded')).toBe('true')
+    expect(card.byText('Hide the plan')?.getAttribute('aria-expanded')).toBe('true')
   })
 
   it('a card for other figures does not take another card’s link', async () => {

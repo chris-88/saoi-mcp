@@ -188,9 +188,13 @@ summary:focus-visible, button:focus-visible, input:focus-visible, select:focus-v
 .return { padding: 4px 16px 16px; display: grid; gap: 8px; }
 .return-title { font-weight: 600; font-size: 15px; }
 .plan-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
   width: 100%; min-height: 44px; padding: 0 16px; border: 0; border-top: 1px solid var(--border);
-  background: none; cursor: pointer; text-align: left; color: var(--muted-foreground); font-weight: 500;
+  background: none; cursor: pointer; text-align: left; color: var(--foreground); font-weight: 500;
 }
+.plan-chevron { flex: none; color: var(--muted-foreground); transition: transform 0.15s; }
+.plan-toggle[aria-expanded='true'] .plan-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .plan-chevron { transition: none; } }
 .kv { display: flex; justify-content: space-between; gap: 12px; }
 `
 

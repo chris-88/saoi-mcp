@@ -90,8 +90,13 @@ describe('plan card: the way back in (2026-11-14)', () => {
     const fold = card.doc.querySelector('#plan-fold') as unknown as HTMLElement
     expect(fold.hidden).toBe(true)
     expect(fold.querySelector('.actions .save')).not.toBeNull()
-    card.byText('Show the plan')?.click()
+    const toggle = card.doc.querySelector('.plan-toggle') as unknown as HTMLButtonElement
+    expect(toggle.textContent).toBe('Show the plan')
+    expect(toggle.querySelector('svg.plan-chevron path')?.getAttribute('d')).toBe('m6 9 6 6 6-6')
+    toggle.click()
     expect(fold.hidden).toBe(false)
+    expect(toggle.textContent).toBe('Hide the plan')
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
 
     card.byText('Continue in Saoi')?.click()
     await card.settle()

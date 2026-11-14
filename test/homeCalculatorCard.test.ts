@@ -4,6 +4,7 @@ import type { Bridge } from '../src/ui/bridge.js'
 import { homeCalculatorApp } from '../src/ui/homeCalculatorApp.js'
 import { homeCalculatorModel } from '../src/ui/homeCalculatorModel.js'
 import { cardIcons } from '../src/ui/icons.js'
+import { cardMemory } from '../src/ui/remember.js'
 import { recorded } from './helpers.js'
 
 /**
@@ -11,8 +12,8 @@ import { recorded } from './helpers.js'
  * tool-result with saoi-api's recorded answer. The bridge is a stand-in that answers tools/call
  * from recordings and records every call, opened link and context update.
  */
-function mount(responses: Record<string, unknown> = {}) {
-  const window = new Window({ url: 'https://card.test/' })
+function mount(responses: Record<string, unknown> = {}, existing?: Window) {
+  const window = existing ?? new Window({ url: 'https://card.test/' })
   const doc = window.document
   doc.body.innerHTML = '<main id="card" aria-busy="true"></main>'
   const handlers = new Map<string, (params: Record<string, unknown> | null) => void>()
@@ -43,7 +44,7 @@ function mount(responses: Record<string, unknown> = {}) {
       typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : null,
   }
   const win = window as unknown as globalThis.Window
-  homeCalculatorApp(win, bridge, homeCalculatorModel(), cardIcons(win.document))
+  homeCalculatorApp(win, bridge, homeCalculatorModel(), cardIcons(win.document), cardMemory(win))
   const emit = (method: string, params: Record<string, unknown>): void => {
     handlers.get(method)?.(params)
   }
@@ -60,12 +61,16 @@ function mount(responses: Record<string, unknown> = {}) {
   const respond = (name: string, answer: unknown): void => {
     responses[name] = answer
   }
-  return { doc, emit, calls, opened, contexts, buttons, byText, settle, text, respond }
+  return { window, doc, emit, calls, opened, contexts, buttons, byText, settle, text, respond }
 }
 
 /** The host's arguments and saoi-api's answer for one recorded example. */
-function open(result: typeof recorded.homeCalculatorSecondHand, responses: Record<string, unknown> = {}) {
-  const card = mount({ saoi_home_calculator: result, ...responses })
+function open(
+  result: typeof recorded.homeCalculatorSecondHand,
+  responses: Record<string, unknown> = {},
+  existing?: Window,
+) {
+  const card = mount({ saoi_home_calculator: result, ...responses }, existing)
   card.emit('ui/notifications/tool-input', { arguments: result.inputs })
   card.emit('ui/notifications/tool-result', { structuredContent: result })
   return card
@@ -519,13 +524,15 @@ describe('home calculator card v8: other routes', () => {
     expect(count(card, 'saoi_build_plan')).toBe(1)
     expect(count(card, 'saoi_save_plan')).toBe(1)
     expect(card.opened).toEqual([recorded.saved.claimUrl])
-    expect(card.text('.actions .status').join(' ')).toMatch(/Opens in the Saoi app; the link works once/)
+    expect(card.text('.actions .status').join(' ')).toMatch(
+      /Opens in the Saoi app\. Tap again any time to come back to your conversation\./,
+    )
     expect(routesLink(card)?.disabled).toBe(false)
   })
 })
 
 describe('home calculator card v8: Open in Saoi and the footer', () => {
-  it('has one filled two-line button, Open in Saoi, which compares, saves and opens the single-use link', async () => {
+  it('has one filled two-line button, Open in Saoi, which compares, saves and opens the plan link', async () => {
     const card = open(recorded.homeCalculatorSecondHand, unsaved)
     const filled = card.buttons().filter((node) => node.classList.contains('btn'))
     expect(filled).toHaveLength(1)
@@ -540,7 +547,9 @@ describe('home calculator card v8: Open in Saoi and the footer', () => {
     expect(count(card, 'saoi_build_plan')).toBe(1)
     expect(count(card, 'saoi_save_plan')).toBe(1)
     expect(card.opened).toEqual([recorded.saved.claimUrl])
-    expect(card.text('.status').join(' ')).toMatch(/Opens in the Saoi app; the link works once/)
+    expect(card.text('.status').join(' ')).toMatch(
+      /Opens in the Saoi app\. Tap again any time to come back to your conversation\./,
+    )
     // No count on the card, before or after.
     expect(card.text('.btn-open .btn-words > span')[1]).toBe('Compare all product options and supports')
   })
@@ -658,5 +667,87 @@ describe('home calculator card: the core-information gate', () => {
     const card = open(result)
     expect(card.doc.body.hidden).toBe(false)
     expect(card.doc.querySelector('.hero-month')).not.toBeNull()
+  })
+})
+
+describe('home calculator card: the way back in (2026-11-14)', () => {
+  /** The same sandbox again, as when the host re-renders the card from the stored result. */
+  const rerender = (card: Card) => {
+    const again = card.window
+    again.document.body.innerHTML = '<main id="card" aria-busy="true"></main>'
+    return open(recorded.homeCalculatorSecondHand, responses, again)
+  }
+  const continueButton = (card: Card): HTMLButtonElement | undefined =>
+    card.buttons().find((node) => node.textContent === 'Continue in Saoi')
+  const planToggle = (card: Card): HTMLButtonElement | undefined => card.byText('Show the plan')
+
+  it('draws the plan as before when nothing was opened', () => {
+    const card = open(recorded.homeCalculatorSecondHand, responses)
+    expect(continueButton(card)).toBeUndefined()
+    expect(card.doc.querySelector('.return')).toBeNull()
+  })
+
+  it('draws the return state when this card’s link was opened, on a re-render too', async () => {
+    const first = open(recorded.homeCalculatorSecondHand, responses)
+    openButton(first).click()
+    await first.settle()
+    const link = recorded.planHome.saveLink?.url
+    expect(first.opened).toEqual([link])
+    expect(continueButton(first)).toBeDefined()
+
+    const card = rerender(first)
+    // Under the header: the block, one filled button, the sub-line.
+    const children = Array.from(card.doc.querySelector('#card')?.children ?? [])
+    expect(children.map((node) => node.className)).toEqual([
+      'header head-row',
+      'return',
+      'plan-toggle',
+      'plan-fold',
+    ])
+    expect(card.text('.return .return-title')).toEqual(['Continue your conversation in Saoi'])
+    expect(card.text('.return p.small')).toEqual(['Back to Saoirse with everything as you left it.'])
+    expect(card.doc.querySelectorAll('.return .btn')).toHaveLength(1)
+
+    // The plan folds under a plain toggle, closed by default, with nothing taken out of it.
+    const toggle = planToggle(card)
+    const fold = card.doc.querySelector('#plan-fold') as unknown as HTMLElement
+    expect(toggle?.getAttribute('aria-expanded')).toBe('false')
+    expect(toggle?.getAttribute('aria-controls')).toBe('plan-fold')
+    expect(fold.hidden).toBe(true)
+    expect(fold.querySelector('.tiles')).not.toBeNull()
+    expect(fold.querySelector('.btn-open')).not.toBeNull()
+    toggle?.click()
+    expect(fold.hidden).toBe(false)
+    expect(toggle?.getAttribute('aria-expanded')).toBe('true')
+
+    // Continue opens the same link, and calls no tool.
+    continueButton(card)?.click()
+    await card.settle()
+    expect(card.opened).toEqual([link])
+    expect(card.calls).toHaveLength(0)
+  })
+
+  it('a card for other figures does not take another card’s link', async () => {
+    const first = open(recorded.homeCalculatorSecondHand, responses)
+    openButton(first).click()
+    await first.settle()
+    const again = first.window
+    again.document.body.innerHTML = '<main id="card" aria-busy="true"></main>'
+    const other = open(recorded.homeCalculatorNewBuild, responses, again)
+    expect(continueButton(other)).toBeUndefined()
+  })
+
+  it('stores only the link and the time, never a figure', async () => {
+    const first = open(recorded.homeCalculatorSecondHand, responses)
+    openButton(first).click()
+    await first.settle()
+    const storage = first.window.localStorage
+    const values = Array.from({ length: storage.length }, (_, index) =>
+      storage.getItem(storage.key(index) ?? ''),
+    )
+    expect(values).toHaveLength(1)
+    const stored = JSON.parse(values[0] ?? '') as Record<string, unknown>
+    expect(Object.keys(stored)).toEqual(['url', 'at'])
+    expect(stored['url']).toBe(recorded.planHome.saveLink?.url)
   })
 })

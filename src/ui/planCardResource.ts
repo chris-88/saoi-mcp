@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import type { McpServer } from '@modelcontextprotocol/server'
 import { planCardApp } from './planCardApp.js'
+import { cardMemory } from './remember.js'
 import { planCardModel } from './planCardModel.js'
 import { NO_TELEMETRY, type CallTelemetry } from '../telemetry.js'
 
@@ -183,12 +184,19 @@ summary:focus-visible, button:focus-visible, input:focus-visible, select:focus-v
 .option-head .right { text-align: right; }
 .option-body { display: grid; gap: 6px; padding: 0 0 12px; }
 [hidden] { display: none !important; }
+/* The way back in (2026-11-14): once its link was opened, a card leads with Continue in Saoi. */
+.return { padding: 4px 16px 16px; display: grid; gap: 8px; }
+.return-title { font-weight: 600; font-size: 15px; }
+.plan-toggle {
+  width: 100%; min-height: 44px; padding: 0 16px; border: 0; border-top: 1px solid var(--border);
+  background: none; cursor: pointer; text-align: left; color: var(--muted-foreground); font-weight: 500;
+}
 .kv { display: flex; justify-content: space-between; gap: 12px; }
 `
 
 /** The card's document: markup, style and script all inline. */
 export function planCardHtml(): string {
-  const script = `"use strict";\nconst planCardModel = ${planCardModel.toString()};\n(${planCardApp.toString()})(window, planCardModel);`
+  const script = `"use strict";\nconst planCardModel = ${planCardModel.toString()};\nconst cardMemory = ${cardMemory.toString()};\n(${planCardApp.toString()})(window, planCardModel, cardMemory(window));`
   return [
     '<!DOCTYPE html>',
     '<html lang="en-IE">',

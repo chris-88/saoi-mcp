@@ -3,6 +3,7 @@ import { createBridge } from './bridge.js'
 import { homeCalculatorApp } from './homeCalculatorApp.js'
 import { homeCalculatorModel } from './homeCalculatorModel.js'
 import { cardIcons } from './icons.js'
+import { cardMemory } from './remember.js'
 import { cardResourceMeta, MCP_APP_MIME_TYPE, STYLE } from './planCardResource.js'
 import { NO_TELEMETRY, type CallTelemetry } from '../telemetry.js'
 
@@ -176,7 +177,8 @@ export function homeCalculatorHtml(): string {
     `const createBridge = ${createBridge.toString()};`,
     `const homeCalculatorModel = ${homeCalculatorModel.toString()};`,
     `const cardIcons = ${cardIcons.toString()};`,
-    `(${homeCalculatorApp.toString()})(window, createBridge(window), homeCalculatorModel(), cardIcons(document));`,
+    `const cardMemory = ${cardMemory.toString()};`,
+    `(${homeCalculatorApp.toString()})(window, createBridge(window), homeCalculatorModel(), cardIcons(document), cardMemory(window));`,
   ].join('\n')
   return [
     '<!DOCTYPE html>',

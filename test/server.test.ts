@@ -297,10 +297,11 @@ describe('resources and prompts', () => {
     expect(uris).toEqual([
       'saoi://about/earnings',
       'saoi://about/ranking',
-      // v11 is current; v8, v9 and v10 are earlier addresses, still served for hosts that cached
-      // the tool list (2026-11-12). Sorted, so v10 and v11 come first.
+      // v12 is current; v8 to v11 are earlier addresses, still served for hosts that cached
+      // the tool list (2026-11-12). Sorted, so v10 to v12 come first.
       'ui://saoi/home-calculator-v10.html',
       'ui://saoi/home-calculator-v11.html',
+      'ui://saoi/home-calculator-v12.html',
       'ui://saoi/home-calculator-v8.html',
       'ui://saoi/home-calculator-v9.html',
       'ui://saoi/plan-card-v10.html',

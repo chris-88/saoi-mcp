@@ -206,6 +206,11 @@ export function homeCalculatorApp(
     kv('Stamp duty', model.eur(figures.stampDutyEur))
     if (figures.helpToBuyConditional)
       kv('Help to Buy (not counted: tax paid not given)', `up to ${model.eur(figures.helpToBuyEur)}`)
+    else if (figures.helpToBuyEur > 0 && figures.taxPaidBasis === 'estimated')
+      kv(
+        `Help to Buy (tax paid about ${model.eur(figures.taxPaidEur ?? 0)}, estimated from the income)`,
+        `−${model.eur(figures.helpToBuyEur)}`,
+      )
     else if (figures.helpToBuyEur > 0) kv('Help to Buy', `−${model.eur(figures.helpToBuyEur)}`)
     kv('Needed at the keys', model.eur(figures.neededAtKeysEur))
     breakdown.append(

@@ -49,6 +49,8 @@ export const recorded = {
   homeCalculatorSecondHand: recording('home-calculator-second-hand') as HomeCalculatorResult,
   /** The same as a new build, no tax paid given: Help to Buy is conditional. */
   homeCalculatorNewBuild: recording('home-calculator-new-build') as HomeCalculatorResult,
+  /** The same new build after saoi-api began estimating tax paid from the income (2026-11-19). */
+  homeCalculatorNewBuildEstimated: recording('home-calculator-new-build-estimated') as HomeCalculatorResult,
   /** saoi_first_home with routes and rent (live, 2026-11-10): joint, Dublin City, €1,800 rent. */
   firstHomeRoutes: recording('first-home-routes') as FirstHomeResult,
   reviewPresented: recording('review-presented') as ReviewResult,

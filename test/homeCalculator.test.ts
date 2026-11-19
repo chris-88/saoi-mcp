@@ -355,6 +355,115 @@ describe('round 4: routes, the conditional Help to Buy and rent', () => {
     expect(model.readyOn(figures, null)).toBeNull()
   })
 
+  /** Revenue's chart as saoi-api sends it in `rules.incomeTax` from 2026-11-19 (read that day). */
+  const INCOME_TAX = {
+    taxYears: 4,
+    years: [
+      {
+        year: 2022,
+        standardRateBandEur: 36_800,
+        standardRatePct: 20,
+        higherRatePct: 40,
+        personalCreditEur: 1_700,
+        employeeCreditEur: 1_700,
+      },
+      {
+        year: 2023,
+        standardRateBandEur: 40_000,
+        standardRatePct: 20,
+        higherRatePct: 40,
+        personalCreditEur: 1_775,
+        employeeCreditEur: 1_775,
+      },
+      {
+        year: 2024,
+        standardRateBandEur: 42_000,
+        standardRatePct: 20,
+        higherRatePct: 40,
+        personalCreditEur: 1_875,
+        employeeCreditEur: 1_875,
+      },
+      {
+        year: 2025,
+        standardRateBandEur: 44_000,
+        standardRatePct: 20,
+        higherRatePct: 40,
+        personalCreditEur: 2_000,
+        employeeCreditEur: 2_000,
+      },
+      {
+        year: 2026,
+        standardRateBandEur: 44_000,
+        standardRatePct: 20,
+        higherRatePct: 40,
+        personalCreditEur: 2_000,
+        employeeCreditEur: 2_000,
+      },
+    ],
+  }
+  const withChart = { ...newBuild.rules, incomeTax: INCOME_TAX }
+
+  it('estimates tax paid from the income on the chart saoi-api sends, and counts Help to Buy on it', () => {
+    // €60,000 and €40,000, each taxed singly over 2022 to 2025: €48,740 + €17,940 (saoi-api's
+    // tax-paid.test.ts arithmetic), above the €35,000 the price allows.
+    const inputs = model.fromArguments(newBuild.inputs, '2026-11')
+    const estimated = model.figures(inputs, withChart, '2026-11')
+    expect(estimated.taxPaidBasis).toBe('estimated')
+    expect(estimated.taxPaidEur).toBe(66_680)
+    expect(estimated.helpToBuyConditional).toBe(false)
+    expect(estimated.helpToBuyEur).toBe(35_000)
+    expect(estimated.neededAtKeysEur).toBe(12_000)
+    expect(estimated.lines.join(' ')).toMatch(
+      /The €35,000 Help to Buy rests on an estimate: about €66,680 of Income Tax over 2022 to 2025 from the income, above the €35,000 the price and the cap allow, so the tax does not limit it\. The exact figure is on each year’s Statement of Liability in Revenue myAccount/,
+    )
+    expect(model.factLine(estimated)).toBe(
+      '€40,000 deposit + €4,000 stamp duty + €3,000 legal and survey − €35,000 Help to Buy',
+    )
+    // A figure given replaces the estimate.
+    const given = model.figures({ ...inputs, taxPaidLastFourYearsEur: 20_000 }, withChart, '2026-11')
+    expect(given.taxPaidBasis).toBe('given')
+    expect(given.helpToBuyEur).toBe(20_000)
+    // No income: nothing to estimate from, so the conditional rule stands.
+    const noIncome = model.figures(
+      { ...inputs, annualGrossIncomeEur: 0, secondIncomeEur: 0 },
+      withChart,
+      '2026-11',
+    )
+    expect(noIncome.taxPaidBasis).toBe('not_given')
+    expect(noIncome.helpToBuyConditional).toBe(true)
+    // Rules from before the chart was sent: the old behaviour, so recorded results still agree.
+    expect(model.figures(inputs, newBuild.rules, '2026-11').taxPaidBasis).toBe('not_given')
+  })
+
+  it('agrees with saoi-api’s recorded result that estimates tax paid from the income', () => {
+    const live = recorded.homeCalculatorNewBuildEstimated
+    const inputs = model.fromArguments(live.inputs, '2026-11')
+    const figures = model.figures(inputs, live.rules, '2026-11')
+    expect(live.figures.taxPaidBasis).toBe('estimated')
+    expect(figures.taxPaidBasis).toBe(live.figures.taxPaidBasis)
+    expect(figures.taxPaidEur).toBe(live.figures.taxPaidEur)
+    expect(figures.helpToBuyEur).toBe(live.figures.helpToBuyEur)
+    expect(figures.helpToBuyConditional).toBe(live.figures.helpToBuyConditional)
+    expect(figures.neededAtKeysEur).toBe(live.figures.neededAtKeysEur)
+    expect(figures.reachedOn).toBe(live.figures.depositReachedOn)
+    expect(figures.targetMet).toBe(live.figures.targetDateMet)
+  })
+
+  it('says when the estimate sets the refund, and takes a year off the chart from its nearest year', () => {
+    // One buyer on €40,000 and a €200,000 new build: about €17,940 against the €20,000 10% allows.
+    const inputs = model.fromArguments(
+      { ...newBuild.inputs, annualGrossIncomeEur: 40_000, secondIncomeEur: 0, targetPriceEur: 200_000 },
+      '2026-11',
+    )
+    const limited = model.figures(inputs, withChart, '2026-11')
+    expect(limited.taxPaidEur).toBe(17_940)
+    expect(limited.helpToBuyEur).toBe(17_940)
+    expect(limited.lines.join(' ')).toMatch(/which sets it here, €2,060 below the €20,000 the price allows/)
+    // Applying in 2028: 2024 to 2027, with 2027 on 2026's bands (€4,000 a year at €40,000).
+    const later = model.figures(inputs, withChart, '2028-01')
+    expect(later.taxPaidEur).toBe(4_250 + 4_000 + 4_000 + 4_000)
+  })
+
   it('takes Help to Buy off the fact line only when it is counted', () => {
     const built = model.fromArguments({ ...newBuild.inputs, taxPaidLastFourYearsEur: 50_000 }, '2026-11')
     const counted = model.figures(built, newBuild.rules, '2026-11')

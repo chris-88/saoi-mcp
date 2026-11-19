@@ -93,8 +93,18 @@ export interface HomeFigures {
   legalAndSurveyEur: number
   /** Counted in `neededAtKeysEur`; with `helpToBuyConditional`, what it could be, not counted. */
   helpToBuyEur: number
-  /** A new build with tax paid not given: the headline is without Help to Buy (saoi-api's rule). */
+  /**
+   * A new build with tax paid neither given nor estimable (no income, or rules without the tax
+   * chart): the headline is without Help to Buy (saoi-api's rule).
+   */
   helpToBuyConditional: boolean
+  /**
+   * What the tax-paid cap on Help to Buy rests on (saoi-api's `figures.taxPaidBasis`, 2026-11-19):
+   * the figure given, an estimate from the income on the chart in `rules.incomeTax`, or nothing.
+   */
+  taxPaidBasis: 'given' | 'estimated' | 'not_given'
+  /** The figure Help to Buy is capped at, given or estimated; null with neither. */
+  taxPaidEur: number | null
   neededAtKeysEur: number
   /** "YYYY-MM", or null when it is not reached (nothing saved a month). */
   reachedOn: string | null
@@ -307,6 +317,45 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     }
   }
 
+  /**
+   * saoi-api's `estimateTaxPaid` (`tax-paid.ts`, 2026-11-19) on the chart the result carries:
+   * the Income Tax over the four tax years before an application this year, each applicant taxed
+   * singly on the same income each year with the personal and Employee credits. Null without an
+   * income or without the chart (a result from before the chart was sent).
+   */
+  const estimateTaxPaid = (
+    incomes: readonly number[],
+    rules: HomeRules,
+    asOf: string,
+  ): { totalEur: number; firstYear: number; lastYear: number } | null => {
+    const chart = rules.incomeTax
+    const earners = incomes.filter((g) => g > 0)
+    if (chart === undefined || chart.years.length === 0 || earners.length === 0) return null
+    const applicationYear = Number(asOf.slice(0, 4))
+    const years = Array.from({ length: chart.taxYears }, (_, i) => applicationYear - chart.taxYears + i)
+    const first = chart.years[0]
+    const latest = chart.years[chart.years.length - 1]
+    if (first === undefined || latest === undefined) return null
+    let total = 0
+    for (const year of years) {
+      const y = chart.years.find((row) => row.year === year) ?? (year > latest.year ? latest : first)
+      for (const gross of earners) {
+        const atStandard = Math.min(gross, y.standardRateBandEur)
+        const atHigher = Math.max(0, gross - y.standardRateBandEur)
+        const tax = (atStandard * y.standardRatePct) / 100 + (atHigher * y.higherRatePct) / 100
+        total += Math.max(0, tax - y.personalCreditEur - y.employeeCreditEur)
+      }
+    }
+    return {
+      totalEur: round2(total),
+      firstYear: years[0] ?? applicationYear,
+      lastYear: years[years.length - 1] ?? applicationYear,
+    }
+  }
+
+  const TAX_PAID_CHECK =
+    'The exact figure is on each year’s Statement of Liability in Revenue myAccount; a figure given replaces the estimate.'
+
   /** saoi-api's `homeCalculator` for a given price, on the rules from the tool result. */
   const figures = (inputs: HomeInputs, rules: HomeRules, asOf: string): HomeFigures => {
     const measures = inputs.firstTimeBuyer ? rules.firstTimeBuyer : rules.otherBuyer
@@ -314,14 +363,22 @@ export function homeCalculatorModel(): HomeCalculatorModel {
     const income = inputs.annualGrossIncomeEur + inputs.secondIncomeEur
     const maxLoan = round2(income * measures.loanToIncome)
     const price = inputs.targetPriceEur
-    // Help to Buy counts towards the cash at the keys only when tax paid, which limits it, was
-    // given; without it the figure is what it could be, and the headline leaves it out.
+    // Help to Buy counts towards the cash at the keys when tax paid, which limits it, is given or
+    // estimated from the income (saoi-api's rule, 2026-11-19); with neither the figure is what it
+    // could be, and the headline leaves it out.
     const htbApplies = inputs.firstTimeBuyer && inputs.propertyKind === 'new_build'
     const htbUpTo =
       htbApplies && price <= rules.helpToBuy.maxPriceEur
         ? round2(Math.min(price * rules.helpToBuy.shareOfPrice, rules.helpToBuy.capEur))
         : 0
-    const taxPaid = inputs.taxPaidLastFourYearsEur
+    const given = inputs.taxPaidLastFourYearsEur
+    const estimate =
+      given === null
+        ? estimateTaxPaid([inputs.annualGrossIncomeEur, inputs.secondIncomeEur], rules, asOf)
+        : null
+    const taxPaid = given ?? estimate?.totalEur ?? null
+    const taxPaidBasis: HomeFigures['taxPaidBasis'] =
+      given !== null ? 'given' : estimate !== null ? 'estimated' : 'not_given'
     const htb = htbApplies && taxPaid !== null ? round2(Math.min(htbUpTo, taxPaid)) : 0
     const conditional = htbApplies && taxPaid === null && htbUpTo > 0
     const loan = round2(Math.min(price * ltv, maxLoan))
@@ -348,6 +405,11 @@ export function homeCalculatorModel(): HomeCalculatorModel {
             `Help to Buy is not counted: up to ${eur(htbUpTo)}, it is limited by the Income Tax and DIRT paid over the last four tax years.`,
           ]
         : []),
+      ...(htb > 0 && estimate !== null && taxPaidBasis === 'estimated'
+        ? [
+            `The ${eur(htb)} Help to Buy rests on an estimate: about ${eur(estimate.totalEur)} of Income Tax over ${String(estimate.firstYear)} to ${String(estimate.lastYear)} from the income, ${htb < htbUpTo ? `which sets it here, ${eur(round2(htbUpTo - htb))} below the ${eur(htbUpTo)} the price allows` : `above the ${eur(htbUpTo)} the price and the cap allow, so the tax does not limit it`}. ${TAX_PAID_CHECK}`,
+          ]
+        : []),
       reachedOn === null
         ? 'Not reached with nothing saved a month.'
         : saved >= needed
@@ -368,6 +430,8 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       legalAndSurveyEur: rules.legalAndSurveyEur,
       helpToBuyEur: conditional ? htbUpTo : htb,
       helpToBuyConditional: conditional,
+      taxPaidBasis,
+      taxPaidEur: taxPaid,
       neededAtKeysEur: needed,
       reachedOn,
       targetMet,
@@ -431,7 +495,7 @@ export function homeCalculatorModel(): HomeCalculatorModel {
       `${inputs.firstTimeBuyer ? 'first-time buyer' : 'not a first-time buyer'}; ${inputs.propertyKind === 'new_build' ? 'new build' : 'second-hand'};`,
       `${inputs.currentBank === '' ? 'bank not given' : `banks with ${inputs.currentBank}${inputs.stayWithBank ? ', wants to see only their options' : ''}`};`,
       `rates: ${inputs.rateType}; green home: ${inputs.green ? 'yes' : 'no'}; open to switching current account: ${inputs.openToCurrentAccountSwitch ? 'yes' : 'no'};`,
-      `county: ${COUNTIES.find(([slug]) => slug === inputs.county)?.[1] ?? 'not given'}; rent: ${inputs.monthlyRentEur === null ? 'not given' : `${eur(inputs.monthlyRentEur)} a month`}; tax paid over the last four years: ${inputs.taxPaidLastFourYearsEur === null ? 'not given' : eur(inputs.taxPaidLastFourYearsEur)}.`,
+      `county: ${COUNTIES.find(([slug]) => slug === inputs.county)?.[1] ?? 'not given'}; rent: ${inputs.monthlyRentEur === null ? 'not given' : `${eur(inputs.monthlyRentEur)} a month`}; tax paid over the last four years: ${inputs.taxPaidLastFourYearsEur === null ? `not given${inputs.propertyKind === 'new_build' ? ' (estimated from the income for Help to Buy, stated as an estimate)' : ''}` : eur(inputs.taxPaidLastFourYearsEur)}.`,
       'The card lists every route to a home as facts, in the order saoi-api gave; relay them as given and never call one the best.',
       `The comparison returned ${String(count)} options sorted by ${SORTS[sortBy]}; the list opens in the Saoi app.`,
       'The card is the end of the conversation in this chat: a follow-up about the options or the supports is answered by pointing at the card’s button,',

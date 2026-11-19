@@ -555,7 +555,13 @@ export function renderHomeCalculator(result: HomeCalculatorResult): string {
     ...(f.helpToBuyConditional
       ? [`- Help to Buy: not counted above; up to ${eur(f.helpToBuyEur)}, limited by tax paid (not given)`]
       : f.helpToBuyEur > 0
-        ? [`- Help to Buy counted: ${eur(f.helpToBuyEur)}`]
+        ? [
+            `- Help to Buy counted: ${eur(f.helpToBuyEur)}${
+              f.taxPaidBasis === 'estimated' && f.taxPaidEstimate
+                ? ` (on an estimate: ${f.taxPaidEstimate.line} ${f.taxPaidEstimate.check})`
+                : ''
+            }`,
+          ]
         : []),
     ...(f.depositReachedOn === null ? [] : [`- Saved by: ${f.depositReachedOn} (before interest)`]),
     ...(typeof f.maxPriceEur !== 'number'

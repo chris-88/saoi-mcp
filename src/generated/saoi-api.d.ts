@@ -11879,7 +11879,7 @@ export interface components {
                  * @enum {string}
                  */
                 propertyKind?: "new_build" | "self_build" | "second_hand";
-                /** @description Income Tax and DIRT paid over the last four tax years: the most Help to Buy can be. Absent on a new build: the headline leaves Help to Buy out and `helpToBuyEur` is what it could be (`helpToBuyConditional`). */
+                /** @description Income Tax and DIRT paid over the last four tax years: the most Help to Buy can be. Absent on a new build: estimated from the income (`figures.taxPaidEstimate`) and Help to Buy counted on the estimate; with no income either, the headline leaves Help to Buy out and `helpToBuyEur` is what it could be (`helpToBuyConditional`). */
                 taxPaidLastFourYearsEur?: number;
                 /**
                  * @description Where the home is: one of the 26 counties, or one of Dublin’s four local authorities (`dublin_city`, `dun_laoghaire_rathdown`, `fingal`, `south_dublin`). Sets the First Home Scheme and Local Authority Home Loan price limits. Absent: a price between the lowest and highest limits makes those routes ask for it.
@@ -11920,6 +11920,19 @@ export interface components {
                     capEur: number;
                     maxPriceEur: number;
                 };
+                /** @description Revenue’s bands and credits per tax year, so the card estimates tax paid from the income as the sliders move, the same way the server does (`figures.taxPaidEstimate`). */
+                incomeTax?: {
+                    /** @description How many tax years before the application count: 4. */
+                    taxYears: number;
+                    years: {
+                        year: number;
+                        standardRateBandEur: number;
+                        standardRatePct: number;
+                        higherRatePct: number;
+                        personalCreditEur: number;
+                        employeeCreditEur: number;
+                    }[];
+                };
                 firstTimeBuyer: {
                     loanToIncome: number;
                     maxLtvPct: number;
@@ -11952,8 +11965,44 @@ export interface components {
                 legalAndSurveyEur: number;
                 /** @description Help to Buy at this price. With `helpToBuyConditional`, what it could be (the cap or 10% of the price), not counted in the figures. */
                 helpToBuyEur: number;
-                /** @description True for a new build when tax paid was not given: the headline (`neededAtKeysEur`, `depositReachedOn`, `targetDateMet`) is without Help to Buy, and the `new_build_help_to_buy` route carries the keys date if tax paid covers it. */
+                /** @description True for a new build when tax paid was neither given nor estimable (no income given): the headline (`neededAtKeysEur`, `depositReachedOn`, `targetDateMet`) is without Help to Buy, and the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With an income, tax paid is estimated (`taxPaidBasis`, `taxPaidEstimate`) and Help to Buy is counted on it. */
                 helpToBuyConditional: boolean;
+                /**
+                 * @description `given`: `taxPaidLastFourYearsEur` was given and caps Help to Buy. `estimated`: not given, so the Income Tax over the four tax years before an application this year is estimated from the gross income on Revenue’s bands and credits (`taxPaidEstimate`), and Help to Buy is counted on it, stated as an estimate. `not_given`: neither, so Help to Buy is shown as what it could be and not counted.
+                 * @enum {string}
+                 */
+                taxPaidBasis?: "given" | "estimated" | "not_given";
+                /** @description The tax-paid figure Help to Buy is capped at: given or estimated. Null when neither. */
+                taxPaidEur?: number | null;
+                /** @description Present its `line` beside the Help to Buy figure when `taxPaidBasis` is `estimated`. */
+                taxPaidEstimate?: {
+                    /** @description Income Tax over the four years, the figure Help to Buy is capped at. */
+                    totalEur: number;
+                    /** @description The year the application is taken as made in. */
+                    applicationYear: number;
+                    /** @description One entry per tax year, oldest first. */
+                    years: {
+                        year: number;
+                        /** @description The year of Revenue’s chart used; differs when the year is not on it. */
+                        chartYear: number;
+                        /** @description Income Tax for the year, every applicant together. */
+                        taxEur: number;
+                    }[];
+                    /** @description The gross income a year each applicant is taxed on. */
+                    incomesEur: number[];
+                    /** @description One sentence: the figure, the years and what it was estimated from. */
+                    line: string;
+                    /** @description Where the exact figure is, and that a figure given replaces this. */
+                    check: string;
+                    /** @description Each assumption behind the figure, stated and correctable. */
+                    assumptions: string[];
+                    sources: {
+                        fact: string;
+                        url: string;
+                        /** @description YYYY-MM-DD the page was read. */
+                        checkedOn: string;
+                    }[];
+                } | null;
                 /** @description Deposit plus stamp duty and fees, less Help to Buy when it is counted. */
                 neededAtKeysEur: number | null;
                 /** @description YYYY-MM the money needed at the keys is saved, at this pace, before interest. */
@@ -12103,7 +12152,7 @@ export interface components {
              * @enum {string}
              */
             propertyKind?: "new_build" | "self_build" | "second_hand";
-            /** @description Income Tax and DIRT paid over the last four tax years: the most Help to Buy can be. Absent on a new build: the headline leaves Help to Buy out and `helpToBuyEur` is what it could be (`helpToBuyConditional`). */
+            /** @description Income Tax and DIRT paid over the last four tax years: the most Help to Buy can be. Absent on a new build: estimated from the income (`figures.taxPaidEstimate`) and Help to Buy counted on the estimate; with no income either, the headline leaves Help to Buy out and `helpToBuyEur` is what it could be (`helpToBuyConditional`). */
             taxPaidLastFourYearsEur?: number;
             /**
              * @description Where the home is: one of the 26 counties, or one of Dublin’s four local authorities (`dublin_city`, `dun_laoghaire_rathdown`, `fingal`, `south_dublin`). Sets the First Home Scheme and Local Authority Home Loan price limits. Absent: a price between the lowest and highest limits makes those routes ask for it.
@@ -12146,6 +12195,40 @@ export interface components {
                 upToEur: number;
                 /** @enum {string|null} */
                 limitedBy: "share_of_price" | "cap" | "tax_paid" | null;
+                /**
+                 * @description `given`: `taxPaidLastFourYearsEur` was given and caps Help to Buy. `estimated`: not given, so the Income Tax over the four tax years before an application this year is estimated from the gross income on Revenue’s bands and credits (`taxPaidEstimate`), and Help to Buy is counted on it, stated as an estimate. `not_given`: neither, so Help to Buy is shown as what it could be and not counted.
+                 * @enum {string}
+                 */
+                taxPaidBasis?: "given" | "estimated" | "not_given";
+                /** @description The estimate `amountEur` rests on when `taxPaidBasis` is `estimated`; null otherwise. */
+                taxPaidEstimate?: {
+                    /** @description Income Tax over the four years, the figure Help to Buy is capped at. */
+                    totalEur: number;
+                    /** @description The year the application is taken as made in. */
+                    applicationYear: number;
+                    /** @description One entry per tax year, oldest first. */
+                    years: {
+                        year: number;
+                        /** @description The year of Revenue’s chart used; differs when the year is not on it. */
+                        chartYear: number;
+                        /** @description Income Tax for the year, every applicant together. */
+                        taxEur: number;
+                    }[];
+                    /** @description The gross income a year each applicant is taxed on. */
+                    incomesEur: number[];
+                    /** @description One sentence: the figure, the years and what it was estimated from. */
+                    line: string;
+                    /** @description Where the exact figure is, and that a figure given replaces this. */
+                    check: string;
+                    /** @description Each assumption behind the figure, stated and correctable. */
+                    assumptions: string[];
+                    sources: {
+                        fact: string;
+                        url: string;
+                        /** @description YYYY-MM-DD the page was read. */
+                        checkedOn: string;
+                    }[];
+                } | null;
                 /** @description Why it is, or is not, or may be, available, with the figures. */
                 reasons: string[];
                 /** @description What has to hold for it, from Revenue. */
@@ -12524,7 +12607,7 @@ export interface components {
             propertyKind?: "new_build" | "self_build" | "second_hand";
             /** @description Default true. */
             firstTimeBuyer?: boolean;
-            /** @description Income Tax and DIRT paid over the four tax years before applying (not USC or PRSI), across the buyers, less any Help to Buy already claimed. Help to Buy cannot be more than this. Absent: the amount is shown as "up to". */
+            /** @description Income Tax and DIRT paid over the four tax years before applying (not USC or PRSI), across the buyers, less any Help to Buy already claimed. Help to Buy cannot be more than this. Absent: estimated from the gross income (`helpToBuy.taxPaidEstimate`) and the amount rests on the estimate, stated as one. */
             taxPaidLastFourYearsEur?: number;
             /** @description Default 30. */
             termYears?: number;
@@ -12632,8 +12715,44 @@ export interface components {
                 legalAndSurveyEur: number;
                 /** @description Help to Buy at this price. With `helpToBuyConditional`, what it could be, not counted in the figures. */
                 helpToBuyEur: number;
-                /** @description True for a new build when tax paid was not given: the options and their keys months are without Help to Buy, as the home calculator’s headline is; the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With tax paid given, Help to Buy is counted. */
+                /** @description True for a new build when tax paid was neither given nor estimable (no income): the options and their keys months are without Help to Buy, as the home calculator’s headline is; the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With tax paid given or estimated from the income (`taxPaidBasis`), Help to Buy is counted. */
                 helpToBuyConditional: boolean;
+                /**
+                 * @description `given`: `taxPaidLastFourYearsEur` was given and caps Help to Buy. `estimated`: not given, so the Income Tax over the four tax years before an application this year is estimated from the gross income on Revenue’s bands and credits (`taxPaidEstimate`), and Help to Buy is counted on it, stated as an estimate. `not_given`: neither, so Help to Buy is shown as what it could be and not counted.
+                 * @enum {string}
+                 */
+                taxPaidBasis?: "given" | "estimated" | "not_given";
+                /** @description The tax-paid figure Help to Buy is capped at: given or estimated. Null when neither. */
+                taxPaidEur?: number | null;
+                /** @description A rough figure for the Income Tax paid over the four tax years before an application, from the gross income given: the same income each year, each applicant taxed singly as a PAYE employee with the personal and Employee credits, no pension, rent or other reliefs, no DIRT. Present it as about: the exact figure is on each year’s Statement of Liability in myAccount. */
+                taxPaidEstimate?: {
+                    /** @description Income Tax over the four years, the figure Help to Buy is capped at. */
+                    totalEur: number;
+                    /** @description The year the application is taken as made in. */
+                    applicationYear: number;
+                    /** @description One entry per tax year, oldest first. */
+                    years: {
+                        year: number;
+                        /** @description The year of Revenue’s chart used; differs when the year is not on it. */
+                        chartYear: number;
+                        /** @description Income Tax for the year, every applicant together. */
+                        taxEur: number;
+                    }[];
+                    /** @description The gross income a year each applicant is taxed on. */
+                    incomesEur: number[];
+                    /** @description One sentence: the figure, the years and what it was estimated from. */
+                    line: string;
+                    /** @description Where the exact figure is, and that a figure given replaces this. */
+                    check: string;
+                    /** @description Each assumption behind the figure, stated and correctable. */
+                    assumptions: string[];
+                    sources: {
+                        fact: string;
+                        url: string;
+                        /** @description YYYY-MM-DD the page was read. */
+                        checkedOn: string;
+                    }[];
+                } | null;
                 /** @description Deposit plus stamp duty and fees, less Help to Buy when it is counted. */
                 neededAtKeysEur: number;
                 keysOn: string | null;
@@ -12836,6 +12955,40 @@ export interface components {
                 status: "available" | "not_available" | "depends";
                 amountEur: number | null;
                 upToEur: number;
+                /**
+                 * @description `given`: `taxPaidLastFourYearsEur` was given and caps Help to Buy. `estimated`: not given, so the Income Tax over the four tax years before an application this year is estimated from the gross income on Revenue’s bands and credits (`taxPaidEstimate`), and Help to Buy is counted on it, stated as an estimate. `not_given`: neither, so Help to Buy is shown as what it could be and not counted.
+                 * @enum {string}
+                 */
+                taxPaidBasis?: "given" | "estimated" | "not_given";
+                /** @description A rough figure for the Income Tax paid over the four tax years before an application, from the gross income given: the same income each year, each applicant taxed singly as a PAYE employee with the personal and Employee credits, no pension, rent or other reliefs, no DIRT. Present it as about: the exact figure is on each year’s Statement of Liability in myAccount. */
+                taxPaidEstimate?: {
+                    /** @description Income Tax over the four years, the figure Help to Buy is capped at. */
+                    totalEur: number;
+                    /** @description The year the application is taken as made in. */
+                    applicationYear: number;
+                    /** @description One entry per tax year, oldest first. */
+                    years: {
+                        year: number;
+                        /** @description The year of Revenue’s chart used; differs when the year is not on it. */
+                        chartYear: number;
+                        /** @description Income Tax for the year, every applicant together. */
+                        taxEur: number;
+                    }[];
+                    /** @description The gross income a year each applicant is taxed on. */
+                    incomesEur: number[];
+                    /** @description One sentence: the figure, the years and what it was estimated from. */
+                    line: string;
+                    /** @description Where the exact figure is, and that a figure given replaces this. */
+                    check: string;
+                    /** @description Each assumption behind the figure, stated and correctable. */
+                    assumptions: string[];
+                    sources: {
+                        fact: string;
+                        url: string;
+                        /** @description YYYY-MM-DD the page was read. */
+                        checkedOn: string;
+                    }[];
+                } | null;
                 note: string;
                 sourceUrl: string;
                 checkedOn: string;
@@ -13362,7 +13515,7 @@ export interface components {
              * @enum {string}
              */
             propertyKind?: "new_build" | "self_build" | "second_hand";
-            /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
+            /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. Absent: estimated from the gross income, and Help to Buy is counted on the estimate, stated as one. */
             taxPaidLastFourYearsEur?: number;
             /** @description For a house deposit: true when two people are buying (the gross income is then joint). Changes no figure; questions are worded for both. */
             buyingTogether?: boolean;
@@ -13567,8 +13720,44 @@ export interface components {
                     legalAndSurveyEur: number;
                     /** @description Help to Buy at this price. With `helpToBuyConditional`, what it could be, not counted in the figures. */
                     helpToBuyEur: number;
-                    /** @description True for a new build when tax paid was not given: the options and their keys months are without Help to Buy, as the home calculator’s headline is; the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With tax paid given, Help to Buy is counted. */
+                    /** @description True for a new build when tax paid was neither given nor estimable (no income): the options and their keys months are without Help to Buy, as the home calculator’s headline is; the `new_build_help_to_buy` route carries the keys date if tax paid covers it. With tax paid given or estimated from the income (`taxPaidBasis`), Help to Buy is counted. */
                     helpToBuyConditional: boolean;
+                    /**
+                     * @description `given`: `taxPaidLastFourYearsEur` was given and caps Help to Buy. `estimated`: not given, so the Income Tax over the four tax years before an application this year is estimated from the gross income on Revenue’s bands and credits (`taxPaidEstimate`), and Help to Buy is counted on it, stated as an estimate. `not_given`: neither, so Help to Buy is shown as what it could be and not counted.
+                     * @enum {string}
+                     */
+                    taxPaidBasis?: "given" | "estimated" | "not_given";
+                    /** @description The tax-paid figure Help to Buy is capped at: given or estimated. Null when neither. */
+                    taxPaidEur?: number | null;
+                    /** @description A rough figure for the Income Tax paid over the four tax years before an application, from the gross income given: the same income each year, each applicant taxed singly as a PAYE employee with the personal and Employee credits, no pension, rent or other reliefs, no DIRT. Present it as about: the exact figure is on each year’s Statement of Liability in myAccount. */
+                    taxPaidEstimate?: {
+                        /** @description Income Tax over the four years, the figure Help to Buy is capped at. */
+                        totalEur: number;
+                        /** @description The year the application is taken as made in. */
+                        applicationYear: number;
+                        /** @description One entry per tax year, oldest first. */
+                        years: {
+                            year: number;
+                            /** @description The year of Revenue’s chart used; differs when the year is not on it. */
+                            chartYear: number;
+                            /** @description Income Tax for the year, every applicant together. */
+                            taxEur: number;
+                        }[];
+                        /** @description The gross income a year each applicant is taxed on. */
+                        incomesEur: number[];
+                        /** @description One sentence: the figure, the years and what it was estimated from. */
+                        line: string;
+                        /** @description Where the exact figure is, and that a figure given replaces this. */
+                        check: string;
+                        /** @description Each assumption behind the figure, stated and correctable. */
+                        assumptions: string[];
+                        sources: {
+                            fact: string;
+                            url: string;
+                            /** @description YYYY-MM-DD the page was read. */
+                            checkedOn: string;
+                        }[];
+                    } | null;
                     /** @description Deposit plus stamp duty and fees, less Help to Buy when it is counted. */
                     neededAtKeysEur: number;
                     keysOn: string | null;
@@ -13771,6 +13960,40 @@ export interface components {
                     status: "available" | "not_available" | "depends";
                     amountEur: number | null;
                     upToEur: number;
+                    /**
+                     * @description `given`: `taxPaidLastFourYearsEur` was given and caps Help to Buy. `estimated`: not given, so the Income Tax over the four tax years before an application this year is estimated from the gross income on Revenue’s bands and credits (`taxPaidEstimate`), and Help to Buy is counted on it, stated as an estimate. `not_given`: neither, so Help to Buy is shown as what it could be and not counted.
+                     * @enum {string}
+                     */
+                    taxPaidBasis?: "given" | "estimated" | "not_given";
+                    /** @description A rough figure for the Income Tax paid over the four tax years before an application, from the gross income given: the same income each year, each applicant taxed singly as a PAYE employee with the personal and Employee credits, no pension, rent or other reliefs, no DIRT. Present it as about: the exact figure is on each year’s Statement of Liability in myAccount. */
+                    taxPaidEstimate?: {
+                        /** @description Income Tax over the four years, the figure Help to Buy is capped at. */
+                        totalEur: number;
+                        /** @description The year the application is taken as made in. */
+                        applicationYear: number;
+                        /** @description One entry per tax year, oldest first. */
+                        years: {
+                            year: number;
+                            /** @description The year of Revenue’s chart used; differs when the year is not on it. */
+                            chartYear: number;
+                            /** @description Income Tax for the year, every applicant together. */
+                            taxEur: number;
+                        }[];
+                        /** @description The gross income a year each applicant is taxed on. */
+                        incomesEur: number[];
+                        /** @description One sentence: the figure, the years and what it was estimated from. */
+                        line: string;
+                        /** @description Where the exact figure is, and that a figure given replaces this. */
+                        check: string;
+                        /** @description Each assumption behind the figure, stated and correctable. */
+                        assumptions: string[];
+                        sources: {
+                            fact: string;
+                            url: string;
+                            /** @description YYYY-MM-DD the page was read. */
+                            checkedOn: string;
+                        }[];
+                    } | null;
                     note: string;
                     sourceUrl: string;
                     checkedOn: string;
@@ -14242,7 +14465,7 @@ export interface components {
              * @enum {string}
              */
             propertyKind?: "new_build" | "self_build" | "second_hand";
-            /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. */
+            /** @description Income Tax and DIRT paid over the last four tax years (not USC or PRSI): the most Help to Buy can be. Absent: estimated from the gross income, and Help to Buy is counted on the estimate, stated as one. */
             taxPaidLastFourYearsEur?: number;
             /** @description For a house deposit: true when two people are buying (the gross income is then joint). Changes no figure; questions are worded for both. */
             buyingTogether?: boolean;

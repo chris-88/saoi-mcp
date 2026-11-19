@@ -24,7 +24,7 @@ import { NO_TELEMETRY, type CallTelemetry } from '../telemetry.js'
  * keep every earlier address served (`HOME_CALCULATOR_PREVIOUS_URIS`): ChatGPT keeps a connector's
  * tool list until the customer refreshes it, and asked for v8 all afternoon on 2026-11-12.
  */
-export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v11.html'
+export const HOME_CALCULATOR_URI = 'ui://saoi/home-calculator-v12.html'
 /**
  * Earlier addresses of the same card, still served (2026-11-12): a host that cached the tool
  * list when the card was v8, v9 or v10 (ChatGPT keeps a connector's list until it is refreshed) asks
@@ -34,6 +34,7 @@ export const HOME_CALCULATOR_PREVIOUS_URIS = [
   'ui://saoi/home-calculator-v8.html',
   'ui://saoi/home-calculator-v9.html',
   'ui://saoi/home-calculator-v10.html',
+  'ui://saoi/home-calculator-v11.html',
 ] as const
 
 export const HOME_CALCULATOR_TOOL_META = {
